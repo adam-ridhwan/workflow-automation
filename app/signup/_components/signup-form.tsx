@@ -15,7 +15,7 @@ import { cn } from '@/lib/cn';
 import {
   PASSWORD_REQUIREMENTS,
   validatePassword,
-} from '@/lib/passwordValidation';
+} from '@/lib/validate-password';
 import { useAuthActions } from '@convex-dev/auth/react';
 import { SiApple, SiGoogle, SiMeta } from '@icons-pack/react-simple-icons';
 import { ConvexError } from 'convex/values';

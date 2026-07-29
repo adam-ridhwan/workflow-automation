@@ -5,7 +5,7 @@ import { ConvexError } from 'convex/values';
 import {
   PASSWORD_REQUIREMENTS,
   validatePassword,
-} from '../lib/passwordValidation';
+} from '../lib/validate-password';
 
 import type { DataModel } from './_generated/dataModel';
 
@@ -14,9 +14,12 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
     Password<DataModel>({
       profile(params) {
         const name = typeof params.name === 'string' ? params.name.trim() : '';
+        if (params.flow === 'signUp' && !name) {
+          throw new ConvexError('Name is required.');
+        }
         return {
           email: params.email as string,
-          ...(name ? { name } : {}),
+          name,
         };
       },
       validatePasswordRequirements(password: string) {

@@ -10,9 +10,9 @@ export const currentUser = query({
     v.object({
       _id: v.id('users'),
       _creationTime: v.number(),
-      name: v.optional(v.string()),
+      name: v.string(),
       image: v.optional(v.string()),
-      email: v.optional(v.string()),
+      email: v.string(),
       emailVerificationTime: v.optional(v.number()),
       phone: v.optional(v.string()),
       phoneVerificationTime: v.optional(v.number()),
