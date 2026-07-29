@@ -16,7 +16,6 @@ export const currentUser = query({
       emailVerificationTime: v.optional(v.number()),
       phone: v.optional(v.string()),
       phoneVerificationTime: v.optional(v.number()),
-      isAnonymous: v.optional(v.boolean()),
     })
   ),
   handler: async (ctx) => {
