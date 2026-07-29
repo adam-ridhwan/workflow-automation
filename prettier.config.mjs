@@ -1,0 +1,35 @@
+const config = {
+  printWidth: 80,
+  tabWidth: 2,
+  useTabs: false,
+  semi: true,
+  singleQuote: true,
+  jsxSingleQuote: true,
+  trailingComma: 'es5',
+  bracketSpacing: true,
+  arrowParens: 'always',
+  importOrder: [
+    '^react.*',
+    '<BUILTIN_MODULES>',
+    '<THIRD_PARTY_MODULES>',
+    '',
+    '^(?!.*\\.(scss|sass|css)$)[./].*',
+    '',
+    '<TYPES>',
+    '',
+    '^.+\\.css',
+    '^.+\\.scss',
+  ],
+  importOrderSafeSideEffects: ['^.+\\.css'],
+  importOrderParserPlugins: ['typescript', 'jsx', 'decorators-legacy'],
+  customFunctions: ['cn', 'clsx', 'cva'],
+  endingPosition: 'absolute',
+  plugins: [
+    '@ianvs/prettier-plugin-sort-imports',
+    'prettier-plugin-tailwindcss',
+    'prettier-plugin-classnames',
+    'prettier-plugin-merge',
+  ],
+};
+
+export default config;
