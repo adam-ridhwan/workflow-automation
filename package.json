@@ -13,8 +13,11 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
+    "@convex-dev/auth": "^0.0.94",
+    "@icons-pack/react-simple-icons": "^13.13.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "convex": "^1.42.3",
     "lucide-react": "^1.27.0",
     "next": "16.2.12",
     "react": "19.2.4",
