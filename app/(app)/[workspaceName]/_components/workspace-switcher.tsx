@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,22 +17,22 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { ChevronsUpDownIcon, PlusIcon } from 'lucide-react';
+import { useParams, useRouter } from 'next/navigation';
 
-import type { Id } from '@/convex/_generated/dataModel';
+import type { Workspace } from '@/convex/workspaces';
 
 type WorkspaceSwitcherProps = {
-  workspaces: {
-    _id: Id<'workspaces'>;
-    name: string;
-  }[];
+  workspaces: Workspace[];
 };
 
 export function WorkspaceSwitcher({ workspaces }: WorkspaceSwitcherProps) {
   const { isMobile } = useSidebar();
-  const [selectedId, setSelectedId] = useState<Id<'workspaces'> | null>(null);
+  const router = useRouter();
+  const params = useParams<{ workspaceName: string }>();
+  const currentName = decodeURIComponent(params.workspaceName);
 
   const activeWorkspace =
-    workspaces.find((workspace) => workspace._id === selectedId) ??
+    workspaces.find((workspace) => workspace.name === currentName) ??
     workspaces[0];
   if (!activeWorkspace) {
     return null;
@@ -78,7 +77,9 @@ export function WorkspaceSwitcher({ workspaces }: WorkspaceSwitcherProps) {
               {workspaces.map((workspace, index) => (
                 <DropdownMenuItem
                   key={workspace._id}
-                  onClick={() => setSelectedId(workspace._id)}
+                  onClick={() => {
+                    router.push(`/${encodeURIComponent(workspace.name)}`);
+                  }}
                   className='gap-2 p-2'
                 >
                   <div

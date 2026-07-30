@@ -43,7 +43,7 @@ export function LoginForm({
 
     try {
       await signIn('password', formData);
-      router.push('/overview');
+      router.push('/');
     } catch (err) {
       if (err instanceof ConvexError && typeof err.data === 'string') {
         setError(err.data);

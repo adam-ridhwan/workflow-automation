@@ -1,3 +1,3 @@
 export default function OverviewPage() {
-  return null;
+  return <span>overview page</span>;
 }

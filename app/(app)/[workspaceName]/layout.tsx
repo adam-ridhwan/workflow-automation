@@ -1,5 +1,3 @@
-import { AppSidebar } from '@/app/(app)/_components/app-sidebar';
-import { PendingWorkspaceCreator } from '@/app/(app)/_components/pending-workspace-creator';
 import { Separator } from '@/components/ui/separator';
 import {
   SidebarInset,
@@ -7,17 +5,40 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { api } from '@/convex/_generated/api';
+import { convexAuthNextjsToken } from '@convex-dev/auth/nextjs/server';
+import { fetchQuery } from 'convex/nextjs';
+import { redirect } from 'next/navigation';
 
-type AppLayoutProps = Readonly<{
+import { AppSidebar } from './_components/app-sidebar';
+
+type WorkspaceLayoutProps = Readonly<{
   children: React.ReactNode;
+  params: Promise<{ workspaceName: string }>;
 }>;
 
-export default function AppLayout({ children }: AppLayoutProps) {
+export default async function WorkspaceLayout({
+  children,
+  params,
+}: WorkspaceLayoutProps) {
+  const { workspaceName } = await params;
+  const decodedWorkspaceName = decodeURIComponent(workspaceName);
+
+  const token = await convexAuthNextjsToken();
+  const workspace = await fetchQuery(
+    api.workspaces.getByName,
+    { name: decodedWorkspaceName },
+    { token }
+  );
+
+  if (workspace === null) {
+    redirect('/');
+  }
+
   return (
     <TooltipProvider>
       <SidebarProvider>
-        <PendingWorkspaceCreator />
-        <AppSidebar />
+        <AppSidebar workspaceName={workspaceName} />
 
         <SidebarInset>
           <header

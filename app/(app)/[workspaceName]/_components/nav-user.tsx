@@ -47,6 +47,7 @@ export function NavUser({ user }: NavUserProps) {
       .join('')
       .slice(0, 2)
       .toUpperCase() || '?';
+
   return (
     <SidebarMenu>
       <SidebarMenuItem>

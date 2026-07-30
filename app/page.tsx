@@ -1,49 +1,27 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { useEffect } from 'react';
 import { api } from '@/convex/_generated/api';
-import { useAuthActions } from '@convex-dev/auth/react';
 import { useQuery } from 'convex/react';
 import { useRouter } from 'next/navigation';
 
+// Routes the signed-in user to their first workspace, or to workspace
+// creation if they don't have one yet.
 export default function Home() {
-  const user = useQuery(api.users.currentUser);
-  const { signOut } = useAuthActions();
+  const workspaces = useQuery(api.workspaces.list);
   const router = useRouter();
 
-  return (
-    <main className='flex flex-1 items-center justify-center p-6'>
-      <Card className='w-full max-w-sm'>
-        <CardHeader>
-          <CardTitle>AI Workflow Builder</CardTitle>
-          <CardDescription>
-            {user === undefined
-              ? 'Loading…'
-              : user === null
-                ? 'Not signed in.'
-                : `Signed in as ${user.name ?? user.email ?? user._id}${
-                    user.name && user.email ? ` (${user.email})` : ''
-                  }`}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button
-            variant='outline'
-            onClick={() => {
-              void signOut().then(() => router.push('/signin'));
-            }}
-          >
-            Sign out
-          </Button>
-        </CardContent>
-      </Card>
-    </main>
-  );
+  useEffect(() => {
+    if (workspaces === undefined) {
+      return;
+    }
+    const first = workspaces[0];
+    if (first) {
+      router.replace(`/${encodeURIComponent(first.name)}`);
+    } else {
+      router.replace('/create-workspace');
+    }
+  }, [workspaces, router]);
+
+  return null;
 }

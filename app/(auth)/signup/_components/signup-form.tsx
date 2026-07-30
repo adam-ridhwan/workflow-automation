@@ -12,7 +12,6 @@ import {
 } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/cn';
-import { PENDING_WORKSPACE_KEY } from '@/lib/pending-workspace';
 import {
   PASSWORD_REQUIREMENTS,
   validatePassword,
@@ -41,7 +40,6 @@ export function SignupForm({
     const formData = new FormData(event.currentTarget);
     const password = String(formData.get('password') ?? '');
     const confirmPassword = String(formData.get('confirm-password') ?? '');
-    const workspaceName = String(formData.get('workspace') ?? '').trim();
 
     if (!validatePassword(password)) {
       setPasswordError(PASSWORD_REQUIREMENTS);
@@ -54,18 +52,12 @@ export function SignupForm({
 
     formData.set('flow', 'signUp');
     formData.delete('confirm-password');
-    formData.delete('workspace');
 
     setSubmitting(true);
-    // Stash the workspace name before signing in: the auth redirect can
-    // unmount this form, so PendingWorkspaceCreator in the app layout
-    // performs the actual creation once the session is established.
-    sessionStorage.setItem(PENDING_WORKSPACE_KEY, workspaceName);
     try {
       await signIn('password', formData);
-      router.push('/overview');
+      router.push('/create-workspace');
     } catch (err) {
-      sessionStorage.removeItem(PENDING_WORKSPACE_KEY);
       if (err instanceof ConvexError && typeof err.data === 'string') {
         setError(err.data);
       } else {
@@ -99,20 +91,6 @@ export function SignupForm({
                   placeholder='Your name'
                   required
                 />
-              </Field>
-              <Field>
-                <FieldLabel htmlFor='workspace'>Workspace name</FieldLabel>
-                <Input
-                  id='workspace'
-                  name='workspace'
-                  type='text'
-                  placeholder='Acme Inc'
-                  required
-                />
-                <FieldDescription>
-                  Your workspace is where your workflows live. You can rename it
-                  later.
-                </FieldDescription>
               </Field>
               <Field>
                 <FieldLabel htmlFor='email'>Email</FieldLabel>
