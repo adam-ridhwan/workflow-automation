@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,7 +8,6 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
@@ -18,6 +18,8 @@ import {
 } from '@/components/ui/sidebar';
 import { ChevronsUpDownIcon, PlusIcon } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
+
+import { CreateWorkspaceDialog } from './create-workspace-dialog';
 
 import type { Workspace } from '@/convex/workspaces';
 
@@ -30,6 +32,7 @@ export function WorkspaceSwitcher({ workspaces }: WorkspaceSwitcherProps) {
   const router = useRouter();
   const params = useParams<{ workspaceName: string }>();
   const currentName = decodeURIComponent(params.workspaceName);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   const activeWorkspace =
     workspaces.find((workspace) => workspace.name === currentName) ??
@@ -74,7 +77,7 @@ export function WorkspaceSwitcher({ workspaces }: WorkspaceSwitcherProps) {
               <DropdownMenuLabel className='text-muted-foreground text-xs'>
                 Workspaces
               </DropdownMenuLabel>
-              {workspaces.map((workspace, index) => (
+              {workspaces.map((workspace) => (
                 <DropdownMenuItem
                   key={workspace._id}
                   onClick={() => {
@@ -89,13 +92,17 @@ export function WorkspaceSwitcher({ workspaces }: WorkspaceSwitcherProps) {
                     {workspace.name.charAt(0).toUpperCase()}
                   </div>
                   {workspace.name}
-                  <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>
                 </DropdownMenuItem>
               ))}
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem className='gap-2 p-2'>
+              <DropdownMenuItem
+                className='gap-2 p-2'
+                onClick={() => {
+                  setShowCreateDialog(true);
+                }}
+              >
                 <div
                   className='flex size-6 items-center justify-center rounded-md
                     border bg-transparent'
@@ -109,6 +116,11 @@ export function WorkspaceSwitcher({ workspaces }: WorkspaceSwitcherProps) {
             </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>
+
+        <CreateWorkspaceDialog
+          open={showCreateDialog}
+          onOpenChange={setShowCreateDialog}
+        />
       </SidebarMenuItem>
     </SidebarMenu>
   );
