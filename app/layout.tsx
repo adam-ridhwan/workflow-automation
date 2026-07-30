@@ -21,11 +21,11 @@ export const metadata: Metadata = {
   description: 'AI workflow builder',
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
+type RootLayoutProps = Readonly<{
   children: React.ReactNode;
-}>) {
+}>;
+
+export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <ConvexAuthNextjsServerProvider>
       <html
