@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,6 +16,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { cn } from '@/lib/cn';
 import { ChevronsUpDownIcon, PlusIcon } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 
@@ -72,28 +74,39 @@ export function WorkspaceSwitcher({ workspaces }: WorkspaceSwitcherProps) {
               <DropdownMenuLabel className='text-muted-foreground text-xs'>
                 Workspaces
               </DropdownMenuLabel>
-              {workspaces.map((workspace) => (
-                <DropdownMenuItem
-                  key={workspace._id}
-                  onClick={() => {
-                    router.push(`/${encodeURIComponent(workspace.name)}`);
-                  }}
-                  className='gap-2 p-2'
-                >
-                  <div
-                    className='flex size-6 items-center justify-center
-                      rounded-md border'
+              {workspaces.map((workspace) => {
+                const isActive = workspace._id === activeWorkspace._id;
+                return (
+                  <DropdownMenuItem
+                    key={workspace._id}
+                    onClick={() => {
+                      router.push(`/${encodeURIComponent(workspace.name)}`);
+                    }}
+                    className={cn('gap-2 p-2', isActive && 'bg-secondary')}
                   >
-                    {workspace.name.charAt(0).toUpperCase()}
-                  </div>
-                  {workspace.name}
-                </DropdownMenuItem>
-              ))}
+                    <div
+                      className={cn(
+                        `flex size-6 items-center justify-center rounded-md
+                        border`,
+                        isActive &&
+                          'bg-primary text-primary-foreground! border-primary'
+                      )}
+                    >
+                      {workspace.name.charAt(0).toUpperCase()}
+                    </div>
+                    {workspace.name}
+                  </DropdownMenuItem>
+                );
+              })}
             </DropdownMenuGroup>
+
             <DropdownMenuSeparator />
+
             <DropdownMenuGroup>
               <DropdownMenuItem
-                className='gap-2 p-2'
+                render={<Button type='button' variant='ghost' />}
+                nativeButton
+                className='w-full justify-start gap-2 p-2 font-normal'
                 onClick={() => {
                   setShowCreateDialog(true);
                 }}
@@ -104,6 +117,7 @@ export function WorkspaceSwitcher({ workspaces }: WorkspaceSwitcherProps) {
                 >
                   <PlusIcon className='size-4' />
                 </div>
+
                 <div className='text-muted-foreground font-medium'>
                   Add workspace
                 </div>
