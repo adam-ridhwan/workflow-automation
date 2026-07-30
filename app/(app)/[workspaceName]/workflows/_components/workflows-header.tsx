@@ -17,31 +17,12 @@ import {
   PlusIcon,
   SearchIcon,
 } from 'lucide-react';
-import { usePathname } from 'next/navigation';
 
-const SECTIONS = {
-  workflows: {
-    filterTitle: 'State',
-    filters: [
-      { value: 'all', label: 'All workflows' },
-      { value: 'live', label: 'Live' },
-      { value: 'draft', label: 'Draft' },
-    ],
-    searchPlaceholder: 'Search workflows',
-    primaryLabel: 'New workflow',
-  },
-  files: {
-    filterTitle: 'Status',
-    filters: [
-      { value: 'all', label: 'All files' },
-      { value: 'indexed', label: 'Indexed' },
-      { value: 'processing', label: 'Processing' },
-      { value: 'failed', label: 'Failed' },
-    ],
-    searchPlaceholder: 'Search files',
-    primaryLabel: 'Upload',
-  },
-} as const;
+const FILTERS = [
+  { value: 'all', label: 'All workflows' },
+  { value: 'live', label: 'Live' },
+  { value: 'draft', label: 'Draft' },
+];
 
 const SORTS = [
   { value: 'recent', label: 'Most recent', short: 'Recent' },
@@ -49,19 +30,9 @@ const SORTS = [
   { value: 'status', label: 'Status', short: 'Status' },
 ];
 
-export function SubHeader() {
-  const pathname = usePathname();
+export function WorkflowsHeader() {
   const [filter, setFilter] = useState('all');
   const [sort, setSort] = useState('recent');
-
-  const section = pathname.endsWith('/workflows')
-    ? SECTIONS.workflows
-    : pathname.endsWith('/files')
-      ? SECTIONS.files
-      : null;
-  if (!section) {
-    return null;
-  }
 
   const filterActive = filter !== 'all';
   const sortLabel = SORTS.find((s) => s.value === sort)?.short ?? 'Recent';
@@ -89,13 +60,13 @@ export function SubHeader() {
             )}
           </DropdownMenuTrigger>
           <DropdownMenuContent align='start' className='w-[184px]'>
-            <DropdownMenuLabel
-              className='text-muted-foreground text-[11.5px] font-normal'
-            >
-              {section.filterTitle}
-            </DropdownMenuLabel>
             <DropdownMenuRadioGroup value={filter} onValueChange={setFilter}>
-              {section.filters.map((option) => (
+              <DropdownMenuLabel
+                className='text-muted-foreground text-[11.5px] font-normal'
+              >
+                State
+              </DropdownMenuLabel>
+              {FILTERS.map((option) => (
                 <DropdownMenuRadioItem key={option.value} value={option.value}>
                   {option.label}
                 </DropdownMenuRadioItem>
@@ -112,12 +83,12 @@ export function SubHeader() {
             {sortLabel}
           </DropdownMenuTrigger>
           <DropdownMenuContent align='start' className='w-[184px]'>
-            <DropdownMenuLabel
-              className='text-muted-foreground text-[11.5px] font-normal'
-            >
-              Sort by
-            </DropdownMenuLabel>
             <DropdownMenuRadioGroup value={sort} onValueChange={setSort}>
+              <DropdownMenuLabel
+                className='text-muted-foreground text-[11.5px] font-normal'
+              >
+                Sort by
+              </DropdownMenuLabel>
               {SORTS.map((option) => (
                 <DropdownMenuRadioItem key={option.value} value={option.value}>
                   {option.label}
@@ -136,13 +107,13 @@ export function SubHeader() {
           />
           <Input
             type='search'
-            placeholder={section.searchPlaceholder}
+            placeholder='Search workflows'
             className='h-8 w-[216px] pl-8 text-[13px]'
           />
         </div>
         <Button size='sm' className='h-8'>
           <PlusIcon />
-          {section.primaryLabel}
+          New workflow
         </Button>
       </div>
     </div>

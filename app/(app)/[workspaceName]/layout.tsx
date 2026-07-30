@@ -7,7 +7,6 @@ import { redirect } from 'next/navigation';
 
 import { AppSidebar } from './_components/app-sidebar';
 import { SiteHeader } from './_components/site-header';
-import { SubHeader } from './_components/sub-header';
 
 type WorkspaceLayoutProps = Readonly<{
   children: React.ReactNode;
@@ -39,9 +38,7 @@ export default async function WorkspaceLayout({
 
         <SidebarInset>
           <SiteHeader />
-          <SubHeader />
-
-          <div className='flex flex-1 flex-col gap-4 p-4'>{children}</div>
+          {children}
         </SidebarInset>
       </SidebarProvider>
     </TooltipProvider>
