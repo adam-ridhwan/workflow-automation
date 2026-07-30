@@ -41,7 +41,7 @@ function DropdownMenuContent({
         <MenuPrimitive.Popup
           data-slot='dropdown-menu-content'
           className={cn(
-            `bg-popover text-popover-foreground ring-foreground/10
+            `menu-inverted bg-popover text-popover-foreground ring-foreground/10
             data-[side=bottom]:slide-in-from-top-2
             data-[side=inline-end]:slide-in-from-left-2
             data-[side=inline-start]:slide-in-from-right-2
@@ -52,8 +52,8 @@ function DropdownMenuContent({
             data-closed:fade-out-0 data-closed:zoom-out-95 z-50
             max-h-(--available-height) w-(--anchor-width) min-w-32
             origin-(--transform-origin) overflow-x-hidden overflow-y-auto
-            rounded-lg p-1 shadow-md ring-1 duration-100 outline-none
-            data-closed:overflow-hidden`,
+            rounded-lg p-1 shadow-md ring-1 backdrop-blur-xl duration-100
+            outline-none data-closed:overflow-hidden`,
             className
           )}
           {...props}

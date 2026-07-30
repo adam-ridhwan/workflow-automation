@@ -49,11 +49,11 @@ export function CollaboratorsMenu({
     <DropdownMenu>
       <DropdownMenuTrigger
         title='Collaborators'
-        render={<Button variant='ghost' className='h-9 px-2' />}
+        render={<Button variant='ghost' className='h-10 px-2' />}
       >
         <AvatarGroup>
           {visibleMembers.map((member) => (
-            <Avatar key={member.userId} size='sm' title={member.name}>
+            <Avatar key={member.userId} title={member.name}>
               <AvatarFallback className='text-[10px] font-semibold'>
                 {getInitials(member.name)}
               </AvatarFallback>
@@ -103,7 +103,7 @@ export function CollaboratorsMenu({
                 <TableRow key={member.userId}>
                   <TableCell className='px-3.5 py-2.5'>
                     <span className='flex min-w-0 items-center gap-2'>
-                      <Avatar size='sm'>
+                      <Avatar>
                         <AvatarFallback className='text-[10px] font-semibold'>
                           {getInitials(member.name)}
                         </AvatarFallback>
@@ -120,6 +120,7 @@ export function CollaboratorsMenu({
                       </span>
                     </span>
                   </TableCell>
+
                   <TableCell
                     className='text-muted-foreground px-3.5 text-[11.5px]
                       capitalize'
@@ -136,8 +137,8 @@ export function CollaboratorsMenu({
           onClick={() => {
             setShowAddDialog(true);
           }}
-          className='h-10 cursor-pointer gap-2 rounded-none px-3.5 text-[12.5px]
-            font-medium'
+          className='h-10 cursor-pointer gap-2 rounded-none border-t px-3.5
+            text-[12.5px] font-medium'
         >
           <PlusIcon className='size-3.5 shrink-0' />
           Add member
