@@ -37,7 +37,7 @@ export default async function WorkspaceLayout({
         <AppSidebar workspaceName={workspaceName} />
 
         <SidebarInset>
-          <SiteHeader />
+          <SiteHeader workspaceName={decodedWorkspaceName} />
           {children}
         </SidebarInset>
       </SidebarProvider>
