@@ -31,4 +31,12 @@ export default defineSchema({
     .index('workspaceId', ['workspaceId'])
     .index('userId', ['userId'])
     .index('workspaceUser', ['workspaceId', 'userId']),
+
+  workflows: defineTable({
+    workspaceId: v.id('workspaces'),
+    name: v.string(),
+    description: v.optional(v.string()),
+    isPublished: v.boolean(),
+    createdBy: v.id('users'),
+  }).index('workspaceId', ['workspaceId']),
 });

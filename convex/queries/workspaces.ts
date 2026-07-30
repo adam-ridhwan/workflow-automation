@@ -8,17 +8,22 @@ import { ConvexError, Infer, v } from 'convex/values';
 
 import { mutation, query } from '../_generated/server';
 
-import type { Id } from '../_generated/dataModel';
+import type { Doc, Id } from '../_generated/dataModel';
 import type { MutationCtx, QueryCtx } from '../_generated/server';
 
 const workspaceValidator = v.object({
   _id: v.id('workspaces'),
-  _creationTime: v.number(),
+  createdAt: v.number(),
   name: v.string(),
   adminId: v.id('users'),
 });
 
 export type Workspace = Infer<typeof workspaceValidator>;
+
+function toWorkspace(doc: Doc<'workspaces'>): Workspace {
+  const { _creationTime, ...fields } = doc;
+  return { ...fields, createdAt: _creationTime };
+}
 
 async function requireUserId(ctx: QueryCtx | MutationCtx) {
   const userId = await getAuthUserId(ctx);
@@ -114,7 +119,7 @@ export const getByName = query({
     if (membership === null) {
       return null;
     }
-    return workspace;
+    return toWorkspace(workspace);
   },
 });
 
@@ -133,7 +138,9 @@ export const list = query({
     const workspaces = await Promise.all(
       memberships.map((membership) => ctx.db.get(membership.workspaceId))
     );
-    return workspaces.filter((workspace) => workspace !== null);
+    return workspaces
+      .filter((workspace) => workspace !== null)
+      .map(toWorkspace);
   },
 });
 

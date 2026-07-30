@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -17,11 +17,19 @@ import {
   PlusIcon,
   SearchIcon,
 } from 'lucide-react';
+import {
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from 'next/navigation';
+
+import { NewWorkflowDialog } from './new-workflow-dialog';
 
 const FILTERS = [
   { value: 'all', label: 'All workflows' },
   { value: 'live', label: 'Live' },
-  { value: 'draft', label: 'Draft' },
+  { value: 'canvas', label: 'Canvas' },
 ];
 
 const SORTS = [
@@ -31,8 +39,30 @@ const SORTS = [
 ];
 
 export function WorkflowsHeader() {
-  const [filter, setFilter] = useState('all');
-  const [sort, setSort] = useState('recent');
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const params = useParams<{ workspaceName: string }>();
+  const workspaceName = decodeURIComponent(params.workspaceName);
+  const [showNewDialog, setShowNewDialog] = useState(false);
+  const searchDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Frozen at mount so the uncontrolled input's default doesn't change when
+  // the debounced search updates the URL.
+  const [initialQuery] = useState(() => searchParams.get('q') ?? '');
+
+  const filter = searchParams.get('state') ?? 'all';
+  const sort = searchParams.get('sort') ?? 'recent';
+
+  function setParam(key: string, value: string, defaultValue: string) {
+    const next = new URLSearchParams(searchParams);
+    if (value === defaultValue) {
+      next.delete(key);
+    } else {
+      next.set(key, value);
+    }
+    const query = next.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname);
+  }
 
   const filterActive = filter !== 'all';
   const sortLabel = SORTS.find((s) => s.value === sort)?.short ?? 'Recent';
@@ -60,7 +90,10 @@ export function WorkflowsHeader() {
             )}
           </DropdownMenuTrigger>
           <DropdownMenuContent align='start' className='w-[184px]'>
-            <DropdownMenuRadioGroup value={filter} onValueChange={setFilter}>
+            <DropdownMenuRadioGroup
+              value={filter}
+              onValueChange={(value) => setParam('state', value, 'all')}
+            >
               <DropdownMenuLabel
                 className='text-muted-foreground text-[11.5px] font-normal'
               >
@@ -83,7 +116,10 @@ export function WorkflowsHeader() {
             {sortLabel}
           </DropdownMenuTrigger>
           <DropdownMenuContent align='start' className='w-[184px]'>
-            <DropdownMenuRadioGroup value={sort} onValueChange={setSort}>
+            <DropdownMenuRadioGroup
+              value={sort}
+              onValueChange={(value) => setParam('sort', value, 'recent')}
+            >
               <DropdownMenuLabel
                 className='text-muted-foreground text-[11.5px] font-normal'
               >
@@ -108,14 +144,36 @@ export function WorkflowsHeader() {
           <Input
             type='search'
             placeholder='Search workflows'
+            defaultValue={initialQuery}
+            onChange={(event) => {
+              const value = event.target.value.trim();
+              if (searchDebounce.current) {
+                clearTimeout(searchDebounce.current);
+              }
+              searchDebounce.current = setTimeout(() => {
+                setParam('q', value, '');
+              }, 300);
+            }}
             className='h-8 w-[216px] pl-8 text-[13px]'
           />
         </div>
-        <Button size='sm' className='h-8'>
+        <Button
+          size='sm'
+          className='h-8'
+          onClick={() => {
+            setShowNewDialog(true);
+          }}
+        >
           <PlusIcon />
           New workflow
         </Button>
       </div>
+
+      <NewWorkflowDialog
+        workspaceName={workspaceName}
+        open={showNewDialog}
+        onOpenChange={setShowNewDialog}
+      />
     </div>
   );
 }
