@@ -67,7 +67,7 @@ export function CollaboratorsMenu({
         </AvatarGroup>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align='end' sideOffset={8} className='w-[340px] p-0'>
+      <DropdownMenuContent align='end' sideOffset={8} className='w-85 p-0'>
         <div
           className='flex items-center justify-between gap-2 px-3.5 pt-3 pb-2.5'
         >
@@ -79,18 +79,18 @@ export function CollaboratorsMenu({
           </span>
         </div>
 
-        <div className='max-h-[236px] overflow-y-auto border-t'>
+        <div className='max-h-59 overflow-y-auto border-t'>
           <Table>
             <TableHeader>
               <TableRow className='hover:bg-transparent'>
                 <TableHead
-                  className='text-muted-foreground h-[30px] px-3.5 text-[10.5px]
+                  className='text-muted-foreground h-7.5 px-3.5 text-[10.5px]
                     font-medium tracking-wider uppercase'
                 >
                   Member
                 </TableHead>
                 <TableHead
-                  className='text-muted-foreground h-[30px] w-[90px] px-3.5
+                  className='text-muted-foreground h-7.5 w-22.5 px-3.5
                     text-[10.5px] font-medium tracking-wider uppercase'
                 >
                   Role

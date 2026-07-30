@@ -40,8 +40,8 @@ export function FilesHeader() {
 
   return (
     <div
-      className='bg-background flex h-[52px] shrink-0 items-center
-        justify-between gap-3 border-b px-5'
+      className='bg-background flex h-13 shrink-0 items-center justify-between
+        gap-3 border-b px-5'
     >
       <div className='flex min-w-0 items-center gap-2'>
         <DropdownMenu>
@@ -52,15 +52,14 @@ export function FilesHeader() {
             Filter
             {filterActive && (
               <span
-                className='bg-primary text-primary-foreground inline-flex
-                  h-[17px] items-center rounded-full px-1.5 text-[10.5px]
-                  font-semibold'
+                className='bg-primary text-primary-foreground inline-flex h-4.25
+                  items-center rounded-full px-1.5 text-[10.5px] font-semibold'
               >
                 1
               </span>
             )}
           </DropdownMenuTrigger>
-          <DropdownMenuContent align='start' className='w-[184px]'>
+          <DropdownMenuContent align='start' className='w-46'>
             <DropdownMenuRadioGroup value={filter} onValueChange={setFilter}>
               <DropdownMenuLabel
                 className='text-muted-foreground text-[11.5px] font-normal'
@@ -83,7 +82,7 @@ export function FilesHeader() {
             <ArrowUpDownIcon />
             {sortLabel}
           </DropdownMenuTrigger>
-          <DropdownMenuContent align='start' className='w-[184px]'>
+          <DropdownMenuContent align='start' className='w-46'>
             <DropdownMenuRadioGroup value={sort} onValueChange={setSort}>
               <DropdownMenuLabel
                 className='text-muted-foreground text-[11.5px] font-normal'
@@ -109,7 +108,7 @@ export function FilesHeader() {
           <Input
             type='search'
             placeholder='Search files'
-            className='h-8 w-[216px] pl-8 text-[13px]'
+            className='h-8 w-54 pl-8 text-[13px]'
           />
         </div>
         <Button size='sm' className='h-8'>

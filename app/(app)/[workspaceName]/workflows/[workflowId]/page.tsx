@@ -39,8 +39,8 @@ export default async function WorkflowPage({ params }: WorkflowPageProps) {
   return (
     <div className='flex flex-1 flex-col'>
       <div
-        className='bg-background flex h-[52px] shrink-0 items-center gap-3
-          border-b px-5'
+        className='bg-background flex h-13 shrink-0 items-center gap-3 border-b
+          px-5'
       >
         <Link
           href={`/${encodeURIComponent(decodedWorkspaceName)}/workflows`}
@@ -62,7 +62,7 @@ export default async function WorkflowPage({ params }: WorkflowPageProps) {
               : 'bg-muted text-muted-foreground'
           )}
         >
-          <span className='size-[5px] rounded-full bg-current' />
+          <span className='size-1.25 rounded-full bg-current' />
           <span>{workflow.isPublished ? 'Live' : 'Unpublished'}</span>
         </span>
       </div>

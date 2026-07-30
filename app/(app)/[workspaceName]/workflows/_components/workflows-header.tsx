@@ -69,8 +69,8 @@ export function WorkflowsHeader() {
 
   return (
     <div
-      className='bg-background flex h-[52px] shrink-0 items-center
-        justify-between gap-3 border-b px-5'
+      className='bg-background flex h-13 shrink-0 items-center justify-between
+        gap-3 border-b px-5'
     >
       <div className='flex min-w-0 items-center gap-2'>
         <DropdownMenu>
@@ -81,15 +81,14 @@ export function WorkflowsHeader() {
             Filter
             {filterActive && (
               <span
-                className='bg-primary text-primary-foreground inline-flex
-                  h-[17px] items-center rounded-full px-1.5 text-[10.5px]
-                  font-semibold'
+                className='bg-primary text-primary-foreground inline-flex h-4.25
+                  items-center rounded-full px-1.5 text-[10.5px] font-semibold'
               >
                 1
               </span>
             )}
           </DropdownMenuTrigger>
-          <DropdownMenuContent align='start' className='w-[184px]'>
+          <DropdownMenuContent align='start' className='w-46'>
             <DropdownMenuRadioGroup
               value={filter}
               onValueChange={(value) => setParam('state', value, 'all')}
@@ -115,7 +114,7 @@ export function WorkflowsHeader() {
             <ArrowUpDownIcon />
             {sortLabel}
           </DropdownMenuTrigger>
-          <DropdownMenuContent align='start' className='w-[184px]'>
+          <DropdownMenuContent align='start' className='w-46'>
             <DropdownMenuRadioGroup
               value={sort}
               onValueChange={(value) => setParam('sort', value, 'recent')}
@@ -154,7 +153,7 @@ export function WorkflowsHeader() {
                 setParam('q', value, '');
               }, 300);
             }}
-            className='h-8 w-[216px] pl-8 text-[13px]'
+            className='h-8 w-54 pl-8 text-[13px]'
           />
         </div>
         <Button

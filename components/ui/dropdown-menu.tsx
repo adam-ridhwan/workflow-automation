@@ -178,7 +178,7 @@ function DropdownMenuSubContent({
         data-[side=right]:slide-in-from-left-2
         data-[side=top]:slide-in-from-bottom-2 data-open:animate-in
         data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out
-        data-closed:fade-out-0 data-closed:zoom-out-95 w-auto min-w-[96px]
+        data-closed:fade-out-0 data-closed:zoom-out-95 w-auto min-w-24
         rounded-lg p-1 shadow-lg ring-1 duration-100`,
         className
       )}

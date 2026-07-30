@@ -25,7 +25,7 @@ function StatusBadge({ isPublished }: { isPublished: boolean }) {
           : 'bg-muted text-muted-foreground'
       )}
     >
-      <span className='size-[5px] rounded-full bg-current' />
+      <span className='size-1.25 rounded-full bg-current' />
       <span>{isPublished ? 'Live' : 'Canvas'}</span>
     </span>
   );
@@ -129,7 +129,7 @@ export function WorkflowsTable({
         </TableBody>
       </Table>
       <div
-        className='text-muted-foreground mt-auto flex h-[42px] items-center
+        className='text-muted-foreground mt-auto flex h-10.5 items-center
           justify-between border-t px-4 text-[11.5px]'
       >
         <span>
