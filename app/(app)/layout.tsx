@@ -1,4 +1,5 @@
 import { AppSidebar } from '@/app/(app)/_components/app-sidebar';
+import { PendingWorkspaceCreator } from '@/app/(app)/_components/pending-workspace-creator';
 import { Separator } from '@/components/ui/separator';
 import {
   SidebarInset,
@@ -15,6 +16,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
   return (
     <TooltipProvider>
       <SidebarProvider>
+        <PendingWorkspaceCreator />
         <AppSidebar />
 
         <SidebarInset>

@@ -14,7 +14,7 @@ const isProtectedRoute = createRouteMatcher([
 
 export default convexAuthNextjsMiddleware(async (request, { convexAuth }) => {
   if (isAuthPage(request) && (await convexAuth.isAuthenticated())) {
-    return nextjsMiddlewareRedirect(request, '/');
+    return nextjsMiddlewareRedirect(request, '/overview');
   }
   if (isProtectedRoute(request) && !(await convexAuth.isAuthenticated())) {
     return nextjsMiddlewareRedirect(request, '/signin');

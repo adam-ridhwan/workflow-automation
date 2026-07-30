@@ -19,20 +19,26 @@ import {
 } from '@/components/ui/sidebar';
 import { ChevronsUpDownIcon, PlusIcon } from 'lucide-react';
 
+import type { Id } from '@/convex/_generated/dataModel';
+
 type WorkspaceSwitcherProps = {
   workspaces: {
+    _id: Id<'workspaces'>;
     name: string;
-    logo: React.ReactNode;
-    plan: string;
   }[];
 };
 
 export function WorkspaceSwitcher({ workspaces }: WorkspaceSwitcherProps) {
   const { isMobile } = useSidebar();
-  const [activeWorkspace, setActiveWorkspace] = useState(workspaces[0]);
+  const [selectedId, setSelectedId] = useState<Id<'workspaces'> | null>(null);
+
+  const activeWorkspace =
+    workspaces.find((workspace) => workspace._id === selectedId) ??
+    workspaces[0];
   if (!activeWorkspace) {
     return null;
   }
+
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -50,13 +56,12 @@ export function WorkspaceSwitcher({ workspaces }: WorkspaceSwitcherProps) {
               className='bg-sidebar-primary text-sidebar-primary-foreground flex
                 aspect-square size-8 items-center justify-center rounded-lg'
             >
-              {activeWorkspace.logo}
+              {activeWorkspace.name.charAt(0).toUpperCase()}
             </div>
             <div className='grid flex-1 text-left text-sm leading-tight'>
               <span className='truncate font-medium'>
                 {activeWorkspace.name}
               </span>
-              <span className='truncate text-xs'>{activeWorkspace.plan}</span>
             </div>
             <ChevronsUpDownIcon className='ml-auto' />
           </DropdownMenuTrigger>
@@ -72,15 +77,15 @@ export function WorkspaceSwitcher({ workspaces }: WorkspaceSwitcherProps) {
               </DropdownMenuLabel>
               {workspaces.map((workspace, index) => (
                 <DropdownMenuItem
-                  key={workspace.name}
-                  onClick={() => setActiveWorkspace(workspace)}
+                  key={workspace._id}
+                  onClick={() => setSelectedId(workspace._id)}
                   className='gap-2 p-2'
                 >
                   <div
                     className='flex size-6 items-center justify-center
                       rounded-md border'
                   >
-                    {workspace.logo}
+                    {workspace.name.charAt(0).toUpperCase()}
                   </div>
                   {workspace.name}
                   <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>

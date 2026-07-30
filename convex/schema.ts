@@ -4,6 +4,7 @@ import { v } from 'convex/values';
 
 export default defineSchema({
   ...authTables,
+
   users: defineTable({
     name: v.string(),
     image: v.optional(v.string()),
@@ -14,4 +15,9 @@ export default defineSchema({
   })
     .index('email', ['email'])
     .index('phone', ['phone']),
+
+  workspaces: defineTable({
+    name: v.string(),
+    ownerId: v.id('users'),
+  }).index('by_owner', ['ownerId']),
 });
