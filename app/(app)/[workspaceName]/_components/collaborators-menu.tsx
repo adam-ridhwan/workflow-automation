@@ -51,7 +51,6 @@ export function CollaboratorsMenu({
             {getInitials(member.name)}
           </span>
         ))}
-        <ChevronDownIcon className='text-muted-foreground ml-1.5 size-3.5' />
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align='end' sideOffset={8} className='w-[340px] p-0'>
@@ -65,6 +64,7 @@ export function CollaboratorsMenu({
             {members.length} {members.length === 1 ? 'person' : 'people'}
           </span>
         </div>
+
         <div className='max-h-[236px] overflow-y-auto border-t'>
           <Table>
             <TableHeader>
@@ -83,6 +83,7 @@ export function CollaboratorsMenu({
                 </TableHead>
               </TableRow>
             </TableHeader>
+
             <TableBody>
               {members.map((member) => (
                 <TableRow key={member.userId}>
