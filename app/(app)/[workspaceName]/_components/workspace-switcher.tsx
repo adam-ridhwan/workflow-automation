@@ -14,7 +14,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar,
 } from '@/components/ui/sidebar';
 import { ChevronsUpDownIcon, PlusIcon } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
@@ -28,7 +27,6 @@ type WorkspaceSwitcherProps = {
 };
 
 export function WorkspaceSwitcher({ workspaces }: WorkspaceSwitcherProps) {
-  const { isMobile } = useSidebar();
   const router = useRouter();
   const params = useParams<{ workspaceName: string }>();
   const currentName = decodeURIComponent(params.workspaceName);
@@ -68,12 +66,8 @@ export function WorkspaceSwitcher({ workspaces }: WorkspaceSwitcherProps) {
             </div>
             <ChevronsUpDownIcon className='ml-auto' />
           </DropdownMenuTrigger>
-          <DropdownMenuContent
-            className='w-fit'
-            align='start'
-            side={isMobile ? 'bottom' : 'right'}
-            sideOffset={4}
-          >
+
+          <DropdownMenuContent align='start' side='bottom' sideOffset={8}>
             <DropdownMenuGroup>
               <DropdownMenuLabel className='text-muted-foreground text-xs'>
                 Workspaces
