@@ -37,6 +37,7 @@ export function WorkspaceSwitcher({ workspaces }: WorkspaceSwitcherProps) {
   const activeWorkspace =
     workspaces.find((workspace) => workspace.name === currentName) ??
     workspaces[0];
+
   if (!activeWorkspace) {
     return null;
   }
