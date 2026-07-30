@@ -184,3 +184,39 @@ export const members = query({
     return result;
   },
 });
+
+export const addMember = mutation({
+  args: { workspaceName: v.string(), email: v.string() },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const workspace = await ctx.db
+      .query('workspaces')
+      .withIndex('name', (q) => q.eq('name', args.workspaceName))
+      .unique();
+    if (workspace === null) {
+      throw new ConvexError('Workspace not found.');
+    }
+    await requireAdmin(ctx, workspace._id);
+
+    const email = args.email.trim();
+    const user = await ctx.db
+      .query('users')
+      .withIndex('email', (q) => q.eq('email', email))
+      .unique();
+    if (user === null) {
+      throw new ConvexError('No account found with this email.');
+    }
+
+    const existing = await getMembership(ctx, workspace._id, user._id);
+    if (existing !== null) {
+      throw new ConvexError('This user is already a member.');
+    }
+
+    await ctx.db.insert('workspaceMembers', {
+      workspaceId: workspace._id,
+      userId: user._id,
+      role: 'collaborator',
+    });
+    return null;
+  },
+});

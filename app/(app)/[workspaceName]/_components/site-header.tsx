@@ -38,7 +38,7 @@ export async function SiteHeader({ workspaceName }: SiteHeaderProps) {
         <SectionLabel />
       </div>
 
-      <CollaboratorsMenu members={members} />
+      <CollaboratorsMenu workspaceName={workspaceName} members={members} />
     </header>
   );
 }

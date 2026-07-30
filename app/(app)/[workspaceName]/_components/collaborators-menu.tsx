@@ -1,8 +1,10 @@
 'use client';
 
+import { useState } from 'react';
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
@@ -16,13 +18,21 @@ import {
 import { getInitials } from '@/lib/get-initials';
 import { ChevronDownIcon, PlusIcon } from 'lucide-react';
 
+import { AddMemberDialog } from './add-member-dialog';
+
 import type { WorkspaceMember } from '@/convex/workspaces';
 
 type CollaboratorsMenuProps = {
+  workspaceName: string;
   members: WorkspaceMember[];
 };
 
-export function CollaboratorsMenu({ members }: CollaboratorsMenuProps) {
+export function CollaboratorsMenu({
+  workspaceName,
+  members,
+}: CollaboratorsMenuProps) {
+  const [showAddDialog, setShowAddDialog] = useState(false);
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -108,15 +118,22 @@ export function CollaboratorsMenu({ members }: CollaboratorsMenuProps) {
             </TableBody>
           </Table>
         </div>
-        <button
-          type='button'
-          className='hover:bg-accent flex h-10 w-full items-center gap-2 px-3.5
-            text-left text-[12.5px] font-medium'
+        <DropdownMenuItem
+          onClick={() => {
+            setShowAddDialog(true);
+          }}
+          className='h-10 gap-2 rounded-none px-3.5 text-[12.5px] font-medium'
         >
           <PlusIcon className='size-3.5 shrink-0' />
-          Invite people
-        </button>
+          Add member
+        </DropdownMenuItem>
       </DropdownMenuContent>
+
+      <AddMemberDialog
+        workspaceName={workspaceName}
+        open={showAddDialog}
+        onOpenChange={setShowAddDialog}
+      />
     </DropdownMenu>
   );
 }
