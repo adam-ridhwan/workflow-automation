@@ -7,7 +7,12 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
@@ -23,8 +28,13 @@ import {
   ChevronsUpDownIcon,
   CreditCardIcon,
   LogOutIcon,
+  MonitorIcon,
+  MoonIcon,
   SparklesIcon,
+  SunIcon,
+  SunMoonIcon,
 } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';
 
 type NavUserProps = {
@@ -38,6 +48,7 @@ type NavUserProps = {
 export function NavUser({ user }: NavUserProps) {
   const { isMobile } = useSidebar();
   const { signOut } = useAuthActions();
+  const { theme, setTheme } = useTheme();
   const router = useRouter();
 
   const initials =
@@ -111,6 +122,33 @@ export function NavUser({ user }: NavUserProps) {
                 <BellIcon />
                 Notifications
               </DropdownMenuItem>
+            </DropdownMenuGroup>
+            <DropdownMenuGroup>
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  <SunMoonIcon />
+                  Theme
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                  <DropdownMenuRadioGroup
+                    value={theme}
+                    onValueChange={setTheme}
+                  >
+                    <DropdownMenuRadioItem value='light'>
+                      <SunIcon />
+                      Light
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value='dark'>
+                      <MoonIcon />
+                      Dark
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value='system'>
+                      <MonitorIcon />
+                      System
+                    </DropdownMenuRadioItem>
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem
