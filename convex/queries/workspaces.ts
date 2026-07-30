@@ -6,10 +6,10 @@ import {
 import { getAuthUserId } from '@convex-dev/auth/server';
 import { ConvexError, Infer, v } from 'convex/values';
 
-import { mutation, query } from './_generated/server';
+import { mutation, query } from '../_generated/server';
 
-import type { Id } from './_generated/dataModel';
-import type { MutationCtx, QueryCtx } from './_generated/server';
+import type { Id } from '../_generated/dataModel';
+import type { MutationCtx, QueryCtx } from '../_generated/server';
 
 const workspaceValidator = v.object({
   _id: v.id('workspaces'),

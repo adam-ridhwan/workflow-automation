@@ -21,6 +21,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
+import { getInitials } from '@/lib/get-initials';
 import { useAuthActions } from '@convex-dev/auth/react';
 import {
   BadgeCheckIcon,
@@ -51,13 +52,7 @@ export function NavUser({ user }: NavUserProps) {
   const { theme, setTheme } = useTheme();
   const router = useRouter();
 
-  const initials =
-    user.name
-      .split(' ')
-      .map((word) => word[0])
-      .join('')
-      .slice(0, 2)
-      .toUpperCase() || '?';
+  const initials = getInitials(user.name);
 
   return (
     <SidebarMenu>

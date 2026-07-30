@@ -24,8 +24,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 export function CreateWorkspaceForm() {
-  const createWorkspace = useMutation(api.workspaces.create);
-  const workspaces = useQuery(api.workspaces.list);
+  const createWorkspace = useMutation(api.queries.workspaces.create);
+  const workspaces = useQuery(api.queries.workspaces.list);
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);

@@ -28,7 +28,7 @@ export function AddMemberDialog({
   open,
   onOpenChange,
 }: AddMemberDialogProps) {
-  const addMember = useMutation(api.workspaces.addMember);
+  const addMember = useMutation(api.queries.workspaces.addMember);
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);

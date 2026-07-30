@@ -22,7 +22,7 @@ export default async function WorkspaceLayout({
 
   const token = await convexAuthNextjsToken();
   const workspace = await fetchQuery(
-    api.workspaces.getByName,
+    api.queries.workspaces.getByName,
     { name: decodedWorkspaceName },
     { token }
   );

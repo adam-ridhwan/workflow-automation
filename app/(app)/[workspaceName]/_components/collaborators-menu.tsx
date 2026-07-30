@@ -2,6 +2,13 @@
 
 import { useState } from 'react';
 import {
+  Avatar,
+  AvatarFallback,
+  AvatarGroup,
+  AvatarGroupCount,
+} from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -16,16 +23,18 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { getInitials } from '@/lib/get-initials';
-import { ChevronDownIcon, PlusIcon } from 'lucide-react';
+import { PlusIcon } from 'lucide-react';
 
 import { AddMemberDialog } from './add-member-dialog';
 
-import type { WorkspaceMember } from '@/convex/workspaces';
+import type { WorkspaceMember } from '@/convex/queries/workspaces';
 
 type CollaboratorsMenuProps = {
   workspaceName: string;
   members: WorkspaceMember[];
 };
+
+const MAX_VISIBLE_AVATARS = 4;
 
 export function CollaboratorsMenu({
   workspaceName,
@@ -33,24 +42,29 @@ export function CollaboratorsMenu({
 }: CollaboratorsMenuProps) {
   const [showAddDialog, setShowAddDialog] = useState(false);
 
+  const visibleMembers = members.slice(0, MAX_VISIBLE_AVATARS);
+  const overflowCount = members.length - visibleMembers.length;
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
         title='Collaborators'
-        className='hover:bg-accent data-open:bg-accent flex h-8 items-center
-          rounded-full pr-2 pl-3.5'
+        render={<Button variant='ghost' className='h-9 px-2' />}
       >
-        {members.map((member) => (
-          <span
-            key={member.userId}
-            title={member.name}
-            className='bg-muted border-background text-muted-foreground -ml-1.5
-              flex size-[26px] items-center justify-center rounded-full border-2
-              text-[10px] font-semibold'
-          >
-            {getInitials(member.name)}
-          </span>
-        ))}
+        <AvatarGroup>
+          {visibleMembers.map((member) => (
+            <Avatar key={member.userId} size='sm' title={member.name}>
+              <AvatarFallback className='text-[10px] font-semibold'>
+                {getInitials(member.name)}
+              </AvatarFallback>
+            </Avatar>
+          ))}
+          {overflowCount > 0 && (
+            <AvatarGroupCount className='size-6 text-[10px] font-semibold'>
+              +{overflowCount}
+            </AvatarGroupCount>
+          )}
+        </AvatarGroup>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align='end' sideOffset={8} className='w-[340px] p-0'>
@@ -89,13 +103,11 @@ export function CollaboratorsMenu({
                 <TableRow key={member.userId}>
                   <TableCell className='px-3.5 py-2.5'>
                     <span className='flex min-w-0 items-center gap-2'>
-                      <span
-                        className='bg-muted text-muted-foreground flex
-                          size-[26px] shrink-0 items-center justify-center
-                          rounded-full border text-[10px] font-semibold'
-                      >
-                        {getInitials(member.name)}
-                      </span>
+                      <Avatar size='sm'>
+                        <AvatarFallback className='text-[10px] font-semibold'>
+                          {getInitials(member.name)}
+                        </AvatarFallback>
+                      </Avatar>
                       <span className='flex min-w-0 flex-col'>
                         <span className='truncate text-[12.5px] font-medium'>
                           {member.name}
@@ -119,11 +131,13 @@ export function CollaboratorsMenu({
             </TableBody>
           </Table>
         </div>
+
         <DropdownMenuItem
           onClick={() => {
             setShowAddDialog(true);
           }}
-          className='h-10 gap-2 rounded-none px-3.5 text-[12.5px] font-medium'
+          className='h-10 cursor-pointer gap-2 rounded-none px-3.5 text-[12.5px]
+            font-medium'
         >
           <PlusIcon className='size-3.5 shrink-0' />
           Add member

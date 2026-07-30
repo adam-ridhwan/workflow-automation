@@ -20,7 +20,7 @@ import { useParams, useRouter } from 'next/navigation';
 
 import { CreateWorkspaceDialog } from './create-workspace-dialog';
 
-import type { Workspace } from '@/convex/workspaces';
+import type { Workspace } from '@/convex/queries/workspaces';
 
 type WorkspaceSwitcherProps = {
   workspaces: Workspace[];
