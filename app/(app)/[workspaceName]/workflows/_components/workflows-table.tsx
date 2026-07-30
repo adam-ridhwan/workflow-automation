@@ -10,6 +10,7 @@ import {
 import { cn } from '@/lib/cn';
 import { formatCreated } from '@/lib/format-created-time';
 import { getInitials } from '@/lib/get-initials';
+import Link from 'next/link';
 
 import type { Workflow } from '@/convex/queries/workflows';
 
@@ -88,8 +89,13 @@ export function WorkflowsTable({
             </TableRow>
           ) : (
             workflows.map((workflow) => (
-              <TableRow key={workflow._id}>
+              <TableRow key={workflow._id} className='relative'>
                 <TableCell className='px-4 py-3'>
+                  <Link
+                    href={`/${encodeURIComponent(workspaceName)}/workflows/${workflow._id}`}
+                    aria-label={workflow.name}
+                    className='absolute inset-0'
+                  />
                   <span className='flex min-w-0 flex-col gap-0.5'>
                     <span
                       className='truncate text-[13.5px] font-semibold

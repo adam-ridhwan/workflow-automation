@@ -4,10 +4,11 @@ import { ChevronRightIcon } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 
 function sectionFromPathname(pathname: string) {
-  if (pathname.endsWith('/workflows')) {
+  const [, , section] = pathname.split('/');
+  if (section === 'workflows') {
     return 'Workflows';
   }
-  if (pathname.endsWith('/files')) {
+  if (section === 'files') {
     return 'Files';
   }
   return 'Overview';

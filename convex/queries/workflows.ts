@@ -44,6 +44,23 @@ async function getMemberWorkspaceByName(ctx: QueryCtx, workspaceName: string) {
   return workspace;
 }
 
+export const get = query({
+  args: { workspaceName: v.string(), workflowId: v.id('workflows') },
+  returns: v.union(v.null(), workflowValidator),
+  handler: async (ctx, args) => {
+    const workspace = await getMemberWorkspaceByName(ctx, args.workspaceName);
+    if (workspace === null) {
+      return null;
+    }
+    const workflow = await ctx.db.get(args.workflowId);
+    if (workflow === null || workflow.workspaceId !== workspace._id) {
+      return null;
+    }
+    const creator = await ctx.db.get(workflow.createdBy);
+    return { ...workflow, createdByName: creator?.name ?? 'Unknown' };
+  },
+});
+
 export const list = query({
   args: { workspaceName: v.string() },
   returns: v.array(workflowValidator),
