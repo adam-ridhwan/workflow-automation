@@ -20,6 +20,6 @@ export default defineSchema({
     name: v.string(),
     ownerId: v.id('users'),
   })
-    .index('by_owner', ['ownerId'])
-    .index('by_owner_name', ['ownerId', 'name']),
+    .index('ownerId', ['ownerId'])
+    .index('ownerName', ['ownerId', 'name']),
 });

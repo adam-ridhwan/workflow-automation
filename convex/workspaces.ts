@@ -31,9 +31,7 @@ export const create = mutation({
     }
     const existing = await ctx.db
       .query('workspaces')
-      .withIndex('by_owner_name', (q) =>
-        q.eq('ownerId', userId).eq('name', name)
-      )
+      .withIndex('ownerName', (q) => q.eq('ownerId', userId).eq('name', name))
       .unique();
     if (existing !== null) {
       throw new ConvexError('You already have a workspace with this name.');
@@ -52,7 +50,7 @@ export const getByName = query({
     }
     return await ctx.db
       .query('workspaces')
-      .withIndex('by_owner_name', (q) =>
+      .withIndex('ownerName', (q) =>
         q.eq('ownerId', userId).eq('name', args.name)
       )
       .unique();
@@ -69,7 +67,7 @@ export const list = query({
     }
     return await ctx.db
       .query('workspaces')
-      .withIndex('by_owner', (q) => q.eq('ownerId', userId))
+      .withIndex('ownerId', (q) => q.eq('ownerId', userId))
       .collect();
   },
 });
