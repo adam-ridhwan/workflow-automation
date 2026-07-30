@@ -11,7 +11,7 @@ import type { Id } from '@/convex/_generated/dataModel';
 import type { Workflow } from '@/convex/queries/workflows';
 
 type WorkflowPageProps = {
-  params: Promise<{ workspaceName: string; workflowId: string }>;
+  params: Promise<{ workspaceName: string; workflowId: Id<'workflows'> }>;
 };
 
 export default async function WorkflowPage({ params }: WorkflowPageProps) {
@@ -25,7 +25,7 @@ export default async function WorkflowPage({ params }: WorkflowPageProps) {
       api.queries.workflows.get,
       {
         workspaceName: decodedWorkspaceName,
-        workflowId: workflowId as Id<'workflows'>,
+        workflowId: workflowId,
       },
       { token }
     );
