@@ -44,7 +44,7 @@ function applyFilters(
       );
       break;
     default:
-      result = [...result].sort((a, b) => b.createdAt - a.createdAt);
+      result = [...result].sort((a, b) => b._creationTime - a._creationTime);
   }
 
   return result;

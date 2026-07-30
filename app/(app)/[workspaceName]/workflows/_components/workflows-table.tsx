@@ -108,7 +108,7 @@ export function WorkflowsTable({
                   <StatusBadge isPublished={workflow.isPublished} />
                 </TableCell>
                 <TableCell className='text-muted-foreground px-4 text-xs'>
-                  {formatCreated(workflow.createdAt)}
+                  {formatCreated(workflow._creationTime)}
                 </TableCell>
                 <TableCell className='px-4'>
                   <Avatar size='sm' title={workflow.createdByName}>

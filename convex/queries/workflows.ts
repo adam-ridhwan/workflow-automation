@@ -9,7 +9,7 @@ import type { QueryCtx } from '../_generated/server';
 
 const workflowValidator = v.object({
   _id: v.id('workflows'),
-  createdAt: v.number(),
+  _creationTime: v.number(),
   workspaceId: v.id('workspaces'),
   name: v.string(),
   description: v.optional(v.string()),
@@ -65,8 +65,7 @@ export const list = query({
         createdByName = user?.name ?? 'Unknown';
         nameCache.set(row.createdBy, createdByName);
       }
-      const { _creationTime, ...fields } = row;
-      result.push({ ...fields, createdAt: _creationTime, createdByName });
+      result.push({ ...row, createdByName });
     }
     return result;
   },

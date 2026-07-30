@@ -5,7 +5,7 @@ import { query } from '../_generated/server';
 
 const userValidator = v.object({
   _id: v.id('users'),
-  createdAt: v.number(),
+  _creationTime: v.number(),
   name: v.string(),
   image: v.optional(v.string()),
   email: v.string(),
@@ -24,11 +24,6 @@ export const currentUser = query({
     if (userId === null) {
       return null;
     }
-    const user = await ctx.db.get(userId);
-    if (user === null) {
-      return null;
-    }
-    const { _creationTime, ...fields } = user;
-    return { ...fields, createdAt: _creationTime };
+    return await ctx.db.get(userId);
   },
 });
