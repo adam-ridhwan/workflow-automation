@@ -1,4 +1,4 @@
-import { ConvexClientProvider } from '@/components/ConvexClientProvider';
+import { ConvexClientProvider } from '@/components/convev-client-provider';
 import { ThemeProvider } from '@/components/theme-provider';
 import { ConvexAuthNextjsServerProvider } from '@convex-dev/auth/nextjs/server';
 import { Geist, Geist_Mono } from 'next/font/google';
