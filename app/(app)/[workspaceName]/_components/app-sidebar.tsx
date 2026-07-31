@@ -4,7 +4,6 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarRail,
-  SidebarSeparator,
 } from '@/components/ui/sidebar';
 import { api } from '@/convex/_generated/api';
 import { convexAuthNextjsToken } from '@convex-dev/auth/nextjs/server';
@@ -47,11 +46,9 @@ export async function AppSidebar({ workspaceName }: AppSidebarProps) {
 
   return (
     <Sidebar collapsible='icon'>
-      <SidebarHeader>
+      <SidebarHeader className='h-14 justify-center border-b py-1'>
         <WorkspaceSwitcher workspaces={workspaces} />
       </SidebarHeader>
-
-      <SidebarSeparator />
 
       <SidebarContent>
         <NavMain items={navMain} />

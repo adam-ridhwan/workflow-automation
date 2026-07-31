@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -56,12 +56,21 @@ export function WorkspaceSwitcher({ workspaces }: WorkspaceSwitcherProps) {
               />
             }
           >
-            <div
-              className='bg-sidebar-primary text-sidebar-primary-foreground flex
-                aspect-square size-8 items-center justify-center rounded-lg'
-            >
-              {activeWorkspace.name.charAt(0).toUpperCase()}
-            </div>
+            <Avatar className='rounded-lg after:rounded-lg'>
+              {activeWorkspace.imageUrl && (
+                <AvatarImage
+                  src={activeWorkspace.imageUrl}
+                  alt={activeWorkspace.name}
+                  className='rounded-lg'
+                />
+              )}
+              <AvatarFallback
+                className='bg-sidebar-primary text-sidebar-primary-foreground
+                  rounded-lg'
+              >
+                {activeWorkspace.name.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
             <div className='grid flex-1 text-left text-sm leading-tight'>
               <span className='truncate font-medium'>
                 {activeWorkspace.name}
@@ -75,6 +84,7 @@ export function WorkspaceSwitcher({ workspaces }: WorkspaceSwitcherProps) {
               <DropdownMenuLabel className='text-muted-foreground text-xs'>
                 Workspaces
               </DropdownMenuLabel>
+
               {workspaces.map((workspace) => {
                 const isActive = workspace._id === activeWorkspace._id;
                 return (
@@ -85,16 +95,28 @@ export function WorkspaceSwitcher({ workspaces }: WorkspaceSwitcherProps) {
                     }}
                     className={cn('gap-2 p-2', isActive && 'bg-secondary')}
                   >
-                    <div
+                    <Avatar
+                      size='sm'
                       className={cn(
-                        `flex size-6 items-center justify-center rounded-md
-                        border`,
-                        isActive &&
-                          'bg-primary text-primary-foreground! border-primary'
+                        'overflow-hidden rounded-md border after:hidden'
                       )}
                     >
-                      {workspace.name.charAt(0).toUpperCase()}
-                    </div>
+                      {workspace.imageUrl && (
+                        <AvatarImage
+                          src={workspace.imageUrl}
+                          alt={workspace.name}
+                          className='rounded-none'
+                        />
+                      )}
+                      <AvatarFallback
+                        className={cn(
+                          'rounded-none bg-transparent text-inherit',
+                          isActive && 'bg-primary text-primary-foreground!'
+                        )}
+                      >
+                        {workspace.name.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
                     {workspace.name}
                   </DropdownMenuItem>
                 );
@@ -105,33 +127,30 @@ export function WorkspaceSwitcher({ workspaces }: WorkspaceSwitcherProps) {
 
             <DropdownMenuGroup>
               <DropdownMenuItem
-                render={<Button type='button' variant='ghost' />}
-                nativeButton
-                className='w-full justify-start gap-2 p-2 font-normal'
+                render={
+                  <Link
+                    href={`/${encodeURIComponent(activeWorkspace.name)}/settings`}
+                  />
+                }
+                nativeButton={false}
+                className='gap-2 p-2'
               >
-                <Link
-                  href={`/${encodeURIComponent(activeWorkspace.name)}/settings`}
-                  className='flex w-full items-center gap-2'
+                <div
+                  className='flex size-6 items-center justify-center rounded-md
+                    border bg-transparent'
                 >
-                  <div
-                    className='flex size-6 items-center justify-center
-                      rounded-md border bg-transparent'
-                  >
-                    <Settings className='size-3.5' />
-                  </div>
+                  <Settings className='size-3.5' />
+                </div>
 
-                  <div className='text-muted-foreground font-medium'>
-                    Workspace settings
-                  </div>
-                </Link>
+                <div className='text-muted-foreground font-medium'>
+                  Workspace settings
+                </div>
               </DropdownMenuItem>
             </DropdownMenuGroup>
 
             <DropdownMenuGroup>
               <DropdownMenuItem
-                render={<Button type='button' variant='ghost' />}
-                nativeButton
-                className='w-full justify-start gap-2 p-2 font-normal'
+                className='gap-2 p-2'
                 onClick={() => {
                   setShowCreateDialog(true);
                 }}

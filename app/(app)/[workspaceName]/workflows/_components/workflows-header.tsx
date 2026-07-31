@@ -18,6 +18,7 @@ import {
   ListFilterIcon,
   PlusIcon,
   SearchIcon,
+  XIcon,
 } from 'lucide-react';
 import {
   useParams,
@@ -53,6 +54,7 @@ export function WorkflowsHeader() {
   const workspaceName = decodeURIComponent(params.workspaceName);
   const [showNewDialog, setShowNewDialog] = useState(false);
   const searchDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   // Frozen at mount so the uncontrolled input's default doesn't change when
   // the debounced search updates the URL.
   const [initialQuery] = useState(() => searchParams.get('q') ?? '');
@@ -73,6 +75,20 @@ export function WorkflowsHeader() {
     }
     const query = next.toString();
     router.replace(query ? `${pathname}?${query}` : pathname);
+  }
+
+  const hasActiveParams = ['state', 'sort', 'order', 'q'].some((key) =>
+    searchParams.has(key)
+  );
+
+  function clearAll() {
+    if (searchDebounce.current) {
+      clearTimeout(searchDebounce.current);
+    }
+    if (searchInputRef.current) {
+      searchInputRef.current.value = '';
+    }
+    router.replace(pathname);
   }
 
   const filterActive = filter !== 'all';
@@ -165,6 +181,19 @@ export function WorkflowsHeader() {
             </DropdownMenuRadioGroup>
           </DropdownMenuContent>
         </DropdownMenu>
+
+        {hasActiveParams && (
+          <Button
+            type='button'
+            variant='ghost'
+            size='sm'
+            className='text-muted-foreground h-8'
+            onClick={clearAll}
+          >
+            <XIcon />
+            Clear all
+          </Button>
+        )}
       </div>
 
       <div className='flex shrink-0 items-center gap-2'>
@@ -174,6 +203,7 @@ export function WorkflowsHeader() {
               top-1/2 left-2.5 size-3.5 -translate-y-1/2'
           />
           <Input
+            ref={searchInputRef}
             type='search'
             placeholder='Search workflows'
             defaultValue={initialQuery}
