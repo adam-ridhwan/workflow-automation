@@ -26,7 +26,7 @@ function StatusBadge({ isPublished }: { isPublished: boolean }) {
       )}
     >
       <span className='size-1.25 rounded-full bg-current' />
-      <span>{isPublished ? 'Live' : 'Canvas'}</span>
+      <span>{isPublished ? 'Published' : 'Unpublished'}</span>
     </span>
   );
 }

@@ -8,11 +8,13 @@ import {
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import {
-  ArrowUpDownIcon,
+  ArrowDownIcon,
+  ArrowUpIcon,
   ListFilterIcon,
   PlusIcon,
   SearchIcon,
@@ -24,18 +26,24 @@ import {
   useSearchParams,
 } from 'next/navigation';
 
+import { defaultOrder } from '../_lib/sort';
 import { NewWorkflowDialog } from './new-workflow-dialog';
 
 const FILTERS = [
   { value: 'all', label: 'All workflows' },
-  { value: 'live', label: 'Live' },
-  { value: 'canvas', label: 'Canvas' },
+  { value: 'published', label: 'Published' },
+  { value: 'unpublished', label: 'Unpublished' },
 ];
 
 const SORTS = [
   { value: 'recent', label: 'Most recent', short: 'Recent' },
-  { value: 'name', label: 'Name (A–Z)', short: 'Name' },
+  { value: 'name', label: 'Name', short: 'Name' },
   { value: 'status', label: 'Status', short: 'Status' },
+];
+
+const ORDERS = [
+  { value: 'asc', label: 'Ascending' },
+  { value: 'desc', label: 'Descending' },
 ];
 
 export function WorkflowsHeader() {
@@ -52,13 +60,17 @@ export function WorkflowsHeader() {
 
   const filter = searchParams.get('state') ?? 'all';
   const sort = searchParams.get('sort') ?? 'recent';
+  const order = searchParams.get('order') ?? defaultOrder(sort);
 
-  function setParam(key: string, value: string, defaultValue: string) {
+  /** Merge updates into the URL search params; `null` removes a param. */
+  function updateParams(updates: Record<string, string | null>) {
     const next = new URLSearchParams(searchParams);
-    if (value === defaultValue) {
-      next.delete(key);
-    } else {
-      next.set(key, value);
+    for (const [key, value] of Object.entries(updates)) {
+      if (value === null) {
+        next.delete(key);
+      } else {
+        next.set(key, value);
+      }
     }
     const query = next.toString();
     router.replace(query ? `${pathname}?${query}` : pathname);
@@ -91,7 +103,9 @@ export function WorkflowsHeader() {
           <DropdownMenuContent align='start' className='w-46'>
             <DropdownMenuRadioGroup
               value={filter}
-              onValueChange={(value) => setParam('state', value, 'all')}
+              onValueChange={(value) =>
+                updateParams({ state: value === 'all' ? null : value })
+              }
             >
               <DropdownMenuLabel
                 className='text-muted-foreground text-[11.5px] font-normal'
@@ -111,13 +125,19 @@ export function WorkflowsHeader() {
           <DropdownMenuTrigger
             render={<Button variant='outline' size='sm' className='h-8' />}
           >
-            <ArrowUpDownIcon />
+            {order === 'asc' ? <ArrowUpIcon /> : <ArrowDownIcon />}
             {sortLabel}
           </DropdownMenuTrigger>
           <DropdownMenuContent align='start' className='w-46'>
             <DropdownMenuRadioGroup
               value={sort}
-              onValueChange={(value) => setParam('sort', value, 'recent')}
+              onValueChange={(value) =>
+                // Changing sort resets the order to the sort's natural one.
+                updateParams({
+                  sort: value === 'recent' ? null : value,
+                  order: null,
+                })
+              }
             >
               <DropdownMenuLabel
                 className='text-muted-foreground text-[11.5px] font-normal'
@@ -125,6 +145,26 @@ export function WorkflowsHeader() {
                 Sort by
               </DropdownMenuLabel>
               {SORTS.map((option) => (
+                <DropdownMenuRadioItem key={option.value} value={option.value}>
+                  {option.label}
+                </DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuRadioGroup
+              value={order}
+              onValueChange={(value) =>
+                updateParams({
+                  order: value === defaultOrder(sort) ? null : value,
+                })
+              }
+            >
+              <DropdownMenuLabel
+                className='text-muted-foreground text-[11.5px] font-normal'
+              >
+                Order
+              </DropdownMenuLabel>
+              {ORDERS.map((option) => (
                 <DropdownMenuRadioItem key={option.value} value={option.value}>
                   {option.label}
                 </DropdownMenuRadioItem>
@@ -150,7 +190,7 @@ export function WorkflowsHeader() {
                 clearTimeout(searchDebounce.current);
               }
               searchDebounce.current = setTimeout(() => {
-                setParam('q', value, '');
+                updateParams({ q: value || null });
               }, 300);
             }}
             className='h-8 w-54 pl-8 text-[13px]'

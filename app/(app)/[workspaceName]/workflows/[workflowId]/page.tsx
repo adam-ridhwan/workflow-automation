@@ -63,7 +63,7 @@ export default async function WorkflowPage({ params }: WorkflowPageProps) {
           )}
         >
           <span className='size-1.25 rounded-full bg-current' />
-          <span>{workflow.isPublished ? 'Live' : 'Unpublished'}</span>
+          <span>{workflow.isPublished ? 'Published' : 'Unpublished'}</span>
         </span>
       </div>
 

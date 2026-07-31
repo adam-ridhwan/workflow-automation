@@ -75,7 +75,7 @@ export function NewWorkflowDialog({
         <DialogHeader>
           <DialogTitle>New workflow</DialogTitle>
           <DialogDescription>
-            Workflows start on the canvas until you publish them.
+            Workflows start unpublished until you publish them.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className='flex flex-col gap-5'>
