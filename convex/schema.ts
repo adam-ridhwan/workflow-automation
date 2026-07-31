@@ -39,5 +39,7 @@ export default defineSchema({
     description: v.optional(v.string()),
     isPublished: v.boolean(),
     createdBy: v.id('users'),
-  }).index('workspaceId', ['workspaceId']),
+  })
+    .index('workspaceId', ['workspaceId'])
+    .index('workspaceName', ['workspaceId', 'name']),
 });

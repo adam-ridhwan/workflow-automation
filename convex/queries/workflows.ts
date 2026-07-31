@@ -109,6 +109,19 @@ export const create = mutation({
     if (name.length === 0) {
       throw new ConvexError('Workflow name is required.');
     }
+    // .first() rather than .unique(): duplicates that predate this
+    // constraint may still exist in the table.
+    const existing = await ctx.db
+      .query('workflows')
+      .withIndex('workspaceName', (q) =>
+        q.eq('workspaceId', workspace._id).eq('name', name)
+      )
+      .first();
+    if (existing !== null) {
+      throw new ConvexError(
+        'A workflow with this name already exists in this workspace.'
+      );
+    }
     const description = args.description?.trim();
 
     return await ctx.db.insert('workflows', {

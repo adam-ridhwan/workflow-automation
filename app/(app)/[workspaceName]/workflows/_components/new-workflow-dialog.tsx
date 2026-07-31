@@ -89,6 +89,11 @@ export function NewWorkflowDialog({
               aria-invalid={error ? true : undefined}
               required
             />
+            {error && (
+              <FieldDescription className='text-destructive'>
+                {error}
+              </FieldDescription>
+            )}
           </Field>
           <Field>
             <FieldLabel htmlFor='workflow-description'>Description</FieldLabel>
@@ -98,11 +103,6 @@ export function NewWorkflowDialog({
               type='text'
               placeholder='What does this workflow do? (optional)'
             />
-            {error && (
-              <FieldDescription className='text-destructive'>
-                {error}
-              </FieldDescription>
-            )}
           </Field>
           <DialogFooter>
             <Button

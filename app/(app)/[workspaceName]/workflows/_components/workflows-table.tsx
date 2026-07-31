@@ -1,4 +1,5 @@
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import {
   Table,
   TableBody,
@@ -16,18 +17,18 @@ import type { Workflow } from '@/convex/queries/workflows';
 
 function StatusBadge({ isPublished }: { isPublished: boolean }) {
   return (
-    <span
+    <Badge
+      variant='secondary'
       className={cn(
-        `inline-flex h-5 w-fit items-center gap-1.5 rounded-full px-2
-        text-[11px] font-semibold`,
+        'gap-1.5 rounded-full',
         isPublished
           ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
           : 'bg-muted text-muted-foreground'
       )}
     >
       <span className='size-1.25 rounded-full bg-current' />
-      <span>{isPublished ? 'Published' : 'Unpublished'}</span>
-    </span>
+      {isPublished ? 'Published' : 'Unpublished'}
+    </Badge>
   );
 }
 
@@ -44,7 +45,7 @@ export function WorkflowsTable({
 }: WorkflowsTableProps) {
   return (
     <div className='flex flex-1 flex-col'>
-      <Table>
+      <Table className='table-fixed'>
         <TableHeader>
           <TableRow className='hover:bg-transparent'>
             <TableHead
@@ -55,21 +56,21 @@ export function WorkflowsTable({
             </TableHead>
 
             <TableHead
-              className='text-muted-foreground h-9 w-30 px-5 text-[11px]
+              className='text-muted-foreground h-9 w-[15%] px-5 text-[11px]
                 font-medium tracking-wider uppercase'
             >
               Status
             </TableHead>
 
             <TableHead
-              className='text-muted-foreground h-9 w-30 px-5 text-[11px]
+              className='text-muted-foreground h-9 w-[15%] px-5 text-[11px]
                 font-medium tracking-wider uppercase'
             >
               Created
             </TableHead>
 
             <TableHead
-              className='text-muted-foreground h-9 w-16 px-5 text-[11px]
+              className='text-muted-foreground h-9 w-[15%] px-5 text-[11px]
                 font-medium tracking-wider uppercase'
             >
               Owner
