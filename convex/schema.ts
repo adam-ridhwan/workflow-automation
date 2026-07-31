@@ -33,13 +33,25 @@ export default defineSchema({
     .index('userId', ['userId'])
     .index('workspaceUser', ['workspaceId', 'userId']),
 
+  folders: defineTable({
+    workspaceId: v.id('workspaces'),
+    name: v.string(),
+    parentId: v.optional(v.id('folders')),
+    createdBy: v.id('users'),
+  })
+    .index('workspaceId', ['workspaceId'])
+    .index('parent', ['workspaceId', 'parentId'])
+    .index('parentName', ['workspaceId', 'parentId', 'name']),
+
   workflows: defineTable({
     workspaceId: v.id('workspaces'),
     name: v.string(),
     description: v.optional(v.string()),
     isPublished: v.boolean(),
+    folderId: v.optional(v.id('folders')),
     createdBy: v.id('users'),
   })
     .index('workspaceId', ['workspaceId'])
-    .index('workspaceName', ['workspaceId', 'name']),
+    .index('workspaceName', ['workspaceId', 'name'])
+    .index('folder', ['workspaceId', 'folderId']),
 });

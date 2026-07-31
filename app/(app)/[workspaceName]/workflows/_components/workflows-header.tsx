@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input';
 import {
   ArrowDownIcon,
   ArrowUpIcon,
+  FolderPlusIcon,
   ListFilterIcon,
   PlusIcon,
   SearchIcon,
@@ -27,7 +28,10 @@ import {
   useSearchParams,
 } from 'next/navigation';
 
+import { NewFolderDialog } from '../../_components/new-folder-dialog';
 import { NewWorkflowDialog } from './new-workflow-dialog';
+
+import type { Folder } from '@/convex/folders';
 
 const FILTERS = [
   { value: 'all', label: 'All workflows' },
@@ -46,13 +50,18 @@ const ORDERS = [
   { value: 'desc', label: 'Descending' },
 ];
 
-export function WorkflowsHeader() {
+type WorkflowsHeaderProps = {
+  folderId?: Folder['_id'];
+};
+
+export function WorkflowsHeader({ folderId }: WorkflowsHeaderProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const params = useParams<{ workspaceName: string }>();
   const workspaceName = decodeURIComponent(params.workspaceName);
   const [showNewDialog, setShowNewDialog] = useState(false);
+  const [showNewFolderDialog, setShowNewFolderDialog] = useState(false);
   const searchDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   // Frozen at mount so the uncontrolled input's default doesn't change when
@@ -220,6 +229,17 @@ export function WorkflowsHeader() {
           />
         </div>
         <Button
+          variant='outline'
+          size='sm'
+          className='h-8'
+          onClick={() => {
+            setShowNewFolderDialog(true);
+          }}
+        >
+          <FolderPlusIcon />
+          New folder
+        </Button>
+        <Button
           size='sm'
           className='h-8'
           onClick={() => {
@@ -233,8 +253,15 @@ export function WorkflowsHeader() {
 
       <NewWorkflowDialog
         workspaceName={workspaceName}
+        folderId={folderId}
         open={showNewDialog}
         onOpenChange={setShowNewDialog}
+      />
+      <NewFolderDialog
+        workspaceName={workspaceName}
+        parentId={folderId}
+        open={showNewFolderDialog}
+        onOpenChange={setShowNewFolderDialog}
       />
     </div>
   );

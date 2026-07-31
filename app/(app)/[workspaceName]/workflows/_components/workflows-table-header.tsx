@@ -3,12 +3,12 @@ import { TableHead, TableHeader, TableRow } from '@/components/ui/table';
 export function WorkflowsTableHeader() {
   return (
     <TableHeader>
-      <TableRow className='hover:bg-transparent'>
+      <TableRow className='bg-sidebar hover:bg-sidebar'>
         <TableHead
           className='text-muted-foreground h-9 px-5 text-[11px] font-medium
             tracking-wider uppercase'
         >
-          Workflow
+          Name
         </TableHead>
 
         <TableHead

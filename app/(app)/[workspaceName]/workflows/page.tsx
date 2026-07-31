@@ -23,17 +23,34 @@ export default async function WorkflowsPage({
   const { state, sort, order, q } = await searchParams;
 
   const token = await convexAuthNextjsToken();
-  const workflows = await fetchQuery(
-    api.workflows.list,
-    { workspaceName: decodedWorkspaceName },
-    { token }
-  );
+  const [workflows, folders] = await Promise.all([
+    fetchQuery(
+      api.workflows.list,
+      { workspaceName: decodedWorkspaceName },
+      { token }
+    ),
+    fetchQuery(
+      api.folders.list,
+      { workspaceName: decodedWorkspaceName },
+      { token }
+    ),
+  ]);
 
-  if (workflows.length === 0) {
+  if (workflows.length === 0 && folders.length === 0) {
     return <WorkflowsEmpty workspaceName={decodedWorkspaceName} />;
   }
 
   const sievedWorkflows = sieveWorkflows(workflows, { state, sort, order, q });
+  // Folders have no publish state; hide them when filtering by state, and
+  // match the search against their names.
+  const needle = q?.toLowerCase();
+  const sievedFolders = state
+    ? []
+    : folders
+        .filter(
+          (folder) => !needle || folder.name.toLowerCase().includes(needle)
+        )
+        .sort((a, b) => a.name.localeCompare(b.name));
   const isFiltered = Boolean(state || q);
 
   return (
@@ -41,6 +58,7 @@ export default async function WorkflowsPage({
       <WorkflowsHeader />
       <WorkflowsTable
         workflows={sievedWorkflows}
+        folders={sievedFolders}
         workspaceName={decodedWorkspaceName}
         isFiltered={isFiltered}
       />

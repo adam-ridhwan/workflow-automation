@@ -87,6 +87,30 @@ export async function requireAdmin(
   return membership;
 }
 
+/** Resolves a workspace by name; null unless the signed-in user is a
+ * member. */
+export async function getMemberWorkspaceByName(
+  ctx: QueryCtx | MutationCtx,
+  workspaceName: string
+) {
+  const userId = await getAuthUserId(ctx);
+  if (userId === null) {
+    return null;
+  }
+  const workspace = await ctx.db
+    .query('workspaces')
+    .withIndex('name', (q) => q.eq('name', workspaceName))
+    .unique();
+  if (workspace === null) {
+    return null;
+  }
+  const membership = await getMembership(ctx, workspace._id, userId);
+  if (membership === null) {
+    return null;
+  }
+  return workspace;
+}
+
 export async function getWorkspaceByNameOrThrow(
   ctx: QueryCtx | MutationCtx,
   workspaceName: string

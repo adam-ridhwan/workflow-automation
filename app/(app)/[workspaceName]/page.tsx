@@ -1,7 +1,10 @@
-export default function OverviewPage() {
-  return (
-    <div className='flex flex-1 flex-col gap-4 p-4'>
-      <span>overview page</span>
-    </div>
-  );
+import { redirect } from 'next/navigation';
+
+type WorkspacePageProps = {
+  params: Promise<{ workspaceName: string }>;
+};
+
+export default async function WorkspacePage({ params }: WorkspacePageProps) {
+  const { workspaceName } = await params;
+  redirect(`/${workspaceName}/workflows`);
 }

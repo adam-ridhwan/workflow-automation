@@ -19,20 +19,20 @@ import { useRouter } from 'next/navigation';
 
 import type { Folder } from '@/convex/folders';
 
-type NewWorkflowDialogProps = {
+type NewFolderDialogProps = {
   workspaceName: string;
-  folderId?: Folder['_id'];
+  parentId?: Folder['_id'];
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };
 
-export function NewWorkflowDialog({
+export function NewFolderDialog({
   workspaceName,
-  folderId,
+  parentId,
   open,
   onOpenChange,
-}: NewWorkflowDialogProps) {
-  const createWorkflow = useMutation(api.workflows.create);
+}: NewFolderDialogProps) {
+  const createFolder = useMutation(api.folders.create);
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -51,24 +51,18 @@ export function NewWorkflowDialog({
 
     const formData = new FormData(event.currentTarget);
     const name = String(formData.get('name') ?? '').trim();
-    const description = String(formData.get('description') ?? '').trim();
 
     setSubmitting(true);
     try {
-      await createWorkflow({
-        workspaceName,
-        name,
-        description: description ? description : undefined,
-        folderId,
-      });
+      await createFolder({ workspaceName, name, parentId });
       handleOpenChange(false);
-      // The workflows table is fetched server-side; refresh to pick it up.
+      // The folders table is fetched server-side; refresh to pick it up.
       router.refresh();
     } catch (err) {
       if (err instanceof ConvexError && typeof err.data === 'string') {
         setError(err.data);
       } else {
-        setError('Could not create workflow. Please try again.');
+        setError('Could not create folder. Please try again.');
       }
       setSubmitting(false);
     }
@@ -78,19 +72,19 @@ export function NewWorkflowDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className='sm:max-w-md'>
         <DialogHeader>
-          <DialogTitle>New workflow</DialogTitle>
+          <DialogTitle>New folder</DialogTitle>
           <DialogDescription>
-            Workflows start unpublished until you publish them.
+            Folders keep your workspace files organized.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className='flex flex-col gap-5'>
           <Field>
-            <FieldLabel htmlFor='workflow-name'>Name</FieldLabel>
+            <FieldLabel htmlFor='folder-name'>Name</FieldLabel>
             <Input
-              id='workflow-name'
+              id='folder-name'
               name='name'
               type='text'
-              placeholder='Invoice processing'
+              placeholder='Invoices'
               aria-invalid={error ? true : undefined}
               required
             />
@@ -99,15 +93,6 @@ export function NewWorkflowDialog({
                 {error}
               </FieldDescription>
             )}
-          </Field>
-          <Field>
-            <FieldLabel htmlFor='workflow-description'>Description</FieldLabel>
-            <Input
-              id='workflow-description'
-              name='description'
-              type='text'
-              placeholder='What does this workflow do? (optional)'
-            />
           </Field>
           <DialogFooter>
             <Button
@@ -118,7 +103,7 @@ export function NewWorkflowDialog({
               Cancel
             </Button>
             <Button type='submit' disabled={submitting}>
-              {submitting ? 'Creating…' : 'Create workflow'}
+              {submitting ? 'Creating…' : 'Create folder'}
             </Button>
           </DialogFooter>
         </form>

@@ -18,32 +18,48 @@ import { formatCreated } from '@/lib/format-created-time';
 import { getInitials } from '@/lib/get-initials';
 import { useMutation } from 'convex/react';
 import { ConvexError } from 'convex/values';
-import { EllipsisVerticalIcon, PencilIcon, Trash2Icon } from 'lucide-react';
+import {
+  EllipsisVerticalIcon,
+  FolderIcon,
+  PencilIcon,
+  Trash2Icon,
+  WorkflowIcon,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
+import type { Folder } from '@/convex/folders';
 import type { Workflow } from '@/convex/workflows';
 
 type WorkflowsTableBodyProps = {
   workflows: Workflow[];
+  folders?: Folder[];
   workspaceName: string;
   isFiltered: boolean;
   onDelete: (workflow: Workflow) => void;
+  onDeleteFolder: (folder: Folder) => void;
 };
 
 export function WorkflowsTableBody({
   workflows,
+  folders = [],
   workspaceName,
   isFiltered,
   onDelete,
+  onDeleteFolder,
 }: WorkflowsTableBodyProps) {
   const router = useRouter();
   const renameWorkflow = useMutation(api.workflows.rename);
+  const renameFolder = useMutation(api.folders.rename);
   const [renamingId, setRenamingId] = useState<Workflow['_id'] | null>(null);
+  const [renamingFolderId, setRenamingFolderId] = useState<
+    Folder['_id'] | null
+  >(null);
   const [renameError, setRenameError] = useState<string | null>(null);
 
   function stopRenaming() {
     setRenamingId(null);
+    setRenamingFolderId(null);
     setRenameError(null);
   }
 
@@ -66,7 +82,26 @@ export function WorkflowsTableBody({
     }
   }
 
-  if (workflows.length === 0) {
+  async function submitFolderRename(folder: Folder, rawName: string) {
+    const name = rawName.trim();
+    if (name.length === 0 || name === folder.name) {
+      stopRenaming();
+      return;
+    }
+    try {
+      await renameFolder({ workspaceName, folderId: folder._id, name });
+      stopRenaming();
+      router.refresh();
+    } catch (err) {
+      setRenameError(
+        err instanceof ConvexError && typeof err.data === 'string'
+          ? err.data
+          : 'Could not rename folder. Please try again.'
+      );
+    }
+  }
+
+  if (workflows.length === 0 && folders.length === 0) {
     return (
       <TableBody>
         <TableRow className='hover:bg-transparent'>
@@ -85,42 +120,47 @@ export function WorkflowsTableBody({
 
   return (
     <TableBody>
-      {workflows.map((workflow) => {
-        const isRenaming = renamingId === workflow._id;
+      {folders.map((folder) => {
+        const isRenamingFolder = renamingFolderId === folder._id;
         return (
-          <TableRow key={workflow._id} className='relative'>
+          <TableRow key={folder._id} className='relative'>
             <TableCell className='h-5 px-5'>
-              {!isRenaming && (
+              {!isRenamingFolder && (
                 <Link
-                  href={`/${encodeURIComponent(workspaceName)}/workflows/${workflow._id}`}
-                  aria-label={workflow.name}
+                  href={`/${encodeURIComponent(workspaceName)}/workflows/folder/${folder._id}`}
+                  aria-label={folder.name}
                   className='absolute inset-0'
                 />
               )}
-
-              <span className='flex min-w-0 flex-col gap-0.5'>
-                {isRenaming ? (
+              <span className='flex min-w-0 items-center gap-2.5'>
+                <FolderIcon
+                  className='text-muted-foreground size-4 shrink-0 fill-current'
+                />
+                {isRenamingFolder ? (
                   <span className='flex flex-col gap-1'>
                     <Input
                       autoFocus
-                      defaultValue={workflow.name}
+                      defaultValue={folder.name}
                       aria-invalid={renameError ? true : undefined}
                       className='h-7 max-w-xs text-[13px]'
                       onKeyDown={(event) => {
                         if (event.key === 'Enter') {
                           event.preventDefault();
-                          void submitRename(
-                            workflow,
+                          void submitFolderRename(
+                            folder,
                             event.currentTarget.value
                           );
                         }
                         if (event.key === 'Escape') {
-                          event.currentTarget.value = workflow.name;
+                          event.currentTarget.value = folder.name;
                           stopRenaming();
                         }
                       }}
                       onBlur={(event) => {
-                        void submitRename(workflow, event.currentTarget.value);
+                        void submitFolderRename(
+                          folder,
+                          event.currentTarget.value
+                        );
                       }}
                     />
                     {renameError && (
@@ -134,14 +174,130 @@ export function WorkflowsTableBody({
                     className='truncate text-[13.5px] font-semibold
                       tracking-tight'
                   >
-                    {workflow.name}
+                    {folder.name}
                   </span>
                 )}
-                {workflow.description && (
-                  <span className='text-muted-foreground truncate text-xs'>
-                    {workflow.description}
-                  </span>
-                )}
+              </span>
+            </TableCell>
+
+            <TableCell className='text-muted-foreground px-5 text-xs'>
+              —
+            </TableCell>
+
+            <TableCell className='text-muted-foreground px-5 text-xs'>
+              {formatCreated(folder._creationTime)}
+            </TableCell>
+
+            <TableCell className='px-5'>
+              <Avatar size='sm' title={folder.createdByName}>
+                <AvatarFallback className='text-[10px] font-semibold'>
+                  {getInitials(folder.createdByName)}
+                </AvatarFallback>
+              </Avatar>
+            </TableCell>
+
+            <TableCell className='px-5'>
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  render={
+                    <Button
+                      type='button'
+                      variant='ghost'
+                      size='icon'
+                      className='text-muted-foreground relative size-7'
+                      aria-label={`Actions for ${folder.name}`}
+                    />
+                  }
+                >
+                  <EllipsisVerticalIcon className='size-4' />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align='end' className='w-46'>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setRenameError(null);
+                      setRenamingFolderId(folder._id);
+                    }}
+                  >
+                    <PencilIcon />
+                    Rename folder
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      onDeleteFolder(folder);
+                    }}
+                  >
+                    <Trash2Icon />
+                    Delete folder
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </TableCell>
+          </TableRow>
+        );
+      })}
+      {workflows.map((workflow) => {
+        const isRenaming = renamingId === workflow._id;
+        return (
+          <TableRow key={workflow._id} className='relative'>
+            <TableCell className='h-5 px-5'>
+              {!isRenaming && (
+                <Link
+                  href={`/${encodeURIComponent(workspaceName)}/workflows/${workflow._id}`}
+                  aria-label={workflow.name}
+                  className='absolute inset-0'
+                />
+              )}
+
+              <span className='flex min-w-0 items-center gap-2.5'>
+                <WorkflowIcon className='text-muted-foreground size-4 shrink-0' />
+                <span className='flex min-w-0 flex-col gap-0.5'>
+                  {isRenaming ? (
+                    <span className='flex flex-col gap-1'>
+                      <Input
+                        autoFocus
+                        defaultValue={workflow.name}
+                        aria-invalid={renameError ? true : undefined}
+                        className='h-7 max-w-xs text-[13px]'
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter') {
+                            event.preventDefault();
+                            void submitRename(
+                              workflow,
+                              event.currentTarget.value
+                            );
+                          }
+                          if (event.key === 'Escape') {
+                            event.currentTarget.value = workflow.name;
+                            stopRenaming();
+                          }
+                        }}
+                        onBlur={(event) => {
+                          void submitRename(
+                            workflow,
+                            event.currentTarget.value
+                          );
+                        }}
+                      />
+                      {renameError && (
+                        <span className='text-destructive text-xs'>
+                          {renameError}
+                        </span>
+                      )}
+                    </span>
+                  ) : (
+                    <span
+                      className='truncate text-[13.5px] font-semibold
+                        tracking-tight'
+                    >
+                      {workflow.name}
+                    </span>
+                  )}
+                  {workflow.description && (
+                    <span className='text-muted-foreground truncate text-xs'>
+                      {workflow.description}
+                    </span>
+                  )}
+                </span>
               </span>
             </TableCell>
 

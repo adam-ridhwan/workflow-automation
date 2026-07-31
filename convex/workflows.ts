@@ -1,11 +1,14 @@
-import { getAuthUserId } from '@convex-dev/auth/server';
 import { ConvexError, Infer, v } from 'convex/values';
 
 import { mutation, query } from './_generated/server';
-import { getWorkspaceByNameOrThrow, requireMember } from './workspaces';
+import {
+  getMemberWorkspaceByName,
+  getWorkspaceByNameOrThrow,
+  requireMember,
+} from './workspaces';
 
 import type { Id } from './_generated/dataModel';
-import type { MutationCtx, QueryCtx } from './_generated/server';
+import type { MutationCtx } from './_generated/server';
 
 const workflowValidator = v.object({
   _id: v.id('workflows'),
@@ -14,35 +17,12 @@ const workflowValidator = v.object({
   name: v.string(),
   description: v.optional(v.string()),
   isPublished: v.boolean(),
+  folderId: v.optional(v.id('folders')),
   createdBy: v.id('users'),
   createdByName: v.string(),
 });
 
 export type Workflow = Infer<typeof workflowValidator>;
-
-async function getMemberWorkspaceByName(ctx: QueryCtx, workspaceName: string) {
-  const userId = await getAuthUserId(ctx);
-  if (userId === null) {
-    return null;
-  }
-  const workspace = await ctx.db
-    .query('workspaces')
-    .withIndex('name', (q) => q.eq('name', workspaceName))
-    .unique();
-  if (workspace === null) {
-    return null;
-  }
-  const membership = await ctx.db
-    .query('workspaceMembers')
-    .withIndex('workspaceUser', (q) =>
-      q.eq('workspaceId', workspace._id).eq('userId', userId)
-    )
-    .unique();
-  if (membership === null) {
-    return null;
-  }
-  return workspace;
-}
 
 async function getMemberWorkflow(
   ctx: MutationCtx,
@@ -76,8 +56,13 @@ export const get = query({
   },
 });
 
+/** Workflows in a folder, or the workspace's root workflows when `folderId`
+ * is omitted. */
 export const list = query({
-  args: { workspaceName: v.string() },
+  args: {
+    workspaceName: v.string(),
+    folderId: v.optional(v.id('folders')),
+  },
   returns: v.array(workflowValidator),
   handler: async (ctx, args) => {
     const workspace = await getMemberWorkspaceByName(ctx, args.workspaceName);
@@ -86,7 +71,9 @@ export const list = query({
     }
     const rows = await ctx.db
       .query('workflows')
-      .withIndex('workspaceId', (q) => q.eq('workspaceId', workspace._id))
+      .withIndex('folder', (q) =>
+        q.eq('workspaceId', workspace._id).eq('folderId', args.folderId)
+      )
       .collect();
     const nameCache = new Map<Id<'users'>, string>();
     const result: Workflow[] = [];
@@ -108,11 +95,19 @@ export const create = mutation({
     workspaceName: v.string(),
     name: v.string(),
     description: v.optional(v.string()),
+    folderId: v.optional(v.id('folders')),
   },
   returns: v.id('workflows'),
   handler: async (ctx, args) => {
     const workspace = await getWorkspaceByNameOrThrow(ctx, args.workspaceName);
     const membership = await requireMember(ctx, workspace._id);
+
+    if (args.folderId !== undefined) {
+      const folder = await ctx.db.get(args.folderId);
+      if (folder === null || folder.workspaceId !== workspace._id) {
+        throw new ConvexError('Folder not found.');
+      }
+    }
 
     const name = args.name.trim();
     if (name.length === 0) {
@@ -138,6 +133,7 @@ export const create = mutation({
       name,
       description: description ? description : undefined,
       isPublished: false,
+      folderId: args.folderId,
       createdBy: membership.userId,
     });
   },
