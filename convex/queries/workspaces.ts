@@ -8,7 +8,7 @@ import { ConvexError, Infer, v } from 'convex/values';
 
 import { mutation, query } from '../_generated/server';
 
-import type { Id } from '../_generated/dataModel';
+import type { Doc, Id } from '../_generated/dataModel';
 import type { MutationCtx, QueryCtx } from '../_generated/server';
 
 const workspaceValidator = v.object({
@@ -16,9 +16,21 @@ const workspaceValidator = v.object({
   _creationTime: v.number(),
   name: v.string(),
   adminId: v.id('users'),
+  imageId: v.optional(v.id('_storage')),
+  imageUrl: v.union(v.null(), v.string()),
 });
 
 export type Workspace = Infer<typeof workspaceValidator>;
+
+async function withImageUrl(
+  ctx: QueryCtx | MutationCtx,
+  doc: Doc<'workspaces'>
+): Promise<Workspace> {
+  return {
+    ...doc,
+    imageUrl: doc.imageId ? await ctx.storage.getUrl(doc.imageId) : null,
+  };
+}
 
 async function requireUserId(ctx: QueryCtx | MutationCtx) {
   const userId = await getAuthUserId(ctx);
@@ -114,7 +126,7 @@ export const getByName = query({
     if (membership === null) {
       return null;
     }
-    return workspace;
+    return await withImageUrl(ctx, workspace);
   },
 });
 
@@ -133,7 +145,11 @@ export const list = query({
     const workspaces = await Promise.all(
       memberships.map((membership) => ctx.db.get(membership.workspaceId))
     );
-    return workspaces.filter((workspace) => workspace !== null);
+    return await Promise.all(
+      workspaces
+        .filter((workspace) => workspace !== null)
+        .map((workspace) => withImageUrl(ctx, workspace))
+    );
   },
 });
 
@@ -217,6 +233,105 @@ export const addMember = mutation({
       userId: user._id,
       role: 'collaborator',
     });
+    return null;
+  },
+});
+
+export const rename = mutation({
+  args: { workspaceName: v.string(), name: v.string() },
+  returns: v.string(),
+  handler: async (ctx, args) => {
+    const workspace = await ctx.db
+      .query('workspaces')
+      .withIndex('name', (q) => q.eq('name', args.workspaceName))
+      .unique();
+    if (workspace === null) {
+      throw new ConvexError('Workspace not found.');
+    }
+    await requireAdmin(ctx, workspace._id);
+
+    const name = slugify(args.name);
+    if (!validateWorkspaceName(name)) {
+      throw new ConvexError(WORKSPACE_NAME_REQUIREMENTS);
+    }
+    if (name === workspace.name) {
+      return name;
+    }
+    const existing = await ctx.db
+      .query('workspaces')
+      .withIndex('name', (q) => q.eq('name', name))
+      .unique();
+    if (existing !== null) {
+      throw new ConvexError('This workspace name is taken.');
+    }
+    await ctx.db.patch(workspace._id, { name });
+    return name;
+  },
+});
+
+export const generateLogoUploadUrl = mutation({
+  args: {},
+  returns: v.string(),
+  handler: async (ctx) => {
+    await requireUserId(ctx);
+    return await ctx.storage.generateUploadUrl();
+  },
+});
+
+export const setLogo = mutation({
+  args: { workspaceName: v.string(), storageId: v.id('_storage') },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const workspace = await ctx.db
+      .query('workspaces')
+      .withIndex('name', (q) => q.eq('name', args.workspaceName))
+      .unique();
+    if (workspace === null) {
+      throw new ConvexError('Workspace not found.');
+    }
+    await requireAdmin(ctx, workspace._id);
+
+    if (workspace.imageId) {
+      await ctx.storage.delete(workspace.imageId);
+    }
+    await ctx.db.patch(workspace._id, { imageId: args.storageId });
+    return null;
+  },
+});
+
+export const remove = mutation({
+  args: { workspaceName: v.string() },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const workspace = await ctx.db
+      .query('workspaces')
+      .withIndex('name', (q) => q.eq('name', args.workspaceName))
+      .unique();
+    if (workspace === null) {
+      throw new ConvexError('Workspace not found.');
+    }
+    await requireAdmin(ctx, workspace._id);
+
+    const workflows = await ctx.db
+      .query('workflows')
+      .withIndex('workspaceId', (q) => q.eq('workspaceId', workspace._id))
+      .collect();
+    for (const workflow of workflows) {
+      await ctx.db.delete(workflow._id);
+    }
+
+    const memberships = await ctx.db
+      .query('workspaceMembers')
+      .withIndex('workspaceId', (q) => q.eq('workspaceId', workspace._id))
+      .collect();
+    for (const membership of memberships) {
+      await ctx.db.delete(membership._id);
+    }
+
+    if (workspace.imageId) {
+      await ctx.storage.delete(workspace.imageId);
+    }
+    await ctx.db.delete(workspace._id);
     return null;
   },
 });

@@ -9,8 +9,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarRail,
-  SidebarSeparator,
 } from '@/components/ui/sidebar';
 import { ArrowLeftIcon, Building2Icon } from 'lucide-react';
 import Link from 'next/link';
@@ -33,8 +31,8 @@ export function SettingsSidebar({ workspaceName }: SettingsSidebarProps) {
   ];
 
   return (
-    <Sidebar>
-      <SidebarHeader>
+    <Sidebar collapsible='none' className='h-auto'>
+      <SidebarHeader className='h-14 justify-center border-b'>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton render={<Link href={`/${workspaceSlug}`} />}>
@@ -44,8 +42,6 @@ export function SettingsSidebar({ workspaceName }: SettingsSidebarProps) {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
-
-      <SidebarSeparator />
 
       <SidebarContent>
         <SidebarGroup>
@@ -66,8 +62,6 @@ export function SettingsSidebar({ workspaceName }: SettingsSidebarProps) {
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
-
-      <SidebarRail />
     </Sidebar>
   );
 }

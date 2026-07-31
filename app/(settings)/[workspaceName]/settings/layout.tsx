@@ -5,6 +5,7 @@ import { convexAuthNextjsToken } from '@convex-dev/auth/nextjs/server';
 import { fetchQuery } from 'convex/nextjs';
 import { redirect } from 'next/navigation';
 
+import { SettingsHeader } from './_components/settings-header';
 import { SettingsSidebar } from './_components/settings-sidebar';
 
 type SettingsLayoutProps = Readonly<{
@@ -35,7 +36,10 @@ export default async function SettingsLayout({
       <SidebarProvider>
         <SettingsSidebar workspaceName={decodedWorkspaceName} />
 
-        <SidebarInset>{children}</SidebarInset>
+        <SidebarInset>
+          <SettingsHeader workspaceName={decodedWorkspaceName} />
+          <div className='mx-auto w-full max-w-3xl px-6 py-8'>{children}</div>
+        </SidebarInset>
       </SidebarProvider>
     </TooltipProvider>
   );

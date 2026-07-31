@@ -19,6 +19,7 @@ export default defineSchema({
   workspaces: defineTable({
     name: v.string(),
     adminId: v.id('users'),
+    imageId: v.optional(v.id('_storage')),
   })
     .index('adminId', ['adminId'])
     .index('name', ['name']),
