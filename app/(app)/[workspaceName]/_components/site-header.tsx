@@ -30,11 +30,7 @@ export async function SiteHeader({ workspaceName }: SiteHeaderProps) {
           orientation='vertical'
           className='data-vertical:h-4.5 data-vertical:self-auto'
         />
-        <span
-          className='text-[15px] font-semibold tracking-tight whitespace-nowrap'
-        >
-          {workspaceName}
-        </span>
+
         <SectionLabel />
       </div>
 

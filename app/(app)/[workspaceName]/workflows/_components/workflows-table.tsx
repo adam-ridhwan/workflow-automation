@@ -48,25 +48,28 @@ export function WorkflowsTable({
         <TableHeader>
           <TableRow className='hover:bg-transparent'>
             <TableHead
-              className='text-muted-foreground h-9 px-4 text-[11px] font-medium
+              className='text-muted-foreground h-9 px-5 text-[11px] font-medium
                 tracking-wider uppercase'
             >
               Workflow
             </TableHead>
+
             <TableHead
-              className='text-muted-foreground h-9 w-30 px-4 text-[11px]
+              className='text-muted-foreground h-9 w-30 px-5 text-[11px]
                 font-medium tracking-wider uppercase'
             >
               Status
             </TableHead>
+
             <TableHead
-              className='text-muted-foreground h-9 w-30 px-4 text-[11px]
+              className='text-muted-foreground h-9 w-30 px-5 text-[11px]
                 font-medium tracking-wider uppercase'
             >
               Created
             </TableHead>
+
             <TableHead
-              className='text-muted-foreground h-9 w-16 px-4 text-[11px]
+              className='text-muted-foreground h-9 w-16 px-5 text-[11px]
                 font-medium tracking-wider uppercase'
             >
               Owner
@@ -79,7 +82,7 @@ export function WorkflowsTable({
             <TableRow className='hover:bg-transparent'>
               <TableCell
                 colSpan={4}
-                className='text-muted-foreground h-24 px-4 text-center
+                className='text-muted-foreground h-24 px-5 text-center
                   text-[13px]'
               >
                 {isFiltered
@@ -90,7 +93,7 @@ export function WorkflowsTable({
           ) : (
             workflows.map((workflow) => (
               <TableRow key={workflow._id} className='relative'>
-                <TableCell className='px-4 py-3'>
+                <TableCell className='px-5 py-3'>
                   <Link
                     href={`/${encodeURIComponent(workspaceName)}/workflows/${workflow._id}`}
                     aria-label={workflow.name}
@@ -110,13 +113,13 @@ export function WorkflowsTable({
                     )}
                   </span>
                 </TableCell>
-                <TableCell className='px-4'>
+                <TableCell className='px-5'>
                   <StatusBadge isPublished={workflow.isPublished} />
                 </TableCell>
-                <TableCell className='text-muted-foreground px-4 text-xs'>
+                <TableCell className='text-muted-foreground px-5 text-xs'>
                   {formatCreated(workflow._creationTime)}
                 </TableCell>
-                <TableCell className='px-4'>
+                <TableCell className='px-5'>
                   <Avatar size='sm' title={workflow.createdByName}>
                     <AvatarFallback className='text-[10px] font-semibold'>
                       {getInitials(workflow.createdByName)}
@@ -130,7 +133,7 @@ export function WorkflowsTable({
       </Table>
       <div
         className='text-muted-foreground mt-auto flex h-10.5 items-center
-          justify-between border-t px-4 text-[11.5px]'
+          justify-between border-t px-5 text-[11.5px]'
       >
         <span>
           {workflows.length} {workflows.length === 1 ? 'workflow' : 'workflows'}{' '}

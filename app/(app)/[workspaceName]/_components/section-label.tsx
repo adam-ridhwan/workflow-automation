@@ -1,28 +1,27 @@
 'use client';
 
-import { ChevronRightIcon } from 'lucide-react';
+import { FolderIcon, LayoutDashboardIcon, WorkflowIcon } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 
 function sectionFromPathname(pathname: string) {
   const [, , section] = pathname.split('/');
   if (section === 'workflows') {
-    return 'Workflows';
+    return { label: 'Workflows', Icon: WorkflowIcon };
   }
   if (section === 'files') {
-    return 'Files';
+    return { label: 'Files', Icon: FolderIcon };
   }
-  return 'Overview';
+  return { label: 'Overview', Icon: LayoutDashboardIcon };
 }
 
 export function SectionLabel() {
   const pathname = usePathname();
+  const { label, Icon } = sectionFromPathname(pathname);
 
   return (
-    <>
-      <ChevronRightIcon className='text-muted-foreground size-3.5 shrink-0' />
-      <span className='text-muted-foreground truncate text-[13px] font-medium'>
-        {sectionFromPathname(pathname)}
-      </span>
-    </>
+    <span className='text-primary flex min-w-0 items-center gap-1.5'>
+      <Icon className='size-4 shrink-0' />
+      <span className='truncate text-lg font-medium'>{label}</span>
+    </span>
   );
 }
