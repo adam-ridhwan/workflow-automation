@@ -26,7 +26,6 @@ import {
   useSearchParams,
 } from 'next/navigation';
 
-import { defaultOrder } from '../_lib/sort';
 import { NewWorkflowDialog } from './new-workflow-dialog';
 
 const FILTERS = [
@@ -60,7 +59,7 @@ export function WorkflowsHeader() {
 
   const filter = searchParams.get('state') ?? 'all';
   const sort = searchParams.get('sort') ?? 'recent';
-  const order = searchParams.get('order') ?? defaultOrder(sort);
+  const order = searchParams.get('order') ?? 'desc';
 
   /** Merge updates into the URL search params; `null` removes a param. */
   function updateParams(updates: Record<string, string | null>) {
@@ -132,11 +131,7 @@ export function WorkflowsHeader() {
             <DropdownMenuRadioGroup
               value={sort}
               onValueChange={(value) =>
-                // Changing sort resets the order to the sort's natural one.
-                updateParams({
-                  sort: value === 'recent' ? null : value,
-                  order: null,
-                })
+                updateParams({ sort: value === 'recent' ? null : value })
               }
             >
               <DropdownMenuLabel
@@ -154,9 +149,7 @@ export function WorkflowsHeader() {
             <DropdownMenuRadioGroup
               value={order}
               onValueChange={(value) =>
-                updateParams({
-                  order: value === defaultOrder(sort) ? null : value,
-                })
+                updateParams({ order: value === 'desc' ? null : value })
               }
             >
               <DropdownMenuLabel

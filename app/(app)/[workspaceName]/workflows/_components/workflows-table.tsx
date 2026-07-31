@@ -83,7 +83,7 @@ export function WorkflowsTable({
                   text-[13px]'
               >
                 {isFiltered
-                  ? 'No workflows match your filters.'
+                  ? 'Nothing matches your search or filters. Try broadening or clearing them.'
                   : 'No workflows yet. Create your first one.'}
               </TableCell>
             </TableRow>

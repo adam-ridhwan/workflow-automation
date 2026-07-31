@@ -1,16 +1,17 @@
-import { defaultOrder } from './sort';
-
 import type { Workflow } from '@/convex/queries/workflows';
 
-export type WorkflowsView = {
+export type WorkflowsSearchParams = {
   state?: 'published' | 'unpublished';
   sort?: string;
   order?: 'asc' | 'desc';
   q?: string;
 };
 
-export function applyView(workflows: Workflow[], view: WorkflowsView) {
-  const { state, sort, order, q } = view;
+export function sieveWorkflows(
+  workflows: Workflow[],
+  searchParams: WorkflowsSearchParams
+) {
+  const { state, sort, order, q } = searchParams;
   let result = workflows;
 
   if (state === 'published' || state === 'unpublished') {
@@ -34,20 +35,19 @@ export function applyView(workflows: Workflow[], view: WorkflowsView) {
     case 'name':
       result = [...result].sort((a, b) => a.name.localeCompare(b.name));
       break;
+
     case 'status':
       result = [...result].sort(
         (a, b) => Number(a.isPublished) - Number(b.isPublished)
       );
       break;
+
     default:
       result = [...result].sort((a, b) => a._creationTime - b._creationTime);
   }
 
-  const effectiveOrder =
-    order === 'asc' || order === 'desc'
-      ? order
-      : defaultOrder(sort ?? 'recent');
-  if (effectiveOrder === 'desc') {
+  // Descending unless explicitly ascending.
+  if (order !== 'asc') {
     result.reverse();
   }
 

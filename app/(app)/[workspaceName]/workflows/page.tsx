@@ -5,16 +5,13 @@ import { fetchQuery } from 'convex/nextjs';
 import { WorkflowsEmpty } from './_components/workflows-empty';
 import { WorkflowsHeader } from './_components/workflows-header';
 import { WorkflowsTable } from './_components/workflows-table';
-import { applyView } from './_lib/apply-view';
+import { sieveWorkflows } from './_lib/sieve-workflows';
+
+import type { WorkflowsSearchParams } from './_lib/sieve-workflows';
 
 type WorkflowsPageProps = {
   params: Promise<{ workspaceName: string }>;
-  searchParams: Promise<{
-    state?: 'published' | 'unpublished';
-    sort?: string;
-    order?: 'asc' | 'desc';
-    q?: string;
-  }>;
+  searchParams: Promise<WorkflowsSearchParams>;
 };
 
 export default async function WorkflowsPage({
@@ -36,14 +33,14 @@ export default async function WorkflowsPage({
     return <WorkflowsEmpty workspaceName={decodedWorkspaceName} />;
   }
 
-  const filtered = applyView(workflows, { state, sort, order, q });
+  const sievedWorkflows = sieveWorkflows(workflows, { state, sort, order, q });
   const isFiltered = Boolean(state || q);
 
   return (
     <>
       <WorkflowsHeader />
       <WorkflowsTable
-        workflows={filtered}
+        workflows={sievedWorkflows}
         workspaceName={decodedWorkspaceName}
         isFiltered={isFiltered}
       />
