@@ -29,7 +29,7 @@ export function CreateWorkspaceDialog({
   open,
   onOpenChange,
 }: CreateWorkspaceDialogProps) {
-  const createWorkspace = useMutation(api.queries.workspaces.create);
+  const createWorkspace = useMutation(api.workspaces.create);
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);

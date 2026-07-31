@@ -27,7 +27,7 @@ import { PlusIcon } from 'lucide-react';
 
 import { AddMemberDialog } from './add-member-dialog';
 
-import type { WorkspaceMember } from '@/convex/queries/workspaces';
+import type { WorkspaceMember } from '@/convex/workspaces';
 
 type CollaboratorsMenuProps = {
   workspaceName: string;

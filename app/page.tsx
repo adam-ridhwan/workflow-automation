@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 // Routes the signed-in user to their first workspace, or to workspace
 // creation if they don't have one yet.
 export default function Home() {
-  const workspaces = useQuery(api.queries.workspaces.list);
+  const workspaces = useQuery(api.workspaces.list);
   const router = useRouter();
 
   useEffect(() => {

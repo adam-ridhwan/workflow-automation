@@ -6,10 +6,10 @@ import {
 import { getAuthUserId } from '@convex-dev/auth/server';
 import { ConvexError, Infer, v } from 'convex/values';
 
-import { mutation, query } from '../_generated/server';
+import { mutation, query } from './_generated/server';
 
-import type { Doc, Id } from '../_generated/dataModel';
-import type { MutationCtx, QueryCtx } from '../_generated/server';
+import type { Doc, Id } from './_generated/dataModel';
+import type { MutationCtx, QueryCtx } from './_generated/server';
 
 const workspaceValidator = v.object({
   _id: v.id('workspaces'),
@@ -22,6 +22,15 @@ const workspaceValidator = v.object({
 
 export type Workspace = Infer<typeof workspaceValidator>;
 
+const memberValidator = v.object({
+  userId: v.id('users'),
+  name: v.string(),
+  email: v.string(),
+  role: v.union(v.literal('admin'), v.literal('collaborator')),
+});
+
+export type WorkspaceMember = Infer<typeof memberValidator>;
+
 async function withImageUrl(
   ctx: QueryCtx | MutationCtx,
   doc: Doc<'workspaces'>
@@ -32,7 +41,7 @@ async function withImageUrl(
   };
 }
 
-async function requireUserId(ctx: QueryCtx | MutationCtx) {
+export async function requireUserId(ctx: QueryCtx | MutationCtx) {
   const userId = await getAuthUserId(ctx);
   if (userId === null) {
     throw new ConvexError('You must be signed in.');
@@ -40,7 +49,7 @@ async function requireUserId(ctx: QueryCtx | MutationCtx) {
   return userId;
 }
 
-function getMembership(
+export function getMembership(
   ctx: QueryCtx | MutationCtx,
   workspaceId: Id<'workspaces'>,
   userId: Id<'users'>
@@ -76,6 +85,20 @@ export async function requireAdmin(
     throw new ConvexError('Only the workspace admin can do this.');
   }
   return membership;
+}
+
+export async function getWorkspaceByNameOrThrow(
+  ctx: QueryCtx | MutationCtx,
+  workspaceName: string
+) {
+  const workspace = await ctx.db
+    .query('workspaces')
+    .withIndex('name', (q) => q.eq('name', workspaceName))
+    .unique();
+  if (workspace === null) {
+    throw new ConvexError('Workspace not found.');
+  }
+  return workspace;
 }
 
 export const create = mutation({
@@ -153,15 +176,6 @@ export const list = query({
   },
 });
 
-const memberValidator = v.object({
-  userId: v.id('users'),
-  name: v.string(),
-  email: v.string(),
-  role: v.union(v.literal('admin'), v.literal('collaborator')),
-});
-
-export type WorkspaceMember = Infer<typeof memberValidator>;
-
 export const members = query({
   args: { workspaceName: v.string() },
   returns: v.array(memberValidator),
@@ -205,13 +219,7 @@ export const addMember = mutation({
   args: { workspaceName: v.string(), email: v.string() },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const workspace = await ctx.db
-      .query('workspaces')
-      .withIndex('name', (q) => q.eq('name', args.workspaceName))
-      .unique();
-    if (workspace === null) {
-      throw new ConvexError('Workspace not found.');
-    }
+    const workspace = await getWorkspaceByNameOrThrow(ctx, args.workspaceName);
     await requireAdmin(ctx, workspace._id);
 
     const email = args.email.trim();
@@ -241,13 +249,7 @@ export const rename = mutation({
   args: { workspaceName: v.string(), name: v.string() },
   returns: v.string(),
   handler: async (ctx, args) => {
-    const workspace = await ctx.db
-      .query('workspaces')
-      .withIndex('name', (q) => q.eq('name', args.workspaceName))
-      .unique();
-    if (workspace === null) {
-      throw new ConvexError('Workspace not found.');
-    }
+    const workspace = await getWorkspaceByNameOrThrow(ctx, args.workspaceName);
     await requireAdmin(ctx, workspace._id);
 
     const name = slugify(args.name);
@@ -282,13 +284,7 @@ export const setLogo = mutation({
   args: { workspaceName: v.string(), storageId: v.id('_storage') },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const workspace = await ctx.db
-      .query('workspaces')
-      .withIndex('name', (q) => q.eq('name', args.workspaceName))
-      .unique();
-    if (workspace === null) {
-      throw new ConvexError('Workspace not found.');
-    }
+    const workspace = await getWorkspaceByNameOrThrow(ctx, args.workspaceName);
     await requireAdmin(ctx, workspace._id);
 
     if (workspace.imageId) {
@@ -303,13 +299,7 @@ export const remove = mutation({
   args: { workspaceName: v.string() },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const workspace = await ctx.db
-      .query('workspaces')
-      .withIndex('name', (q) => q.eq('name', args.workspaceName))
-      .unique();
-    if (workspace === null) {
-      throw new ConvexError('Workspace not found.');
-    }
+    const workspace = await getWorkspaceByNameOrThrow(ctx, args.workspaceName);
     await requireAdmin(ctx, workspace._id);
 
     const workflows = await ctx.db

@@ -10,9 +10,9 @@
 
 import type * as auth from "../auth.js";
 import type * as http from "../http.js";
-import type * as queries_users from "../queries/users.js";
-import type * as queries_workflows from "../queries/workflows.js";
-import type * as queries_workspaces from "../queries/workspaces.js";
+import type * as users from "../users.js";
+import type * as workflows from "../workflows.js";
+import type * as workspaces from "../workspaces.js";
 
 import type {
   ApiFromModules,
@@ -23,9 +23,9 @@ import type {
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   http: typeof http;
-  "queries/users": typeof queries_users;
-  "queries/workflows": typeof queries_workflows;
-  "queries/workspaces": typeof queries_workspaces;
+  users: typeof users;
+  workflows: typeof workflows;
+  workspaces: typeof workspaces;
 }>;
 
 /**

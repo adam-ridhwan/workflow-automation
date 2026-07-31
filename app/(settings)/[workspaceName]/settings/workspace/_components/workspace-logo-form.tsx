@@ -19,10 +19,8 @@ export function WorkspaceLogoForm({
   imageUrl,
   isAdmin,
 }: WorkspaceLogoFormProps) {
-  const generateUploadUrl = useMutation(
-    api.queries.workspaces.generateLogoUploadUrl
-  );
-  const setLogo = useMutation(api.queries.workspaces.setLogo);
+  const generateUploadUrl = useMutation(api.workspaces.generateLogoUploadUrl);
+  const setLogo = useMutation(api.workspaces.setLogo);
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);

@@ -1,4 +1,4 @@
-import type { Workflow } from '@/convex/queries/workflows';
+import type { Workflow } from '@/convex/workflows';
 
 export type WorkflowsSearchParams = {
   state?: 'published' | 'unpublished';

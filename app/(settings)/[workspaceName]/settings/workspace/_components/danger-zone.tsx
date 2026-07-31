@@ -25,7 +25,7 @@ type DangerZoneProps = {
 };
 
 export function DangerZone({ workspaceName, isAdmin }: DangerZoneProps) {
-  const removeWorkspace = useMutation(api.queries.workspaces.remove);
+  const removeWorkspace = useMutation(api.workspaces.remove);
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [confirmText, setConfirmText] = useState('');

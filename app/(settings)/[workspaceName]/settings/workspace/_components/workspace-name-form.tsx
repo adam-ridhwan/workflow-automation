@@ -18,7 +18,7 @@ export function WorkspaceNameForm({
   workspaceName,
   isAdmin,
 }: WorkspaceNameFormProps) {
-  const renameWorkspace = useMutation(api.queries.workspaces.rename);
+  const renameWorkspace = useMutation(api.workspaces.rename);
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);

@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import type { Id } from '@/convex/_generated/dataModel';
-import type { Workflow } from '@/convex/queries/workflows';
+import type { Workflow } from '@/convex/workflows';
 
 type WorkflowPageProps = {
   params: Promise<{ workspaceName: string; workflowId: Id<'workflows'> }>;
@@ -22,7 +22,7 @@ export default async function WorkflowPage({ params }: WorkflowPageProps) {
   let workflow: Workflow | null = null;
   try {
     workflow = await fetchQuery(
-      api.queries.workflows.get,
+      api.workflows.get,
       {
         workspaceName: decodedWorkspaceName,
         workflowId: workflowId,

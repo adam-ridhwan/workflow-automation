@@ -28,7 +28,7 @@ export function NewWorkflowDialog({
   open,
   onOpenChange,
 }: NewWorkflowDialogProps) {
-  const createWorkflow = useMutation(api.queries.workflows.create);
+  const createWorkflow = useMutation(api.workflows.create);
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);

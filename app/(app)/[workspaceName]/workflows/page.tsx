@@ -24,7 +24,7 @@ export default async function WorkflowsPage({
 
   const token = await convexAuthNextjsToken();
   const workflows = await fetchQuery(
-    api.queries.workflows.list,
+    api.workflows.list,
     { workspaceName: decodedWorkspaceName },
     { token }
   );

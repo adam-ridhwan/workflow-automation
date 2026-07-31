@@ -21,8 +21,8 @@ type AppSidebarProps = {
 export async function AppSidebar({ workspaceName }: AppSidebarProps) {
   const token = await convexAuthNextjsToken();
   const [user, workspaces] = await Promise.all([
-    fetchQuery(api.queries.users.currentUser, {}, { token }),
-    fetchQuery(api.queries.workspaces.list, {}, { token }),
+    fetchQuery(api.users.currentUser, {}, { token }),
+    fetchQuery(api.workspaces.list, {}, { token }),
   ]);
 
   const workspaceSlug = encodeURIComponent(workspaceName);

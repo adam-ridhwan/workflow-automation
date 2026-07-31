@@ -20,9 +20,9 @@ export default async function WorkspaceSettingsPage({
 
   const token = await convexAuthNextjsToken();
   const [user, workspace] = await Promise.all([
-    fetchQuery(api.queries.users.currentUser, {}, { token }),
+    fetchQuery(api.users.currentUser, {}, { token }),
     fetchQuery(
-      api.queries.workspaces.getByName,
+      api.workspaces.getByName,
       { name: decodedWorkspaceName },
       { token }
     ),

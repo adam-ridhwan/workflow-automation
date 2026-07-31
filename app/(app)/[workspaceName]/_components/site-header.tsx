@@ -14,7 +14,7 @@ type SiteHeaderProps = {
 export async function SiteHeader({ workspaceName }: SiteHeaderProps) {
   const token = await convexAuthNextjsToken();
   const members = await fetchQuery(
-    api.queries.workspaces.members,
+    api.workspaces.members,
     { workspaceName },
     { token }
   );
