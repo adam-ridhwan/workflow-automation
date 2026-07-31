@@ -1,0 +1,42 @@
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { api } from '@/convex/_generated/api';
+import { convexAuthNextjsToken } from '@convex-dev/auth/nextjs/server';
+import { fetchQuery } from 'convex/nextjs';
+import { redirect } from 'next/navigation';
+
+import { SettingsSidebar } from './_components/settings-sidebar';
+
+type SettingsLayoutProps = Readonly<{
+  children: React.ReactNode;
+  params: Promise<{ workspaceName: string }>;
+}>;
+
+export default async function SettingsLayout({
+  children,
+  params,
+}: SettingsLayoutProps) {
+  const { workspaceName } = await params;
+  const decodedWorkspaceName = decodeURIComponent(workspaceName);
+
+  const token = await convexAuthNextjsToken();
+  const workspace = await fetchQuery(
+    api.queries.workspaces.getByName,
+    { name: decodedWorkspaceName },
+    { token }
+  );
+
+  if (workspace === null) {
+    redirect('/');
+  }
+
+  return (
+    <TooltipProvider>
+      <SidebarProvider>
+        <SettingsSidebar workspaceName={decodedWorkspaceName} />
+
+        <SidebarInset>{children}</SidebarInset>
+      </SidebarProvider>
+    </TooltipProvider>
+  );
+}

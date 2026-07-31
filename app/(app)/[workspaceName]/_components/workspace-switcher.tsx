@@ -17,7 +17,8 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { cn } from '@/lib/cn';
-import { ChevronsUpDownIcon, PlusIcon } from 'lucide-react';
+import { ChevronsUpDownIcon, PlusIcon, Settings } from 'lucide-react';
+import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 
 import { CreateWorkspaceDialog } from './create-workspace-dialog';
@@ -101,6 +102,30 @@ export function WorkspaceSwitcher({ workspaces }: WorkspaceSwitcherProps) {
             </DropdownMenuGroup>
 
             <DropdownMenuSeparator />
+
+            <DropdownMenuGroup>
+              <DropdownMenuItem
+                render={<Button type='button' variant='ghost' />}
+                nativeButton
+                className='w-full justify-start gap-2 p-2 font-normal'
+              >
+                <Link
+                  href={`/${encodeURIComponent(activeWorkspace.name)}/settings`}
+                  className='flex w-full items-center gap-2'
+                >
+                  <div
+                    className='flex size-6 items-center justify-center
+                      rounded-md border bg-transparent'
+                  >
+                    <Settings className='size-3.5' />
+                  </div>
+
+                  <div className='text-muted-foreground font-medium'>
+                    Workspace settings
+                  </div>
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
 
             <DropdownMenuGroup>
               <DropdownMenuItem
