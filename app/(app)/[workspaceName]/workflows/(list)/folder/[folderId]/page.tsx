@@ -3,10 +3,10 @@ import { convexAuthNextjsToken } from '@convex-dev/auth/nextjs/server';
 import { fetchQuery } from 'convex/nextjs';
 import { notFound } from 'next/navigation';
 
-import { WorkflowsTable } from '../../_components/workflows-table';
-import { sieveWorkflows } from '../../_lib/sieve-workflows';
+import { WorkflowsTable } from '../../../_components/workflows-table';
+import { sieveWorkflows } from '../../../_lib/sieve-workflows';
 
-import type { WorkflowsSearchParams } from '../../_lib/sieve-workflows';
+import type { WorkflowsSearchParams } from '../../../_lib/sieve-workflows';
 import type { Id } from '@/convex/_generated/dataModel';
 import type { Folder } from '@/convex/folders';
 

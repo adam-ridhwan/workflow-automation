@@ -6,7 +6,6 @@ import { Table } from '@/components/ui/table';
 import { DeleteFolderDialog } from '../../_components/delete-folder-dialog';
 import { DeleteWorkflowDialog } from './delete-workflow-dialog';
 import { WorkflowsTableBody } from './workflows-table-body';
-import { WorkflowsTableHeader } from './workflows-table-header';
 
 import type { Folder } from '@/convex/folders';
 import type { Workflow } from '@/convex/workflows';
@@ -32,7 +31,13 @@ export function WorkflowsTable({
   return (
     <div className='flex flex-1 flex-col'>
       <Table className='table-fixed'>
-        <WorkflowsTableHeader />
+        <colgroup>
+          <col />
+          <col className='w-[15%]' />
+          <col className='w-[15%]' />
+          <col className='w-[15%]' />
+          <col className='w-[5%]' />
+        </colgroup>
         <WorkflowsTableBody
           workflows={workflows}
           folders={folders}
