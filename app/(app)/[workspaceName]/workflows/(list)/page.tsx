@@ -2,12 +2,11 @@ import { api } from '@/convex/_generated/api';
 import { convexAuthNextjsToken } from '@convex-dev/auth/nextjs/server';
 import { fetchQuery } from 'convex/nextjs';
 
-import { WorkflowsEmpty } from './_components/workflows-empty';
-import { WorkflowsHeader } from './_components/workflows-header';
-import { WorkflowsTable } from './_components/workflows-table';
-import { sieveWorkflows } from './_lib/sieve-workflows';
+import { WorkflowsEmpty } from '../_components/workflows-empty';
+import { WorkflowsTable } from '../_components/workflows-table';
+import { sieveWorkflows } from '../_lib/sieve-workflows';
 
-import type { WorkflowsSearchParams } from './_lib/sieve-workflows';
+import type { WorkflowsSearchParams } from '../_lib/sieve-workflows';
 
 type WorkflowsPageProps = {
   params: Promise<{ workspaceName: string }>;
@@ -55,7 +54,6 @@ export default async function WorkflowsPage({
 
   return (
     <>
-      <WorkflowsHeader />
       <WorkflowsTable
         workflows={sievedWorkflows}
         folders={sievedFolders}

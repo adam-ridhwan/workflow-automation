@@ -5,11 +5,10 @@ import { ChevronRightIcon, FolderIcon, HomeIcon } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
-import { WorkflowsHeader } from '../../_components/workflows-header';
-import { WorkflowsTable } from '../../_components/workflows-table';
-import { sieveWorkflows } from '../../_lib/sieve-workflows';
+import { WorkflowsTable } from '../../../_components/workflows-table';
+import { sieveWorkflows } from '../../../_lib/sieve-workflows';
 
-import type { WorkflowsSearchParams } from '../../_lib/sieve-workflows';
+import type { WorkflowsSearchParams } from '../../../_lib/sieve-workflows';
 import type { Id } from '@/convex/_generated/dataModel';
 import type { Folder } from '@/convex/folders';
 
@@ -75,7 +74,6 @@ export default async function FolderPage({
 
   return (
     <>
-      <WorkflowsHeader folderId={folder._id} />
       <div
         className='bg-background flex h-10 shrink-0 items-center gap-2 border-b
           px-5'

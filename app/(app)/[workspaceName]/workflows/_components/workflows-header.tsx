@@ -50,16 +50,18 @@ const ORDERS = [
   { value: 'desc', label: 'Descending' },
 ];
 
-type WorkflowsHeaderProps = {
-  folderId?: Folder['_id'];
-};
-
-export function WorkflowsHeader({ folderId }: WorkflowsHeaderProps) {
+export function WorkflowsHeader() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const params = useParams<{ workspaceName: string }>();
+  const params = useParams<{
+    workspaceName: string;
+    folderId?: Folder['_id'];
+  }>();
   const workspaceName = decodeURIComponent(params.workspaceName);
+  // Present on /workflows/folder/[folderId] routes; creation is scoped to
+  // the folder being viewed.
+  const folderId = params.folderId;
   const [showNewDialog, setShowNewDialog] = useState(false);
   const [showNewFolderDialog, setShowNewFolderDialog] = useState(false);
   const searchDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
