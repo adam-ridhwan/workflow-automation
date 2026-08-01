@@ -102,10 +102,7 @@ export function WorkflowsHeader() {
   const sortLabel = SORTS.find((s) => s.value === sort)?.short ?? 'Recent';
 
   return (
-    <div
-      className='bg-background flex h-13 shrink-0 items-center justify-between
-        gap-3 border-b px-5'
-    >
+    <div className='grid h-full w-full min-w-0 grid-cols-3 items-center gap-3'>
       <div className='flex min-w-0 items-center gap-2'>
         <DropdownMenu>
           <DropdownMenuTrigger
@@ -203,29 +200,30 @@ export function WorkflowsHeader() {
         )}
       </div>
 
-      <div className='flex shrink-0 items-center gap-2'>
-        <div className='relative'>
-          <SearchIcon
-            className='text-muted-foreground pointer-events-none absolute
-              top-1/2 left-2.5 size-3.5 -translate-y-1/2'
-          />
-          <Input
-            ref={searchInputRef}
-            type='search'
-            placeholder='Search workflows'
-            defaultValue={initialQuery}
-            onChange={(event) => {
-              const value = event.target.value.trim();
-              if (searchDebounce.current) {
-                clearTimeout(searchDebounce.current);
-              }
-              searchDebounce.current = setTimeout(() => {
-                updateParams({ q: value || null });
-              }, 300);
-            }}
-            className='h-8 w-54 pl-8 text-[13px]'
-          />
-        </div>
+      <div className='relative min-w-0'>
+        <SearchIcon
+          className='text-muted-foreground pointer-events-none absolute top-1/2
+            left-2.5 size-3.5 -translate-y-1/2'
+        />
+        <Input
+          ref={searchInputRef}
+          type='search'
+          placeholder='Search workflows'
+          defaultValue={initialQuery}
+          onChange={(event) => {
+            const value = event.target.value.trim();
+            if (searchDebounce.current) {
+              clearTimeout(searchDebounce.current);
+            }
+            searchDebounce.current = setTimeout(() => {
+              updateParams({ q: value || null });
+            }, 300);
+          }}
+          className='h-8 w-full pl-8 text-[13px]'
+        />
+      </div>
+
+      <div className='flex items-center justify-end gap-2'>
         <Button
           variant='outline'
           size='sm'
