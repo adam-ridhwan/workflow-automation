@@ -30,7 +30,7 @@ export async function SiteHeader({
         justify-between border-b px-2 supports-backdrop-filter:backdrop-blur-xl'
     >
       <div className='flex min-w-0 flex-1 items-center gap-2.5'>
-        <SidebarTrigger className='size-8' />
+        <SidebarTrigger />
         <Separator
           orientation='vertical'
           className='data-vertical:h-4.5 data-vertical:self-auto'

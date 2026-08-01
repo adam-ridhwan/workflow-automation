@@ -5,9 +5,8 @@ export default function WorkflowLoading() {
     <div className='flex flex-1 flex-col'>
       <div
         className='bg-background flex h-13 shrink-0 items-center gap-3 border-b
-          px-5'
+          px-4'
       >
-        <Skeleton className='size-7 rounded-md' />
         <Skeleton className='h-4 w-40' />
         <Skeleton className='h-5 w-24 rounded-full' />
       </div>
