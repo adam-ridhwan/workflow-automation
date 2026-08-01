@@ -1,5 +1,6 @@
 import { Table } from '@/components/ui/table';
 
+import { WorkflowsHeader } from './_components/workflows-header';
 import { WorkflowsTableHeader } from './_components/workflows-table-header';
 
 type WorkflowsListLayoutProps = Readonly<{
@@ -15,6 +16,7 @@ export default function WorkflowsListLayout({
 }: WorkflowsListLayoutProps) {
   return (
     <>
+      <WorkflowsHeader />
       <Table className='table-fixed'>
         <WorkflowsTableHeader />
       </Table>

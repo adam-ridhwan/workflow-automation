@@ -4,9 +4,8 @@ import { api } from '@/convex/_generated/api';
 import { convexAuthNextjsToken } from '@convex-dev/auth/nextjs/server';
 import { fetchQuery } from 'convex/nextjs';
 
-import { NewItemMenu } from '../workflows/_components/new-item-menu';
-import { WorkflowsHeader } from '../workflows/_components/workflows-header';
 import { CollaboratorsMenu } from './collaborators-menu';
+import { SectionLabel } from './section-label';
 
 type SiteHeaderProps = {
   workspaceName: string;
@@ -27,17 +26,17 @@ export async function SiteHeader({
 
   return (
     <header
-      className='bg-background/60 flex h-14 shrink-0 items-center gap-2.5
-        border-b px-3 supports-backdrop-filter:backdrop-blur-xl'
+      className='bg-background/60 flex h-14 shrink-0 items-center
+        justify-between border-b px-2 supports-backdrop-filter:backdrop-blur-xl'
     >
-      <SidebarTrigger className='size-8' />
-      <Separator
-        orientation='vertical'
-        className='data-vertical:h-4.5 data-vertical:self-auto'
-      />
+      <div className='flex min-w-0 flex-1 items-center gap-2.5'>
+        <SidebarTrigger className='size-8' />
+        <Separator
+          orientation='vertical'
+          className='data-vertical:h-4.5 data-vertical:self-auto'
+        />
 
-      <div className='flex min-w-0 flex-1 items-center gap-1'>
-        <NewItemMenu />
+        <SectionLabel />
         {breadcrumb && (
           <nav
             aria-label='Breadcrumb'
@@ -48,10 +47,7 @@ export async function SiteHeader({
         )}
       </div>
 
-      <div className='flex shrink-0 items-center gap-2.5'>
-        <WorkflowsHeader />
-        <CollaboratorsMenu members={members} />
-      </div>
+      <CollaboratorsMenu members={members} />
     </header>
   );
 }
