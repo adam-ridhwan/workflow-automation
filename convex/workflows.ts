@@ -176,6 +176,36 @@ export const rename = mutation({
   },
 });
 
+/** Move a workflow into a folder, or to the workspace root when `folderId`
+ * is omitted. */
+export const move = mutation({
+  args: {
+    workspaceName: v.string(),
+    workflowId: v.id('workflows'),
+    folderId: v.optional(v.id('folders')),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const workflow = await getMemberWorkflow(
+      ctx,
+      args.workspaceName,
+      args.workflowId
+    );
+
+    if (args.folderId !== undefined) {
+      const folder = await ctx.db.get(args.folderId);
+      if (folder === null || folder.workspaceId !== workflow.workspaceId) {
+        throw new ConvexError('Destination folder not found.');
+      }
+    }
+    if (workflow.folderId === args.folderId) {
+      return null;
+    }
+    await ctx.db.patch(workflow._id, { folderId: args.folderId });
+    return null;
+  },
+});
+
 export const remove = mutation({
   args: { workspaceName: v.string(), workflowId: v.id('workflows') },
   returns: v.null(),

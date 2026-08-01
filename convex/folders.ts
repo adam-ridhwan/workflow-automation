@@ -205,6 +205,65 @@ export const rename = mutation({
   },
 });
 
+/** Move a folder under a new parent, or to the workspace root when
+ * `parentId` is omitted. */
+export const move = mutation({
+  args: {
+    workspaceName: v.string(),
+    folderId: v.id('folders'),
+    parentId: v.optional(v.id('folders')),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const folder = await getMemberFolder(
+      ctx,
+      args.workspaceName,
+      args.folderId
+    );
+    if (folder.parentId === args.parentId) {
+      return null;
+    }
+
+    if (args.parentId !== undefined) {
+      if (args.parentId === folder._id) {
+        throw new ConvexError('A folder cannot be moved into itself.');
+      }
+      const parent = await ctx.db.get(args.parentId);
+      if (parent === null || parent.workspaceId !== folder.workspaceId) {
+        throw new ConvexError('Destination folder not found.');
+      }
+      // Walk up from the destination; finding the folder on the way to the
+      // root means the destination is inside it.
+      let current = parent.parentId;
+      for (let depth = 0; current !== undefined && depth < 100; depth++) {
+        if (current === folder._id) {
+          throw new ConvexError(
+            'A folder cannot be moved into its own subfolder.'
+          );
+        }
+        const node = await ctx.db.get(current);
+        current = node?.parentId;
+      }
+    }
+
+    const existing = await ctx.db
+      .query('folders')
+      .withIndex('parentName', (q) =>
+        q
+          .eq('workspaceId', folder.workspaceId)
+          .eq('parentId', args.parentId)
+          .eq('name', folder.name)
+      )
+      .first();
+    if (existing !== null) {
+      throw new ConvexError('A folder with this name already exists here.');
+    }
+
+    await ctx.db.patch(folder._id, { parentId: args.parentId });
+    return null;
+  },
+});
+
 export const remove = mutation({
   args: { workspaceName: v.string(), folderId: v.id('folders') },
   returns: v.null(),
