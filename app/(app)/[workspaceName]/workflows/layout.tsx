@@ -1,4 +1,4 @@
-import { WorkflowsHeader } from '../_components/workflows-header';
+import { WorkflowsHeader } from './_components/workflows-header';
 
 type WorkflowsLayoutProps = Readonly<{
   children: React.ReactNode;
