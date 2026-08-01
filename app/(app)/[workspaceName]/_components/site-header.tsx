@@ -27,10 +27,10 @@ export async function SiteHeader({
   return (
     <header
       className='bg-background/60 flex h-14 shrink-0 items-center
-        justify-between border-b px-5 supports-backdrop-filter:backdrop-blur-xl'
+        justify-between border-b px-4 supports-backdrop-filter:backdrop-blur-xl'
     >
       <div className='flex min-w-0 flex-1 items-center gap-2.5'>
-        <SidebarTrigger className='-ml-1.5' />
+        <SidebarTrigger />
         <Separator
           orientation='vertical'
           className='data-vertical:h-4.5 data-vertical:self-auto'

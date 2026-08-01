@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button';
 import { api } from '@/convex/_generated/api';
 import { cn } from '@/lib/cn';
 import { formatCreated } from '@/lib/format-created-time';
@@ -40,16 +41,22 @@ export default async function WorkflowPage({ params }: WorkflowPageProps) {
     <div className='flex flex-1 flex-col'>
       <div
         className='bg-background flex h-13 shrink-0 items-center gap-3 border-b
-          px-5'
+          px-4'
       >
-        <Link
-          href={`/${encodeURIComponent(decodedWorkspaceName)}/workflows`}
-          className='text-muted-foreground hover:text-foreground flex size-7
-            items-center justify-center rounded-md transition-colors'
-          aria-label='Back to workflows'
+        <Button
+          variant='ghost'
+          size='icon-sm'
+          nativeButton={false}
+          className='text-muted-foreground hover:text-foreground'
+          render={
+            <Link
+              href={`/${encodeURIComponent(decodedWorkspaceName)}/workflows`}
+              aria-label='Back to workflows'
+            />
+          }
         >
           <ArrowLeftIcon className='size-4' />
-        </Link>
+        </Button>
         <span className='text-[13.5px] font-semibold tracking-tight'>
           {workflow.name}
         </span>
