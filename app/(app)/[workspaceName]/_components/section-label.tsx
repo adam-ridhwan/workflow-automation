@@ -8,6 +8,9 @@ function sectionFromPathname(pathname: string) {
   if (section === 'workflows') {
     return { label: 'Workflows', Icon: WorkflowIcon };
   }
+  if (section === 'workflow') {
+    return { label: 'Workflow', Icon: WorkflowIcon };
+  }
   if (section === 'files') {
     return { label: 'Files', Icon: FolderIcon };
   }

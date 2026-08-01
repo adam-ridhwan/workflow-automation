@@ -242,7 +242,7 @@ export function WorkflowsTableBody({
             <TableCell className='h-5 px-5'>
               {!isRenaming && (
                 <Link
-                  href={`/${encodeURIComponent(workspaceName)}/workflows/${workflow._id}`}
+                  href={`/${encodeURIComponent(workspaceName)}/workflow/${workflow._id}`}
                   aria-label={workflow.name}
                   className='absolute inset-0'
                 />

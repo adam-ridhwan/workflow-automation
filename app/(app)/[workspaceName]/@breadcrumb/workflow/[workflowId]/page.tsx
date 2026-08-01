@@ -61,7 +61,7 @@ export default async function WorkflowBreadcrumbPage({
     {
       id: workflow._id as string,
       name: workflow.name,
-      href: `/${workspaceSlug}/workflows/${workflow._id}`,
+      href: `/${workspaceSlug}/workflow/${workflow._id}`,
       icon: 'workflow' as const,
     },
   ];
