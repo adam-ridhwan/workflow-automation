@@ -20,7 +20,7 @@ export default function WorkspaceLoading() {
         </div>
       </div>
 
-      <div className='flex h-9 shrink-0 items-center border-b px-5'>
+      <div className='bg-sidebar flex h-9 shrink-0 items-center border-b px-5'>
         <Skeleton className='h-3 w-24' />
       </div>
       <WorkflowsTableSkeleton rows={4} />

@@ -8,7 +8,7 @@ type WorkflowsTableSkeletonProps = {
 // A real table with the same colgroup as WorkflowsTable, so skeleton cells
 // line up exactly with the persistent column header and the loaded rows.
 export function WorkflowsTableSkeleton({
-  rows = 3,
+  rows = 4,
 }: WorkflowsTableSkeletonProps) {
   return (
     <Table className='table-fixed'>
