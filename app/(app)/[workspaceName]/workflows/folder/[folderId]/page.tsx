@@ -1,8 +1,6 @@
 import { api } from '@/convex/_generated/api';
 import { convexAuthNextjsToken } from '@convex-dev/auth/nextjs/server';
 import { fetchQuery } from 'convex/nextjs';
-import { ChevronRightIcon, FolderIcon, HomeIcon } from 'lucide-react';
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import { WorkflowsTable } from '../../_components/workflows-table';
@@ -41,7 +39,7 @@ export default async function FolderPage({
     notFound();
   }
 
-  const [workflows, subfolders, folderPath] = await Promise.all([
+  const [workflows, subfolders] = await Promise.all([
     fetchQuery(
       api.workflows.list,
       { workspaceName: decodedWorkspaceName, folderId: folder._id },
@@ -50,11 +48,6 @@ export default async function FolderPage({
     fetchQuery(
       api.folders.list,
       { workspaceName: decodedWorkspaceName, parentId: folder._id },
-      { token }
-    ),
-    fetchQuery(
-      api.folders.path,
-      { workspaceName: decodedWorkspaceName, folderId: folder._id },
       { token }
     ),
   ]);
@@ -70,62 +63,12 @@ export default async function FolderPage({
             !needle || subfolder.name.toLowerCase().includes(needle)
         )
         .sort((a, b) => a.name.localeCompare(b.name));
-  const workspaceSlug = encodeURIComponent(decodedWorkspaceName);
-
   return (
-    <>
-      <div
-        className='bg-background flex h-10 shrink-0 items-center gap-2 border-b
-          px-5'
-      >
-        <nav
-          aria-label='Folder path'
-          className='flex min-w-0 items-center gap-1 text-[13px]'
-        >
-          <Link
-            href={`/${workspaceSlug}/workflows`}
-            className='text-muted-foreground hover:text-foreground shrink-0
-              transition-colors'
-            aria-label='Back to workflows'
-          >
-            <HomeIcon className='size-4' />
-          </Link>
-          {(folderPath ?? []).map((segment, index, segments) => {
-            const isCurrent = index === segments.length - 1;
-            return (
-              <span
-                key={segment._id}
-                className='flex min-w-0 items-center gap-1'
-              >
-                <ChevronRightIcon
-                  className='text-muted-foreground size-3 shrink-0'
-                />
-                <Link
-                  href={`/${workspaceSlug}/workflows/folder/${segment._id}`}
-                  aria-current={isCurrent ? 'page' : undefined}
-                  className={
-                    isCurrent
-                      ? `flex min-w-0 items-center gap-1.5 font-semibold
-                        tracking-tight`
-                      : `text-muted-foreground hover:text-foreground flex
-                        min-w-0 items-center gap-1.5 font-medium
-                        transition-colors`
-                  }
-                >
-                  <FolderIcon className='size-3.5 shrink-0' />
-                  <span className='truncate'>{segment.name}</span>
-                </Link>
-              </span>
-            );
-          })}
-        </nav>
-      </div>
-      <WorkflowsTable
-        workflows={sievedWorkflows}
-        folders={sievedFolders}
-        workspaceName={decodedWorkspaceName}
-        isFiltered={Boolean(state || q)}
-      />
-    </>
+    <WorkflowsTable
+      workflows={sievedWorkflows}
+      folders={sievedFolders}
+      workspaceName={decodedWorkspaceName}
+      isFiltered={Boolean(state || q)}
+    />
   );
 }

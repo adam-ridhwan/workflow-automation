@@ -9,9 +9,14 @@ import { SectionLabel } from './section-label';
 
 type SiteHeaderProps = {
   workspaceName: string;
+  /** Server-rendered folder/workflow trail from the @breadcrumb slot. */
+  breadcrumb?: React.ReactNode;
 };
 
-export async function SiteHeader({ workspaceName }: SiteHeaderProps) {
+export async function SiteHeader({
+  workspaceName,
+  breadcrumb,
+}: SiteHeaderProps) {
   const token = await convexAuthNextjsToken();
   const members = await fetchQuery(
     api.workspaces.members,
@@ -32,6 +37,14 @@ export async function SiteHeader({ workspaceName }: SiteHeaderProps) {
         />
 
         <SectionLabel />
+        {breadcrumb && (
+          <nav
+            aria-label='Breadcrumb'
+            className='flex min-w-0 items-center gap-1 text-[13px]'
+          >
+            {breadcrumb}
+          </nav>
+        )}
       </div>
 
       <CollaboratorsMenu workspaceName={workspaceName} members={members} />

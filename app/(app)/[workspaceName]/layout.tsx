@@ -10,11 +10,13 @@ import { SiteHeader } from './_components/site-header';
 
 type WorkspaceLayoutProps = Readonly<{
   children: React.ReactNode;
+  breadcrumb: React.ReactNode;
   params: Promise<{ workspaceName: string }>;
 }>;
 
 export default async function WorkspaceLayout({
   children,
+  breadcrumb,
   params,
 }: WorkspaceLayoutProps) {
   const { workspaceName } = await params;
@@ -37,7 +39,10 @@ export default async function WorkspaceLayout({
         <AppSidebar workspaceName={workspaceName} />
 
         <SidebarInset>
-          <SiteHeader workspaceName={decodedWorkspaceName} />
+          <SiteHeader
+            workspaceName={decodedWorkspaceName}
+            breadcrumb={breadcrumb}
+          />
           {children}
         </SidebarInset>
       </SidebarProvider>
