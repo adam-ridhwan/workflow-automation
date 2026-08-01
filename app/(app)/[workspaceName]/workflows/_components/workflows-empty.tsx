@@ -14,11 +14,7 @@ import { PlusIcon, WorkflowIcon } from 'lucide-react';
 
 import { NewWorkflowDialog } from './new-workflow-dialog';
 
-type WorkflowsEmptyProps = {
-  workspaceName: string;
-};
-
-export function WorkflowsEmpty({ workspaceName }: WorkflowsEmptyProps) {
+export function WorkflowsEmpty() {
   const [showNewDialog, setShowNewDialog] = useState(false);
 
   return (
@@ -44,11 +40,7 @@ export function WorkflowsEmpty({ workspaceName }: WorkflowsEmptyProps) {
         </Button>
       </EmptyContent>
 
-      <NewWorkflowDialog
-        workspaceName={workspaceName}
-        open={showNewDialog}
-        onOpenChange={setShowNewDialog}
-      />
+      <NewWorkflowDialog open={showNewDialog} onOpenChange={setShowNewDialog} />
     </Empty>
   );
 }

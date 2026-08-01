@@ -12,6 +12,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { TableCell, TableRow } from '@/components/ui/table';
 import { api } from '@/convex/_generated/api';
+import { useWorkspaceName } from '@/hooks/use-workspace-name';
 import { cn } from '@/lib/cn';
 import { formatCreated } from '@/lib/format-created-time';
 import { getInitials } from '@/lib/get-initials';
@@ -35,11 +36,11 @@ import type { Folder } from '@/convex/folders';
 
 type FolderRowProps = {
   folder: Folder;
-  workspaceName: string;
   onDelete: () => void;
 };
 
-export function FolderRow({ folder, workspaceName, onDelete }: FolderRowProps) {
+export function FolderRow({ folder, onDelete }: FolderRowProps) {
+  const workspaceName = useWorkspaceName();
   const router = useRouter();
   const renameFolder = useMutation(api.folders.rename);
   const [isRenaming, setIsRenaming] = useState(false);

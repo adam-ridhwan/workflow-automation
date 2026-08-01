@@ -70,7 +70,7 @@ export default async function WorkflowBreadcrumbPage({
 
   return (
     <>
-      <TrailStart workspaceName={decodedWorkspaceName} />
+      <TrailStart />
       {hidden.length > 0 && <TrailEllipsis segments={hidden} />}
       {visible.map((segment, index) => (
         <TrailSegment

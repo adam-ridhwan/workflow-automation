@@ -13,6 +13,7 @@ import {
 import { Field, FieldDescription, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { api } from '@/convex/_generated/api';
+import { useWorkspaceName } from '@/hooks/use-workspace-name';
 import { useMutation } from 'convex/react';
 import { ConvexError } from 'convex/values';
 import { useRouter } from 'next/navigation';
@@ -20,18 +21,17 @@ import { useRouter } from 'next/navigation';
 import type { Folder } from '@/convex/folders';
 
 type NewWorkflowDialogProps = {
-  workspaceName: string;
   folderId?: Folder['_id'];
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };
 
 export function NewWorkflowDialog({
-  workspaceName,
   folderId,
   open,
   onOpenChange,
 }: NewWorkflowDialogProps) {
+  const workspaceName = useWorkspaceName();
   const createWorkflow = useMutation(api.workflows.create);
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Table } from '@/components/ui/table';
+import { useWorkspaceName } from '@/hooks/use-workspace-name';
 
 import { DeleteFolderDialog } from '../../_components/delete-folder-dialog';
 import { DeleteWorkflowDialog } from './delete-workflow-dialog';
@@ -13,16 +14,15 @@ import type { Workflow } from '@/convex/workflows';
 type WorkflowsTableProps = {
   workflows: Workflow[];
   folders?: Folder[];
-  workspaceName: string;
   isFiltered: boolean;
 };
 
 export function WorkflowsTable({
   workflows,
   folders,
-  workspaceName,
   isFiltered,
 }: WorkflowsTableProps) {
+  const workspaceName = useWorkspaceName();
   const [deleteTarget, setDeleteTarget] = useState<Workflow | null>(null);
   const [folderDeleteTarget, setFolderDeleteTarget] = useState<Folder | null>(
     null
@@ -42,7 +42,6 @@ export function WorkflowsTable({
         <WorkflowsTableBody
           workflows={workflows}
           folders={folders}
-          workspaceName={workspaceName}
           isFiltered={isFiltered}
           onDelete={setDeleteTarget}
           onDeleteFolder={setFolderDeleteTarget}
@@ -60,7 +59,6 @@ export function WorkflowsTable({
       </div>
 
       <DeleteWorkflowDialog
-        workspaceName={workspaceName}
         workflow={deleteTarget}
         onOpenChange={(open) => {
           if (!open) {
@@ -69,7 +67,6 @@ export function WorkflowsTable({
         }}
       />
       <DeleteFolderDialog
-        workspaceName={workspaceName}
         folder={folderDeleteTarget}
         onOpenChange={(open) => {
           if (!open) {

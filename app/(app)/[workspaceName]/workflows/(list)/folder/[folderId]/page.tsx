@@ -63,11 +63,11 @@ export default async function FolderPage({
             !needle || subfolder.name.toLowerCase().includes(needle)
         )
         .sort((a, b) => a.name.localeCompare(b.name));
+
   return (
     <WorkflowsTable
       workflows={sievedWorkflows}
       folders={sievedFolders}
-      workspaceName={decodedWorkspaceName}
       isFiltered={Boolean(state || q)}
     />
   );

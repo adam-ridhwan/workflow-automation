@@ -11,7 +11,6 @@ import type { Workflow } from '@/convex/workflows';
 type WorkflowsTableBodyProps = {
   workflows: Workflow[];
   folders?: Folder[];
-  workspaceName: string;
   isFiltered: boolean;
   onDelete: (workflow: Workflow) => void;
   onDeleteFolder: (folder: Folder) => void;
@@ -20,7 +19,6 @@ type WorkflowsTableBodyProps = {
 export function WorkflowsTableBody({
   workflows,
   folders = [],
-  workspaceName,
   isFiltered,
   onDelete,
   onDeleteFolder,
@@ -48,7 +46,6 @@ export function WorkflowsTableBody({
         <FolderRow
           key={folder._id}
           folder={folder}
-          workspaceName={workspaceName}
           onDelete={() => {
             onDeleteFolder(folder);
           }}
@@ -58,7 +55,6 @@ export function WorkflowsTableBody({
         <WorkflowRow
           key={workflow._id}
           workflow={workflow}
-          workspaceName={workspaceName}
           onDelete={() => {
             onDelete(workflow);
           }}

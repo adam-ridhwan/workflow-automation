@@ -40,7 +40,7 @@ export default async function WorkspaceLayout({
         <AppSidebar workspaceName={decodedWorkspaceName} />
 
         <SidebarInset>
-          <WorkspaceDndProvider workspaceName={decodedWorkspaceName}>
+          <WorkspaceDndProvider>
             <SiteHeader
               workspaceName={decodedWorkspaceName}
               breadcrumb={breadcrumb}

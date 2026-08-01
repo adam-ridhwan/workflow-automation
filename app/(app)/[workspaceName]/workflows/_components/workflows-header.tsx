@@ -54,11 +54,7 @@ export function WorkflowsHeader() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const params = useParams<{
-    workspaceName: string;
-    folderId?: Folder['_id'];
-  }>();
-  const workspaceName = decodeURIComponent(params.workspaceName);
+  const params = useParams<{ folderId?: Folder['_id'] }>();
   // Present on /workflows/folder/[folderId] routes; creation is scoped to
   // the folder being viewed.
   const folderId = params.folderId;
@@ -254,13 +250,11 @@ export function WorkflowsHeader() {
       </div>
 
       <NewWorkflowDialog
-        workspaceName={workspaceName}
         folderId={folderId}
         open={showNewDialog}
         onOpenChange={setShowNewDialog}
       />
       <NewFolderDialog
-        workspaceName={workspaceName}
         parentId={folderId}
         open={showNewFolderDialog}
         onOpenChange={setShowNewFolderDialog}

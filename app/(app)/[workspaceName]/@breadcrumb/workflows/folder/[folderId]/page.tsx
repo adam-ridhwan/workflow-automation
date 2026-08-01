@@ -46,7 +46,7 @@ export default async function FolderBreadcrumbPage({
 
   return (
     <>
-      <TrailStart workspaceName={decodedWorkspaceName} />
+      <TrailStart />
       {hidden.length > 0 && (
         <TrailEllipsis
           segments={hidden.map((segment) => ({

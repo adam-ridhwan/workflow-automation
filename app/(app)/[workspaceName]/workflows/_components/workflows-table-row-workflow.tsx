@@ -13,6 +13,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { TableCell, TableRow } from '@/components/ui/table';
 import { api } from '@/convex/_generated/api';
+import { useWorkspaceName } from '@/hooks/use-workspace-name';
 import { cn } from '@/lib/cn';
 import { formatCreated } from '@/lib/format-created-time';
 import { getInitials } from '@/lib/get-initials';
@@ -33,15 +34,11 @@ import type { Workflow } from '@/convex/workflows';
 
 type WorkflowRowProps = {
   workflow: Workflow;
-  workspaceName: string;
   onDelete: () => void;
 };
 
-export function WorkflowRow({
-  workflow,
-  workspaceName,
-  onDelete,
-}: WorkflowRowProps) {
+export function WorkflowRow({ workflow, onDelete }: WorkflowRowProps) {
+  const workspaceName = useWorkspaceName();
   const router = useRouter();
   const renameWorkflow = useMutation(api.workflows.rename);
   const [isRenaming, setIsRenaming] = useState(false);

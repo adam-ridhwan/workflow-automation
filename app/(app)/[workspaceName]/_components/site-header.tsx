@@ -47,7 +47,7 @@ export async function SiteHeader({
         )}
       </div>
 
-      <CollaboratorsMenu workspaceName={workspaceName} members={members} />
+      <CollaboratorsMenu members={members} />
     </header>
   );
 }

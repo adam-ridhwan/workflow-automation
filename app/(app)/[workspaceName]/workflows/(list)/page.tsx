@@ -36,7 +36,7 @@ export default async function WorkflowsPage({
   ]);
 
   if (workflows.length === 0 && folders.length === 0) {
-    return <WorkflowsEmpty workspaceName={decodedWorkspaceName} />;
+    return <WorkflowsEmpty />;
   }
 
   const sievedWorkflows = sieveWorkflows(workflows, { state, sort, order, q });
@@ -57,7 +57,6 @@ export default async function WorkflowsPage({
       <WorkflowsTable
         workflows={sievedWorkflows}
         folders={sievedFolders}
-        workspaceName={decodedWorkspaceName}
         isFiltered={isFiltered}
       />
     </>

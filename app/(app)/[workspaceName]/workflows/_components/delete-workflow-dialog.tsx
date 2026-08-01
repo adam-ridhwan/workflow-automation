@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from 'react';
 import {
   AlertDialog,
@@ -10,22 +12,22 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { api } from '@/convex/_generated/api';
+import { useWorkspaceName } from '@/hooks/use-workspace-name';
 import { useMutation } from 'convex/react';
 import { useRouter } from 'next/navigation';
 
 import type { Workflow } from '@/convex/workflows';
 
 type DeleteWorkflowDialogProps = {
-  workspaceName: string;
   workflow: Workflow | null;
   onOpenChange: (open: boolean) => void;
 };
 
 export function DeleteWorkflowDialog({
-  workspaceName,
   workflow,
   onOpenChange,
 }: DeleteWorkflowDialogProps) {
+  const workspaceName = useWorkspaceName();
   const removeWorkflow = useMutation(api.workflows.remove);
   const router = useRouter();
   const [deleting, setDeleting] = useState(false);

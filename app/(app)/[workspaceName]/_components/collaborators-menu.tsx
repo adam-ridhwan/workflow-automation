@@ -30,16 +30,12 @@ import { AddMemberDialog } from './add-member-dialog';
 import type { WorkspaceMember } from '@/convex/workspaces';
 
 type CollaboratorsMenuProps = {
-  workspaceName: string;
   members: WorkspaceMember[];
 };
 
 const MAX_VISIBLE_AVATARS = 4;
 
-export function CollaboratorsMenu({
-  workspaceName,
-  members,
-}: CollaboratorsMenuProps) {
+export function CollaboratorsMenu({ members }: CollaboratorsMenuProps) {
   const [showAddDialog, setShowAddDialog] = useState(false);
 
   const visibleMembers = members.slice(0, MAX_VISIBLE_AVATARS);
@@ -145,11 +141,7 @@ export function CollaboratorsMenu({
         </DropdownMenuItem>
       </DropdownMenuContent>
 
-      <AddMemberDialog
-        workspaceName={workspaceName}
-        open={showAddDialog}
-        onOpenChange={setShowAddDialog}
-      />
+      <AddMemberDialog open={showAddDialog} onOpenChange={setShowAddDialog} />
     </DropdownMenu>
   );
 }

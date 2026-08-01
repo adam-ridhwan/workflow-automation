@@ -13,21 +13,18 @@ import {
 import { Field, FieldDescription, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { api } from '@/convex/_generated/api';
+import { useWorkspaceName } from '@/hooks/use-workspace-name';
 import { useMutation } from 'convex/react';
 import { ConvexError } from 'convex/values';
 import { useRouter } from 'next/navigation';
 
 type AddMemberDialogProps = {
-  workspaceName: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };
 
-export function AddMemberDialog({
-  workspaceName,
-  open,
-  onOpenChange,
-}: AddMemberDialogProps) {
+export function AddMemberDialog({ open, onOpenChange }: AddMemberDialogProps) {
+  const workspaceName = useWorkspaceName();
   const addMember = useMutation(api.workspaces.addMember);
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);

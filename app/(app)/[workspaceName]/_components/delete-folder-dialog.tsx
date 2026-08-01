@@ -12,22 +12,22 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { api } from '@/convex/_generated/api';
+import { useWorkspaceName } from '@/hooks/use-workspace-name';
 import { useMutation } from 'convex/react';
 import { useRouter } from 'next/navigation';
 
 import type { Folder } from '@/convex/folders';
 
 type DeleteFolderDialogProps = {
-  workspaceName: string;
   folder: Folder | null;
   onOpenChange: (open: boolean) => void;
 };
 
 export function DeleteFolderDialog({
-  workspaceName,
   folder,
   onOpenChange,
 }: DeleteFolderDialogProps) {
+  const workspaceName = useWorkspaceName();
   const removeFolder = useMutation(api.folders.remove);
   const router = useRouter();
   const [deleting, setDeleting] = useState(false);

@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { toast } from '@/components/ui/toast';
 import { api } from '@/convex/_generated/api';
+import { useWorkspaceName } from '@/hooks/use-workspace-name';
 import {
   DndContext,
   DragOverlay,
@@ -48,18 +49,15 @@ const snapTopLeftToCursor: Modifier = ({
 };
 
 type WorkspaceDndProviderProps = {
-  workspaceName: string;
   children: React.ReactNode;
 };
 
 /** Hosts the drag-and-drop context for moving workflows and folders. It
  * wraps the site header and the page content, so both table rows and the
  * breadcrumb trail can act as drop targets. */
-export function WorkspaceDndProvider({
-  workspaceName,
-  children,
-}: WorkspaceDndProviderProps) {
+export function WorkspaceDndProvider({ children }: WorkspaceDndProviderProps) {
   const router = useRouter();
+  const workspaceName = useWorkspaceName();
   // Present on /workflows/folder/[folderId] routes; the location items are
   // moved from, so Undo knows where to put them back.
   const params = useParams<{ folderId?: Folder['_id'] }>();
