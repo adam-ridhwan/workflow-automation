@@ -123,8 +123,8 @@ export function WorkflowsTableBody({
       {folders.map((folder) => {
         const isRenamingFolder = renamingFolderId === folder._id;
         return (
-          <TableRow key={folder._id} className='relative'>
-            <TableCell className='h-5 px-5'>
+          <TableRow key={folder._id} className='relative h-14'>
+            <TableCell className='px-5'>
               {!isRenamingFolder && (
                 <Link
                   href={`/${encodeURIComponent(workspaceName)}/workflows/folder/${folder._id}`}
@@ -235,11 +235,12 @@ export function WorkflowsTableBody({
           </TableRow>
         );
       })}
+
       {workflows.map((workflow) => {
         const isRenaming = renamingId === workflow._id;
         return (
-          <TableRow key={workflow._id} className='relative'>
-            <TableCell className='h-5 px-5'>
+          <TableRow key={workflow._id} className='relative h-14'>
+            <TableCell className='px-5'>
               {!isRenaming && (
                 <Link
                   href={`/${encodeURIComponent(workspaceName)}/workflow/${workflow._id}`}
@@ -292,7 +293,7 @@ export function WorkflowsTableBody({
                       {workflow.name}
                     </span>
                   )}
-                  {workflow.description && (
+                  {!isRenaming && workflow.description && (
                     <span className='text-muted-foreground truncate text-xs'>
                       {workflow.description}
                     </span>

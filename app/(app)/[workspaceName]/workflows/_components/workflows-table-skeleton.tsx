@@ -21,23 +21,23 @@ export function WorkflowsTableSkeleton({
       </colgroup>
       <TableBody>
         {Array.from({ length: rows }, (_, index) => (
-          <TableRow key={index} className='hover:bg-transparent'>
-            <TableCell className='px-5 py-3'>
+          <TableRow key={index} className='h-14 hover:bg-transparent'>
+            <TableCell className='px-5'>
               <span className='flex items-center gap-2.5'>
                 <Skeleton className='size-4 rounded-md' />
                 <Skeleton className='h-4 w-44 max-w-full' />
               </span>
             </TableCell>
-            <TableCell className='px-5 py-3'>
+            <TableCell className='px-5'>
               <Skeleton className='h-5 w-24 max-w-full rounded-full' />
             </TableCell>
-            <TableCell className='px-5 py-3'>
+            <TableCell className='px-5'>
               <Skeleton className='h-3 w-20 max-w-full' />
             </TableCell>
-            <TableCell className='px-5 py-3'>
+            <TableCell className='px-5'>
               <Skeleton className='size-6 rounded-full' />
             </TableCell>
-            <TableCell className='px-5 py-3' />
+            <TableCell className='px-5' />
           </TableRow>
         ))}
       </TableBody>
