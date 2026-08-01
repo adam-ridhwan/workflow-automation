@@ -41,11 +41,11 @@ export default async function WorkflowPage({ params }: WorkflowPageProps) {
     <div className='flex flex-1 flex-col'>
       <div
         className='bg-background flex h-13 shrink-0 items-center gap-3 border-b
-          px-3'
+          px-2'
       >
         <Button
           variant='ghost'
-          size='icon-sm'
+          size='icon'
           nativeButton={false}
           className='text-muted-foreground hover:text-foreground'
           render={
@@ -57,9 +57,11 @@ export default async function WorkflowPage({ params }: WorkflowPageProps) {
         >
           <ArrowLeftIcon className='size-4' />
         </Button>
+
         <span className='text-[13.5px] font-semibold tracking-tight'>
           {workflow.name}
         </span>
+
         <span
           className={cn(
             `inline-flex h-5 w-fit items-center gap-1.5 rounded-full px-2
