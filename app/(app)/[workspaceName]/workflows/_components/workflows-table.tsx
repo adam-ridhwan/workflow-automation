@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 import { Table } from '@/components/ui/table';
-import { useWorkspaceName } from '@/hooks/use-workspace-name';
 
 import { DeleteFolderDialog } from '../../_components/delete-folder-dialog';
+import { useWorkspaceName } from '../../_hooks/use-workspace-name';
 import { DeleteWorkflowDialog } from './delete-workflow-dialog';
 import { WorkflowsTableBody } from './workflows-table-body';
 

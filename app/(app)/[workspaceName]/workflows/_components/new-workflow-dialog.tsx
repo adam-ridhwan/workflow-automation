@@ -13,10 +13,11 @@ import {
 import { Field, FieldDescription, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { api } from '@/convex/_generated/api';
-import { useWorkspaceName } from '@/hooks/use-workspace-name';
 import { useMutation } from 'convex/react';
 import { ConvexError } from 'convex/values';
 import { useRouter } from 'next/navigation';
+
+import { useWorkspaceName } from '../../_hooks/use-workspace-name';
 
 import type { Folder } from '@/convex/folders';
 

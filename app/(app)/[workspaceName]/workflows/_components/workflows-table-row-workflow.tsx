@@ -13,7 +13,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { TableCell, TableRow } from '@/components/ui/table';
 import { api } from '@/convex/_generated/api';
-import { useWorkspaceName } from '@/hooks/use-workspace-name';
 import { cn } from '@/lib/cn';
 import { formatCreated } from '@/lib/format-created-time';
 import { getInitials } from '@/lib/get-initials';
@@ -28,6 +27,8 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+
+import { useWorkspaceName } from '../../_hooks/use-workspace-name';
 
 import type { DragData } from '../../_components/workspace-dnd-provider';
 import type { Workflow } from '@/convex/workflows';

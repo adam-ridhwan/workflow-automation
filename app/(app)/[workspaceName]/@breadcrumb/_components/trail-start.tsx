@@ -2,11 +2,12 @@
 
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { useWorkspaceName } from '@/hooks/use-workspace-name';
 import { cn } from '@/lib/cn';
 import { useDroppable } from '@dnd-kit/core';
 import { HomeIcon } from 'lucide-react';
 import Link from 'next/link';
+
+import { useWorkspaceName } from '../../_hooks/use-workspace-name';
 
 import type { DropTargetData } from '../../_components/workspace-dnd-provider';
 

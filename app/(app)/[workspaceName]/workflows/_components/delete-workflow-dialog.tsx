@@ -12,9 +12,10 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { api } from '@/convex/_generated/api';
-import { useWorkspaceName } from '@/hooks/use-workspace-name';
 import { useMutation } from 'convex/react';
 import { useRouter } from 'next/navigation';
+
+import { useWorkspaceName } from '../../_hooks/use-workspace-name';
 
 import type { Workflow } from '@/convex/workflows';
 

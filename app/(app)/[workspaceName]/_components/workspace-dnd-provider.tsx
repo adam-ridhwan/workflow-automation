@@ -4,7 +4,6 @@ import { useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { toast } from '@/components/ui/toast';
 import { api } from '@/convex/_generated/api';
-import { useWorkspaceName } from '@/hooks/use-workspace-name';
 import {
   DndContext,
   DragOverlay,
@@ -17,6 +16,8 @@ import { useMutation } from 'convex/react';
 import { ConvexError } from 'convex/values';
 import { FolderIcon, WorkflowIcon } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
+
+import { useWorkspaceName } from '../_hooks/use-workspace-name';
 
 import type { Folder } from '@/convex/folders';
 import type { Workflow } from '@/convex/workflows';
