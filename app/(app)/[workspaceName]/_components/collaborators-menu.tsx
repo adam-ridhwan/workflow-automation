@@ -54,13 +54,13 @@ export function CollaboratorsMenu({
         <AvatarGroup>
           {visibleMembers.map((member) => (
             <Avatar key={member.userId} title={member.name}>
-              <AvatarFallback className='text-[10px] font-semibold'>
+              <AvatarFallback className='text-md font-semibold'>
                 {getInitials(member.name)}
               </AvatarFallback>
             </Avatar>
           ))}
           {overflowCount > 0 && (
-            <AvatarGroupCount className='size-6 text-[10px] font-semibold'>
+            <AvatarGroupCount className='text-md size-6 font-semibold'>
               +{overflowCount}
             </AvatarGroupCount>
           )}
@@ -104,7 +104,7 @@ export function CollaboratorsMenu({
                   <TableCell className='px-3.5 py-2.5'>
                     <span className='flex min-w-0 items-center gap-2'>
                       <Avatar>
-                        <AvatarFallback className='text-[10px] font-semibold'>
+                        <AvatarFallback className='text-md font-semibold'>
                           {getInitials(member.name)}
                         </AvatarFallback>
                       </Avatar>
