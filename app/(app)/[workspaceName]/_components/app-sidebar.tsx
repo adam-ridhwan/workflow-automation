@@ -8,7 +8,7 @@ import {
 import { api } from '@/convex/_generated/api';
 import { convexAuthNextjsToken } from '@convex-dev/auth/nextjs/server';
 import { fetchQuery } from 'convex/nextjs';
-import { FolderIcon, WorkflowIcon } from 'lucide-react';
+import { FolderIcon, HouseIcon, WorkflowIcon } from 'lucide-react';
 
 import { NavMain } from './nav-main';
 import { NavUser } from './nav-user';
@@ -27,6 +27,11 @@ export async function AppSidebar({ workspaceName }: AppSidebarProps) {
 
   const workspaceSlug = encodeURIComponent(workspaceName);
   const navMain = [
+    {
+      title: 'Overview',
+      url: `/${workspaceSlug}`,
+      icon: <HouseIcon />,
+    },
     {
       title: 'Workflows',
       url: `/${workspaceSlug}/workflows`,
