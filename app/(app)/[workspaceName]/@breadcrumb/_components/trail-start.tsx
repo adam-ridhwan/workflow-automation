@@ -1,3 +1,6 @@
+'use client';
+
+import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { HomeIcon } from 'lucide-react';
 import Link from 'next/link';
@@ -14,14 +17,20 @@ export function TrailStart({ workspaceName }: TrailStartProps) {
         orientation='vertical'
         className='mx-1.5 data-vertical:h-4.5 data-vertical:self-auto'
       />
-      <Link
-        href={`/${encodeURIComponent(workspaceName)}/workflows`}
-        className='text-muted-foreground hover:text-foreground shrink-0
-          transition-colors'
-        aria-label='Back to workflows'
+      <Button
+        variant='ghost'
+        size='icon'
+        nativeButton={false}
+        className='text-muted-foreground hover:text-foreground'
+        render={
+          <Link
+            href={`/${encodeURIComponent(workspaceName)}/workflows`}
+            aria-label='Back to workflows'
+          />
+        }
       >
         <HomeIcon className='size-4' />
-      </Link>
+      </Button>
     </>
   );
 }

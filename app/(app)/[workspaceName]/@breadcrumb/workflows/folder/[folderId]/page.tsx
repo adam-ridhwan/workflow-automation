@@ -2,11 +2,14 @@ import { api } from '@/convex/_generated/api';
 import { convexAuthNextjsToken } from '@convex-dev/auth/nextjs/server';
 import { fetchQuery } from 'convex/nextjs';
 
+import { TrailEllipsis } from '../../../_components/trail-ellipsis';
 import { TrailSegment } from '../../../_components/trail-segment';
 import { TrailStart } from '../../../_components/trail-start';
 
 import type { Id } from '@/convex/_generated/dataModel';
 import type { FolderPathSegment } from '@/convex/folders';
+
+const MAX_VISIBLE_SEGMENTS = 2;
 
 type FolderBreadcrumbPageProps = {
   params: Promise<{ workspaceName: string; folderId: Id<'folders'> }>;
@@ -33,17 +36,33 @@ export default async function FolderBreadcrumbPage({
   }
 
   const workspaceSlug = encodeURIComponent(decodedWorkspaceName);
+  const folderHref = (id: string) => `/${workspaceSlug}/workflows/folder/${id}`;
+
+  // Deep trails collapse like Chrome's: keep the last two segments and tuck
+  // the rest behind an ellipsis menu.
+  const path = folderPath ?? [];
+  const visible = path.slice(-MAX_VISIBLE_SEGMENTS);
+  const hidden = path.slice(0, -MAX_VISIBLE_SEGMENTS);
 
   return (
     <>
       <TrailStart workspaceName={decodedWorkspaceName} />
-      {(folderPath ?? []).map((segment, index, segments) => (
+      {hidden.length > 0 && (
+        <TrailEllipsis
+          segments={hidden.map((segment) => ({
+            id: segment._id,
+            name: segment.name,
+            href: folderHref(segment._id),
+          }))}
+        />
+      )}
+      {visible.map((segment, index) => (
         <TrailSegment
           key={segment._id}
           name={segment.name}
-          href={`/${workspaceSlug}/workflows/folder/${segment._id}`}
+          href={folderHref(segment._id)}
           icon='folder'
-          isCurrent={index === segments.length - 1}
+          isCurrent={index === visible.length - 1}
         />
       ))}
     </>
