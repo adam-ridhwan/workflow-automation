@@ -1,12 +1,13 @@
 import { Button } from '@/components/ui/button';
 import { api } from '@/convex/_generated/api';
 import { cn } from '@/lib/cn';
-import { formatCreated } from '@/lib/format-created-time';
 import { convexAuthNextjsToken } from '@convex-dev/auth/nextjs/server';
 import { fetchQuery } from 'convex/nextjs';
 import { ArrowLeftIcon } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+
+import { WorkflowCanvas } from './_components/workflow-canvas';
 
 import type { Id } from '@/convex/_generated/dataModel';
 import type { Workflow } from '@/convex/workflows';
@@ -76,17 +77,7 @@ export default async function WorkflowPage({ params }: WorkflowPageProps) {
         </span>
       </div>
 
-      <div className='flex flex-col gap-2 p-5'>
-        {workflow.description && (
-          <p className='text-muted-foreground text-sm'>
-            {workflow.description}
-          </p>
-        )}
-        <p className='text-muted-foreground text-xs'>
-          Created by {workflow.createdByName} ·{' '}
-          {formatCreated(workflow._creationTime)}
-        </p>
-      </div>
+      <WorkflowCanvas />
     </div>
   );
 }
