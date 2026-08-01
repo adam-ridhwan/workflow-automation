@@ -79,6 +79,11 @@ export default async function WorkflowBreadcrumbPage({
           href={segment.href}
           icon={segment.icon}
           isCurrent={index === visible.length - 1}
+          folderId={
+            segment.icon === 'folder'
+              ? (segment.id as Id<'folders'>)
+              : undefined
+          }
         />
       ))}
     </>

@@ -5,7 +5,6 @@ import { TableBody, TableCell, TableRow } from '@/components/ui/table';
 import { FolderRow } from './workflows-table-row-folder';
 import { WorkflowRow } from './workflows-table-row-workflow';
 
-import type { DragData } from './workflows-table';
 import type { Folder } from '@/convex/folders';
 import type { Workflow } from '@/convex/workflows';
 
@@ -14,7 +13,6 @@ type WorkflowsTableBodyProps = {
   folders?: Folder[];
   workspaceName: string;
   isFiltered: boolean;
-  dragItem: DragData | null;
   onDelete: (workflow: Workflow) => void;
   onDeleteFolder: (folder: Folder) => void;
 };
@@ -24,7 +22,6 @@ export function WorkflowsTableBody({
   folders = [],
   workspaceName,
   isFiltered,
-  dragItem,
   onDelete,
   onDeleteFolder,
 }: WorkflowsTableBodyProps) {
@@ -52,7 +49,6 @@ export function WorkflowsTableBody({
           key={folder._id}
           folder={folder}
           workspaceName={workspaceName}
-          dragItem={dragItem}
           onDelete={() => {
             onDeleteFolder(folder);
           }}

@@ -27,22 +27,19 @@ import {
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
-import type { DragData } from './workflows-table';
+import type {
+  DragData,
+  DropTargetData,
+} from '../../_components/workspace-dnd-provider';
 import type { Folder } from '@/convex/folders';
 
 type FolderRowProps = {
   folder: Folder;
   workspaceName: string;
-  dragItem: DragData | null;
   onDelete: () => void;
 };
 
-export function FolderRow({
-  folder,
-  workspaceName,
-  dragItem,
-  onDelete,
-}: FolderRowProps) {
+export function FolderRow({ folder, workspaceName, onDelete }: FolderRowProps) {
   const router = useRouter();
   const renameFolder = useMutation(api.folders.rename);
   const [isRenaming, setIsRenaming] = useState(false);
@@ -85,13 +82,20 @@ export function FolderRow({
     } satisfies DragData,
     disabled: isRenaming,
   });
-  const isDraggingSelf =
-    dragItem?.kind === 'folder' && dragItem.id === folder._id;
-  const { setNodeRef: setDropRef, isOver } = useDroppable({
+  const {
+    setNodeRef: setDropRef,
+    isOver,
+    active,
+  } = useDroppable({
     id: `folder-drop-${folder._id}`,
-    data: { folderId: folder._id },
-    disabled: isDraggingSelf,
+    data: {
+      folderId: folder._id,
+      folderName: folder.name,
+    } satisfies DropTargetData,
   });
+  const activeData = active?.data.current as DragData | undefined;
+  const isDraggingSelf =
+    activeData?.kind === 'folder' && activeData.id === folder._id;
 
   return (
     <TableRow
@@ -102,7 +106,7 @@ export function FolderRow({
       {...listeners}
       className={cn(
         'relative h-14',
-        isOver && 'bg-muted/60 hover:bg-muted/60',
+        isOver && !isDraggingSelf && 'bg-muted/60 hover:bg-muted/60',
         isDragging && 'opacity-50'
       )}
     >

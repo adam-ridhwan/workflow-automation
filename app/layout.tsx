@@ -1,5 +1,6 @@
 import { ConvexClientProvider } from '@/components/convev-client-provider';
 import { ThemeProvider } from '@/components/theme-provider';
+import { Toaster } from '@/components/ui/toast';
 import { ConvexAuthNextjsServerProvider } from '@convex-dev/auth/nextjs/server';
 import { Geist, Geist_Mono } from 'next/font/google';
 
@@ -42,7 +43,9 @@ export default function RootLayout({ children }: RootLayoutProps) {
             enableSystem
             disableTransitionOnChange
           >
-            <ConvexClientProvider>{children}</ConvexClientProvider>
+            <ConvexClientProvider>
+              <Toaster>{children}</Toaster>
+            </ConvexClientProvider>
           </ThemeProvider>
         </body>
       </html>

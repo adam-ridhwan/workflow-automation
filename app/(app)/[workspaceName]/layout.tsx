@@ -7,6 +7,7 @@ import { redirect } from 'next/navigation';
 
 import { AppSidebar } from './_components/app-sidebar';
 import { SiteHeader } from './_components/site-header';
+import { WorkspaceDndProvider } from './_components/workspace-dnd-provider';
 
 type WorkspaceLayoutProps = Readonly<{
   children: React.ReactNode;
@@ -36,14 +37,16 @@ export default async function WorkspaceLayout({
   return (
     <TooltipProvider>
       <SidebarProvider>
-        <AppSidebar workspaceName={workspaceName} />
+        <AppSidebar workspaceName={decodedWorkspaceName} />
 
         <SidebarInset>
-          <SiteHeader
-            workspaceName={decodedWorkspaceName}
-            breadcrumb={breadcrumb}
-          />
-          {children}
+          <WorkspaceDndProvider workspaceName={decodedWorkspaceName}>
+            <SiteHeader
+              workspaceName={decodedWorkspaceName}
+              breadcrumb={breadcrumb}
+            />
+            {children}
+          </WorkspaceDndProvider>
         </SidebarInset>
       </SidebarProvider>
     </TooltipProvider>

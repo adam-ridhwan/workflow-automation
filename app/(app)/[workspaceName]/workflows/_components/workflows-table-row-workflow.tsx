@@ -28,7 +28,7 @@ import {
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
-import type { DragData } from './workflows-table';
+import type { DragData } from '../../_components/workspace-dnd-provider';
 import type { Workflow } from '@/convex/workflows';
 
 type WorkflowRowProps = {

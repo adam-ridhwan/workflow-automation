@@ -63,6 +63,7 @@ export default async function FolderBreadcrumbPage({
           href={folderHref(segment._id)}
           icon='folder'
           isCurrent={index === visible.length - 1}
+          folderId={segment._id}
         />
       ))}
     </>
