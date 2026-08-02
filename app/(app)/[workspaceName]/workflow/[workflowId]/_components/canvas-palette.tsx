@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Separator } from '@/components/ui/separator';
 import { Panel, useReactFlow, useViewport } from '@xyflow/react';
-import { MaximizeIcon, MinusIcon, NetworkIcon, PlusIcon } from 'lucide-react';
+import { MinusIcon, NetworkIcon, PlusIcon } from 'lucide-react';
 
 import { useWorkflowId } from '../_hooks/use-workflow-id';
 import { useCanvasStore } from '../_store/canvas-store';
