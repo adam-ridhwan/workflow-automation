@@ -234,6 +234,28 @@ export const move = mutation({
   },
 });
 
+/** Replace a workflow's canvas, e.g. after nodes move or connect. */
+export const updateCanvas = mutation({
+  args: {
+    workspaceName: v.string(),
+    workflowId: v.id('workflows'),
+    canvas: workflowCanvasValidator,
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const workflow = await getMemberWorkflow(
+      ctx,
+      args.workspaceName,
+      args.workflowId
+    );
+    await ctx.db.patch(workflow._id, {
+      canvas: args.canvas,
+      updatedAt: Date.now(),
+    });
+    return null;
+  },
+});
+
 export const remove = mutation({
   args: { workspaceName: v.string(), workflowId: v.id('workflows') },
   returns: v.null(),

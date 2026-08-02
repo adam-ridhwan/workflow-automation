@@ -1,50 +1,72 @@
 'use client';
 
+import { useCallback, useMemo } from 'react';
+import { WorkflowCanvasData } from '@/convex/canvas';
 import {
   Background,
   BackgroundVariant,
   Controls,
   ReactFlow,
-  useEdgesState,
-  useNodesState,
 } from '@xyflow/react';
 
+import { useWorkflowId } from '../_hooks/use-workflow-id';
 import { WORKFLOW_EDGE, WORKFLOW_NODE } from '../_lib/normalize';
+import { useCanvasStore } from '../_store/canvas-store';
+import { useWorkspaceName } from '../../../_hooks/use-workspace-name';
 import { WorkflowNode } from './workflow-node';
+import { WorkflowProvider } from './workflow-provider';
 import { WorkflowEdge } from './workfow-edge';
 
-import type { Edge, Node } from '@xyflow/react';
+import type { Connection } from '@xyflow/react';
 
 import '@xyflow/react/dist/style.css';
 
-const nodeTypes = { [WORKFLOW_NODE]: WorkflowNode };
-const edgeTypes = { [WORKFLOW_EDGE]: WorkflowEdge };
-
 type WorkflowCanvasProps = {
-  initialNodes: Node[];
-  initialEdges: Edge[];
+  canvas: WorkflowCanvasData;
 };
 
-export function WorkflowCanvas({
-  initialNodes,
-  initialEdges,
-}: WorkflowCanvasProps) {
-  const [nodes, , onNodesChange] = useNodesState(initialNodes);
-  const [edges, , onEdgesChange] = useEdgesState(initialEdges);
+export function WorkflowCanvas({ canvas }: WorkflowCanvasProps) {
+  const workflowId = useWorkflowId();
+  const workspaceName = useWorkspaceName();
+
+  const nodeTypes = useMemo(() => ({ [WORKFLOW_NODE]: WorkflowNode }), []);
+  const edgeTypes = useMemo(() => ({ [WORKFLOW_EDGE]: WorkflowEdge }), []);
+
+  const nodes = useCanvasStore((s) => s.nodes);
+  const edges = useCanvasStore((s) => s.edges);
+  const onNodesChange = useCanvasStore((s) => s.onNodesChange);
+  const onEdgesChange = useCanvasStore((s) => s.onEdgesChange);
+  const storeOnConnect = useCanvasStore((s) => s.onConnect);
+  const saveWorkflow = useCanvasStore((s) => s.saveWorkflow);
+
+  const onConnect = useCallback(
+    (connection: Connection) => {
+      storeOnConnect(connection, { workspaceName, workflowId });
+    },
+    [storeOnConnect, workspaceName, workflowId]
+  );
+
+  const onNodeDragStop = useCallback(() => {
+    saveWorkflow({ workspaceName, workflowId });
+  }, [saveWorkflow, workspaceName, workflowId]);
 
   return (
-    <div className='min-h-0 flex-1'>
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        nodeTypes={nodeTypes}
-        edgeTypes={edgeTypes}
-      >
-        <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
-        <Controls />
-      </ReactFlow>
-    </div>
+    <WorkflowProvider canvas={canvas}>
+      <div className='min-h-0 flex-1'>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          onNodeDragStop={onNodeDragStop}
+        >
+          <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
+          <Controls />
+        </ReactFlow>
+      </div>
+    </WorkflowProvider>
   );
 }

@@ -43,3 +43,24 @@ export function toFlowEdges(
     },
   }));
 }
+
+/** Map React Flow state back to the stored canvas shape. */
+export function toCanvasData(
+  nodes: Node<WorkflowNodeData>[],
+  edges: Edge<WorkflowEdgeData>[],
+  version: number
+): WorkflowCanvasData {
+  return {
+    nodes: Object.fromEntries(
+      nodes.map((node) => [
+        node.data.node_id,
+        { ...node.data, position: node.position },
+      ])
+    ),
+    edges: edges.map(
+      (edge) =>
+        edge.data ?? { source: edge.source, target: edge.target, arguments: {} }
+    ),
+    version,
+  };
+}

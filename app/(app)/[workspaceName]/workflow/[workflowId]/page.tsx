@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import { WorkflowCanvas } from './_components/workflow-canvas';
-import { toFlowEdges, toFlowNodes } from './_lib/normalize';
+import { WorkflowProvider } from './_components/workflow-provider';
 
 import type { Id } from '@/convex/_generated/dataModel';
 import type { Workflow } from '@/convex/workflows';
@@ -78,10 +78,7 @@ export default async function WorkflowPage({ params }: WorkflowPageProps) {
         </span>
       </div>
 
-      <WorkflowCanvas
-        initialNodes={toFlowNodes(workflow.canvas)}
-        initialEdges={toFlowEdges(workflow.canvas)}
-      />
+      <WorkflowCanvas canvas={workflow.canvas} />
     </div>
   );
 }
