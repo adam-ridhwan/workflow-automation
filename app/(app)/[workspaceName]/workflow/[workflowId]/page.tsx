@@ -18,6 +18,7 @@ type WorkflowPageProps = {
 };
 
 export default async function WorkflowPage({ params }: WorkflowPageProps) {
+  await new Promise((resolve) => setTimeout(resolve, 2500)); // TEMP: repro loading state
   const { workspaceName, workflowId } = await params;
   const decodedWorkspaceName = decodeURIComponent(workspaceName);
 
