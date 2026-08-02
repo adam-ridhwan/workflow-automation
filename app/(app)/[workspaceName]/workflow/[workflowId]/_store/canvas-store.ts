@@ -7,6 +7,7 @@ import { addEdge, applyEdgeChanges, applyNodeChanges } from '@xyflow/react';
 import { create } from 'zustand';
 
 import { toCanvasData, WORKFLOW_EDGE } from '../_lib/normalize';
+import { organizeCanvasLayout } from '../_lib/organize-canvas-layout';
 
 import type { Id } from '@/convex/_generated/dataModel';
 import type { WorkflowEdgeData, WorkflowNodeData } from '@/convex/canvas';
@@ -33,6 +34,7 @@ interface CanvasState {
   onEdgesChange: (changes: EdgeChange[]) => void;
   onConnect: (connection: Connection, target: SaveTarget) => void;
   saveWorkflow: (target: SaveTarget) => void;
+  organizeNodes: (target: SaveTarget) => void;
   setNodes: (nodes: Node<WorkflowNodeData>[]) => void;
   setEdges: (edges: Edge<WorkflowEdgeData>[]) => void;
   setCanvas: (
@@ -82,6 +84,11 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
           title: 'Could not save the canvas. Please try again.',
         });
       });
+  },
+  organizeNodes: (target) => {
+    const { nodes, edges } = get();
+    set({ nodes: organizeCanvasLayout(nodes, edges) });
+    get().saveWorkflow(target);
   },
   setNodes: (nodes) => set({ nodes }),
   setEdges: (edges) => set({ edges }),

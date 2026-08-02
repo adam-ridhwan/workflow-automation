@@ -8,7 +8,6 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import { WorkflowCanvas } from './_components/workflow-canvas';
-import { WorkflowProvider } from './_components/workflow-provider';
 
 import type { Id } from '@/convex/_generated/dataModel';
 import type { Workflow } from '@/convex/workflows';
@@ -18,7 +17,6 @@ type WorkflowPageProps = {
 };
 
 export default async function WorkflowPage({ params }: WorkflowPageProps) {
-  await new Promise((resolve) => setTimeout(resolve, 2500)); // TEMP: repro loading state
   const { workspaceName, workflowId } = await params;
   const decodedWorkspaceName = decodeURIComponent(workspaceName);
 

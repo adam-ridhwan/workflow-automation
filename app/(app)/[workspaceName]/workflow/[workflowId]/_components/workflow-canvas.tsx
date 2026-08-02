@@ -2,17 +2,13 @@
 
 import { useCallback, useMemo } from 'react';
 import { WorkflowCanvasData } from '@/convex/canvas';
-import {
-  Background,
-  BackgroundVariant,
-  Controls,
-  ReactFlow,
-} from '@xyflow/react';
+import { Background, BackgroundVariant, ReactFlow } from '@xyflow/react';
 
 import { useWorkflowId } from '../_hooks/use-workflow-id';
 import { WORKFLOW_EDGE, WORKFLOW_NODE } from '../_lib/normalize';
 import { useCanvasStore } from '../_store/canvas-store';
 import { useWorkspaceName } from '../../../_hooks/use-workspace-name';
+import { CanvasPalette } from './canvas-palette';
 import { WorkflowNode } from './workflow-node';
 import { WorkflowProvider } from './workflow-provider';
 import { WorkflowEdge } from './workfow-edge';
@@ -62,9 +58,10 @@ export function WorkflowCanvas({ canvas }: WorkflowCanvasProps) {
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           onNodeDragStop={onNodeDragStop}
+          proOptions={{ hideAttribution: true }}
         >
           <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
-          <Controls />
+          <CanvasPalette />
         </ReactFlow>
       </div>
     </WorkflowProvider>
