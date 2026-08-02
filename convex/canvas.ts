@@ -1,0 +1,27 @@
+import { Infer, v } from 'convex/values';
+
+export const workflowNodeValidator = v.object({
+  node_id: v.string(),
+  node_uid: v.string(),
+  name: v.string(),
+  arguments: v.record(v.string(), v.any()),
+  parents: v.array(v.string()),
+  children: v.array(v.string()),
+  position: v.optional(v.object({ x: v.number(), y: v.number() })),
+});
+
+export const workflowEdgeValidator = v.object({
+  source: v.string(),
+  target: v.string(),
+  arguments: v.record(v.string(), v.any()),
+});
+
+export const workflowCanvasValidator = v.object({
+  nodes: v.record(v.string(), workflowNodeValidator),
+  edges: v.array(workflowEdgeValidator),
+  version: v.number(),
+});
+
+export type WorkflowNodeData = Infer<typeof workflowNodeValidator>;
+export type WorkflowEdgeData = Infer<typeof workflowEdgeValidator>;
+export type WorkflowCanvasData = Infer<typeof workflowCanvasValidator>;

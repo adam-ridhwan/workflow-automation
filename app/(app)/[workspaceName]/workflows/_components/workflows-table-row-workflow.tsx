@@ -161,9 +161,9 @@ export function WorkflowRow({ workflow, onDelete }: WorkflowRowProps) {
       </TableCell>
 
       <TableCell className='px-5'>
-        <Avatar size='sm' title={workflow.createdByName}>
+        <Avatar size='sm' title={workflow.ownerName}>
           <AvatarFallback className='text-[10px] font-semibold'>
-            {getInitials(workflow.createdByName)}
+            {getInitials(workflow.ownerName)}
           </AvatarFallback>
         </Avatar>
       </TableCell>

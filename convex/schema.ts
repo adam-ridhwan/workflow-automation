@@ -2,6 +2,8 @@ import { authTables } from '@convex-dev/auth/server';
 import { defineSchema, defineTable } from 'convex/server';
 import { v } from 'convex/values';
 
+import { workflowCanvasValidator } from './canvas';
+
 export default defineSchema({
   ...authTables,
 
@@ -49,7 +51,12 @@ export default defineSchema({
     description: v.optional(v.string()),
     isPublished: v.boolean(),
     folderId: v.optional(v.id('folders')),
-    createdBy: v.id('users'),
+    ownerId: v.id('users'),
+    canvas: workflowCanvasValidator,
+    runCount: v.number(),
+    successCount: v.number(),
+    failCount: v.number(),
+    updatedAt: v.number(),
   })
     .index('workspaceId', ['workspaceId'])
     .index('workspaceName', ['workspaceId', 'name'])

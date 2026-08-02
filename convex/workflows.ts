@@ -1,6 +1,7 @@
 import { ConvexError, Infer, v } from 'convex/values';
 
 import { mutation, query } from './_generated/server';
+import { workflowCanvasValidator } from './canvas';
 import {
   getMemberWorkspaceByName,
   getWorkspaceByNameOrThrow,
@@ -18,8 +19,13 @@ const workflowValidator = v.object({
   description: v.optional(v.string()),
   isPublished: v.boolean(),
   folderId: v.optional(v.id('folders')),
-  createdBy: v.id('users'),
-  createdByName: v.string(),
+  ownerId: v.id('users'),
+  ownerName: v.string(),
+  canvas: workflowCanvasValidator,
+  runCount: v.number(),
+  successCount: v.number(),
+  failCount: v.number(),
+  updatedAt: v.number(),
 });
 
 export type Workflow = Infer<typeof workflowValidator>;
@@ -51,8 +57,8 @@ export const get = query({
     if (workflow === null || workflow.workspaceId !== workspace._id) {
       return null;
     }
-    const creator = await ctx.db.get(workflow.createdBy);
-    return { ...workflow, createdByName: creator?.name ?? 'Unknown' };
+    const owner = await ctx.db.get(workflow.ownerId);
+    return { ...workflow, ownerName: owner?.name ?? 'Unknown' };
   },
 });
 
@@ -78,13 +84,13 @@ export const list = query({
     const nameCache = new Map<Id<'users'>, string>();
     const result: Workflow[] = [];
     for (const row of rows) {
-      let createdByName = nameCache.get(row.createdBy);
-      if (createdByName === undefined) {
-        const user = await ctx.db.get(row.createdBy);
-        createdByName = user?.name ?? 'Unknown';
-        nameCache.set(row.createdBy, createdByName);
+      let ownerName = nameCache.get(row.ownerId);
+      if (ownerName === undefined) {
+        const user = await ctx.db.get(row.ownerId);
+        ownerName = user?.name ?? 'Unknown';
+        nameCache.set(row.ownerId, ownerName);
       }
-      result.push({ ...row, createdByName });
+      result.push({ ...row, ownerName });
     }
     return result;
   },
@@ -134,7 +140,26 @@ export const create = mutation({
       description: description ? description : undefined,
       isPublished: false,
       folderId: args.folderId,
-      createdBy: membership.userId,
+      ownerId: membership.userId,
+      canvas: {
+        nodes: {
+          start: {
+            node_id: 'start',
+            node_uid: crypto.randomUUID(),
+            name: 'Start',
+            arguments: {},
+            parents: [],
+            children: [],
+            position: { x: 0, y: 0 },
+          },
+        },
+        edges: [],
+        version: 1,
+      },
+      runCount: 0,
+      successCount: 0,
+      failCount: 0,
+      updatedAt: Date.now(),
     });
   },
 });
@@ -171,7 +196,7 @@ export const rename = mutation({
         'A workflow with this name already exists in this workspace.'
       );
     }
-    await ctx.db.patch(workflow._id, { name });
+    await ctx.db.patch(workflow._id, { name, updatedAt: Date.now() });
     return null;
   },
 });
@@ -201,7 +226,10 @@ export const move = mutation({
     if (workflow.folderId === args.folderId) {
       return null;
     }
-    await ctx.db.patch(workflow._id, { folderId: args.folderId });
+    await ctx.db.patch(workflow._id, {
+      folderId: args.folderId,
+      updatedAt: Date.now(),
+    });
     return null;
   },
 });

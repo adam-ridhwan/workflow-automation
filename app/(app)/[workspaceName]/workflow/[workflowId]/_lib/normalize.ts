@@ -1,0 +1,45 @@
+import type {
+  WorkflowCanvasData,
+  WorkflowEdgeData,
+  WorkflowNodeData,
+} from '@/convex/canvas';
+import type { Edge, Node } from '@xyflow/react';
+
+export const WORKFLOW_NODE = 'workflow-node';
+export const WORKFLOW_EDGE = 'workflow-edge';
+
+/** Map the stored canvas to React Flow nodes. */
+export function toFlowNodes(
+  canvas: WorkflowCanvasData
+): Node<WorkflowNodeData>[] {
+  return Object.values(canvas.nodes).map((node) => ({
+    id: node.node_id,
+    type: WORKFLOW_NODE,
+    position: node.position ?? { x: 0, y: 0 },
+    data: {
+      node_id: node.node_id,
+      node_uid: node.node_uid,
+      name: node.name,
+      arguments: node.arguments,
+      parents: node.parents,
+      children: node.children,
+    },
+  }));
+}
+
+/** Map the stored canvas to React Flow edges. */
+export function toFlowEdges(
+  canvas: WorkflowCanvasData
+): Edge<WorkflowEdgeData>[] {
+  return canvas.edges.map((edge) => ({
+    id: `${edge.source}->${edge.target}`,
+    type: WORKFLOW_EDGE,
+    source: edge.source,
+    target: edge.target,
+    data: {
+      source: edge.source,
+      target: edge.target,
+      arguments: edge.arguments,
+    },
+  }));
+}
