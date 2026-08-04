@@ -1,22 +1,23 @@
 'use client';
 
-import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 
-import { useCanvasStore } from '../../_store/canvas-store';
-import { useWorkflowId } from '../../../../_hooks/use-workflow-id';
-import { useWorkspaceName } from '../../../../_hooks/use-workspace-name';
+import { useCanvasStore } from '../../../../_store/canvas-store';
+import { useWorkflowId } from '../../../../../../_hooks/use-workflow-id';
+import { useWorkspaceName } from '../../../../../../_hooks/use-workspace-name';
 
-import type { NodeArgument } from '../../_types';
+import type { NodeArgument } from '../../../../_types';
 import type { WorkflowNodeData } from '@/convex/canvas';
 import type { Node } from '@xyflow/react';
 
-type TextFieldProps = {
+type PromptFieldProps = {
   fieldId: string;
   node: Node<WorkflowNodeData>;
   argument: NodeArgument;
 };
 
-export function TextField({ fieldId, node, argument }: TextFieldProps) {
+/** Multiline editor for the LLM `prompt` argument. */
+export function PromptField({ fieldId, node, argument }: PromptFieldProps) {
   const workflowId = useWorkflowId();
   const workspaceName = useWorkspaceName();
   const setNodeArgument = useCanvasStore((s) => s.setNodeArgument);
@@ -27,9 +28,8 @@ export function TextField({ fieldId, node, argument }: TextFieldProps) {
     value === undefined || value === null ? '' : String(value);
 
   return (
-    <Input
+    <Textarea
       id={fieldId}
-      type='text'
       value={stringValue}
       onChange={(event) => {
         setNodeArgument(node.id, argument.name, event.target.value);
@@ -37,7 +37,8 @@ export function TextField({ fieldId, node, argument }: TextFieldProps) {
       onBlur={() => {
         saveWorkflow({ workspaceName, workflowId });
       }}
-      className='h-7 rounded-md text-[13px]'
+      className='max-h-48 min-h-20 rounded-md py-1.5 font-mono text-[13px]
+        md:text-[13px]'
     />
   );
 }

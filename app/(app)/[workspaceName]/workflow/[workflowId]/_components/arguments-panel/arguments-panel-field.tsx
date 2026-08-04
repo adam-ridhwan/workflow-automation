@@ -2,10 +2,10 @@
 
 import { Label } from '@/components/ui/label';
 
-import { BooleanField } from './boolean-field';
-import { NumberField } from './number-field';
-import { SelectField } from './select-field';
-import { TextField } from './text-field';
+import { BooleanField } from './boolean/default/boolean-field';
+import { NumberField } from './number/default/number-field';
+import { SelectField } from './select/default/select-field';
+import { TextField } from './text/default/text-field';
 
 import type { NodeArgument } from '../../_types';
 import type { WorkflowNodeData } from '@/convex/canvas';

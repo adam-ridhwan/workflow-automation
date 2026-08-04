@@ -15,7 +15,7 @@ export const NODE_SPECS = {
           is_hidden: false,
           is_list: false,
           is_required: false,
-          name: 'value',
+          name: 'prompt',
         },
       ],
       node_info: {

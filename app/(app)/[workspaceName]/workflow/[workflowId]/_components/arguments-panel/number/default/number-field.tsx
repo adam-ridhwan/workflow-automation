@@ -2,11 +2,11 @@
 
 import { Input } from '@/components/ui/input';
 
-import { useCanvasStore } from '../../_store/canvas-store';
-import { useWorkflowId } from '../../../../_hooks/use-workflow-id';
-import { useWorkspaceName } from '../../../../_hooks/use-workspace-name';
+import { useCanvasStore } from '../../../../_store/canvas-store';
+import { useWorkflowId } from '../../../../../../_hooks/use-workflow-id';
+import { useWorkspaceName } from '../../../../../../_hooks/use-workspace-name';
 
-import type { NodeArgument } from '../../_types';
+import type { NodeArgument } from '../../../../_types';
 import type { WorkflowNodeData } from '@/convex/canvas';
 import type { Node } from '@xyflow/react';
 
