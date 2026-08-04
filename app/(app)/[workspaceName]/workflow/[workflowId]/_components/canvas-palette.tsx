@@ -12,8 +12,8 @@ import { Separator } from '@/components/ui/separator';
 import { Panel, useReactFlow, useViewport } from '@xyflow/react';
 import { MinusIcon, NetworkIcon, PlusIcon } from 'lucide-react';
 
-import { useWorkflowId } from '../_hooks/use-workflow-id';
 import { useCanvasStore } from '../_store/canvas-store';
+import { useWorkflowId } from '../../../_hooks/use-workflow-id';
 import { useWorkspaceName } from '../../../_hooks/use-workspace-name';
 
 const ZOOM_PRESETS = [0.5, 1, 2];
@@ -39,7 +39,7 @@ export function CanvasPalette() {
           className='text-primary'
           aria-label='Zoom out'
           onClick={() => {
-            void zoomOut({ duration: 200 });
+            zoomOut({ duration: 200 });
           }}
         >
           <MinusIcon />
@@ -64,7 +64,7 @@ export function CanvasPalette() {
               <DropdownMenuItem
                 key={preset}
                 onClick={() => {
-                  void zoomTo(preset);
+                  zoomTo(preset);
                 }}
               >
                 {preset * 100}%
@@ -73,7 +73,7 @@ export function CanvasPalette() {
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={() => {
-                void fitView();
+                fitView();
               }}
             >
               Zoom to fit
@@ -88,7 +88,7 @@ export function CanvasPalette() {
           className='text-primary'
           aria-label='Zoom in'
           onClick={() => {
-            void zoomIn({ duration: 200 });
+            zoomIn({ duration: 200 });
           }}
         >
           <PlusIcon />
@@ -107,7 +107,6 @@ export function CanvasPalette() {
           aria-label='Auto layout'
           onClick={() => {
             organizeNodes({ workspaceName, workflowId });
-            void fitView({ duration: 200 });
           }}
         >
           <NetworkIcon />

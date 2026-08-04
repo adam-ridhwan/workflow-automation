@@ -6,6 +6,9 @@ import type { Edge, Node } from '@xyflow/react';
 /** Matches the rendered WorkflowNode card (w-48 h-12). */
 export const NODE_DIMENSIONS = { WIDTH: 192, HEIGHT: 48 };
 
+/** Keeps the organized layout off the canvas origin. */
+const LAYOUT_MARGIN = { X: 100, Y: 100 };
+
 /**
  * Auto layout via dagre (the engine behind React Flow's layouting example):
  * left-to-right ranks matching the nodes' left/right handles.
@@ -40,8 +43,14 @@ export function organizeCanvasLayout(
     return {
       ...node,
       position: {
-        x: placed.x - (node.measured?.width ?? NODE_DIMENSIONS.WIDTH) / 2,
-        y: placed.y - (node.measured?.height ?? NODE_DIMENSIONS.HEIGHT) / 2,
+        x:
+          LAYOUT_MARGIN.X +
+          placed.x -
+          (node.measured?.width ?? NODE_DIMENSIONS.WIDTH) / 2,
+        y:
+          LAYOUT_MARGIN.Y +
+          placed.y -
+          (node.measured?.height ?? NODE_DIMENSIONS.HEIGHT) / 2,
       },
     };
   });

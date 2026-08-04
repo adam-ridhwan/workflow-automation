@@ -4,9 +4,9 @@ import { useCallback, useMemo } from 'react';
 import { WorkflowCanvasData } from '@/convex/canvas';
 import { Background, BackgroundVariant, ReactFlow } from '@xyflow/react';
 
-import { useWorkflowId } from '../_hooks/use-workflow-id';
 import { WORKFLOW_EDGE, WORKFLOW_NODE } from '../_lib/normalize';
 import { useCanvasStore } from '../_store/canvas-store';
+import { useWorkflowId } from '../../../_hooks/use-workflow-id';
 import { useWorkspaceName } from '../../../_hooks/use-workspace-name';
 import { CanvasPalette } from './canvas-palette';
 import { WorkflowNode } from './workflow-node';
