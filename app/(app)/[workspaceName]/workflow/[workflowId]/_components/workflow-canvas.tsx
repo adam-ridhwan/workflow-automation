@@ -18,6 +18,7 @@ import { NODE_DIMENSIONS } from '../_lib/organize-canvas-layout';
 import { useCanvasStore } from '../_store/canvas-store';
 import { useWorkflowId } from '../../../_hooks/use-workflow-id';
 import { useWorkspaceName } from '../../../_hooks/use-workspace-name';
+import { ArgumentsPanel } from './arguments-panel';
 import { CanvasPalette } from './canvas-palette';
 import { NodePalette } from './node-palette';
 import { WorkflowNode } from './workflow-node';
@@ -164,12 +165,14 @@ export function WorkflowCanvas({ canvas }: WorkflowCanvasProps) {
             onConnect={onConnect}
             onNodeDragStop={onNodeDragStop}
             onInit={onInit}
+            selectNodesOnDrag={false}
             proOptions={{ hideAttribution: true }}
           >
             <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
             <CanvasPalette />
           </ReactFlow>
           <NodePalette />
+          <ArgumentsPanel />
         </div>
 
         {typeof document !== 'undefined' &&

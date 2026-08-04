@@ -41,6 +41,7 @@ interface CanvasState {
     position: { x: number; y: number }
   ) => void;
   organizeNodes: (target: SaveTarget) => void;
+  setNodeArgument: (nodeId: string, name: string, value: unknown) => void;
   setNodes: (nodes: Node<WorkflowNodeData>[]) => void;
   setEdges: (edges: Edge<WorkflowEdgeData>[]) => void;
   setCanvas: (
@@ -113,6 +114,21 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
     const { nodes, edges } = get();
     set({ nodes: organizeCanvasLayout(nodes, edges) });
     get().saveWorkflow(target);
+  },
+  setNodeArgument: (nodeId, name, value) => {
+    set({
+      nodes: get().nodes.map((node) =>
+        node.id === nodeId
+          ? {
+              ...node,
+              data: {
+                ...node.data,
+                arguments: { ...node.data.arguments, [name]: value },
+              },
+            }
+          : node
+      ),
+    });
   },
   setNodes: (nodes) => set({ nodes }),
   setEdges: (edges) => set({ edges }),
