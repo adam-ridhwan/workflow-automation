@@ -114,12 +114,6 @@ function PanelBody({ selectedNode }: { selectedNode: Node<WorkflowNodeData> }) {
 
   return (
     <>
-      <div
-        className='text-muted-foreground px-2 pt-1.5 pb-1 text-[10.5px]
-          font-medium tracking-wider uppercase'
-      >
-        {selectedNode.data.name}
-      </div>
       {visibleArguments.length === 0 ? (
         <div className='text-muted-foreground px-2 pb-1.5 text-[13px]'>
           No arguments
@@ -191,7 +185,7 @@ export function ArgumentsPanel() {
   return (
     <div
       className='menu-inverted bg-popover text-popover-foreground
-        ring-foreground/10 absolute top-4 right-4 z-10 flex w-64 flex-col
+        ring-foreground/10 absolute top-4 right-4 z-10 flex w-80 flex-col
         rounded-lg p-1 shadow-md ring-1 backdrop-blur-xl'
     >
       <div

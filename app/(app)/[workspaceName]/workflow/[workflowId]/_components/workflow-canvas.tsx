@@ -57,15 +57,15 @@ export function WorkflowCanvas({ canvas }: WorkflowCanvasProps) {
   const edges = useCanvasStore((s) => s.edges);
   const onNodesChange = useCanvasStore((s) => s.onNodesChange);
   const onEdgesChange = useCanvasStore((s) => s.onEdgesChange);
-  const storeOnConnect = useCanvasStore((s) => s.onConnect);
+  const onConnect = useCanvasStore((s) => s.onConnect);
   const saveWorkflow = useCanvasStore((s) => s.saveWorkflow);
   const addNode = useCanvasStore((s) => s.addNode);
 
-  const onConnect = useCallback(
+  const handleConnect = useCallback(
     (connection: Connection) => {
-      storeOnConnect(connection, { workspaceName, workflowId });
+      onConnect(connection, { workspaceName, workflowId });
     },
-    [storeOnConnect, workspaceName, workflowId]
+    [onConnect, workspaceName, workflowId]
   );
 
   const onNodeDragStop = useCallback(() => {
@@ -158,7 +158,7 @@ export function WorkflowCanvas({ canvas }: WorkflowCanvasProps) {
             edgeTypes={edgeTypes}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
+            onConnect={handleConnect}
             onNodeDragStop={onNodeDragStop}
             onNodeClick={onNodeClick}
             onInit={onInit}

@@ -23,6 +23,36 @@ export function WorkflowCanvas({ canvas }: WorkflowCanvasProps) {
 }
 ```
 
+# Store selectors
+
+- A variable holding a store selection is named exactly after the selected
+  property — never prefixed or renamed:
+
+```tsx
+// ❌ const storeOnConnect = useCanvasStore((s) => s.onConnect);
+const onConnect = useCanvasStore((s) => s.onConnect);
+```
+
+- If a local wrapper around the selected value is needed (binding args,
+  adding logic), the wrapper takes a different name (`handleConnect`) and
+  the selector keeps the property name.
+
+# UI elements
+
+- Interactive/styled UI is built from the shadcn components in
+  `@/components/ui/` — never from native HTML elements. `<button>` →
+  `<Button>`, `<input>` → `<Input>`, `<select>` → `<Select>`, `<label>` →
+  `<Label>`, `<hr>` → `<Separator>`, `<table>` → `<Table>`, container
+  panels → `<Card>`.
+- If the needed component isn't in `components/ui/` yet, add it with
+  `pnpm dlx shadcn@latest add <name>` instead of hand-rolling a native
+  element.
+- Plain non-interactive layout wrappers (`div`, `span`, semantic tags like
+  `nav`/`main`) are fine.
+- To render a shadcn component as another element (e.g. a Button that is a
+  link), use the Base UI `render` prop, not a bare `<a>`/`<Link>` styled by
+  hand: `<Button render={<Link href=... />} nativeButton={false}>`.
+
 # Type imports
 
 - Anything imported only as a type must use `import type`, never a plain
