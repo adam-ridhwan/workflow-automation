@@ -17,6 +17,10 @@ description: React component structure conventions for this codebase — one com
   names like `panel-body.tsx` or `PanelBody`. When a feature spans several
   files, group them in a directory named after the feature
   (`_components/arguments-panel/`).
+- Exception inside a feature directory: variant sub-components may drop the
+  feature prefix and use `{variant}-{role}.tsx`, since the directory carries
+  the feature context — e.g. `arguments-panel/text-field.tsx` (`TextField`),
+  `boolean-field.tsx` (`BooleanField`), `select-field.tsx` (`SelectField`).
 - Name the props type `{Component}Props` and declare it in the same file,
   above the component:
 
