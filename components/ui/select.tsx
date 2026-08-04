@@ -98,7 +98,7 @@ function SelectContent({
           data-slot='select-content'
           data-align-trigger={alignItemWithTrigger}
           className={cn(
-            `bg-popover text-popover-foreground ring-foreground/10
+            `menu-inverted bg-popover text-popover-foreground ring-foreground/10
             data-[side=bottom]:slide-in-from-top-2
             data-[side=inline-end]:slide-in-from-left-2
             data-[side=inline-start]:slide-in-from-right-2
