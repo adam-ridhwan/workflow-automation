@@ -42,6 +42,8 @@ interface CanvasState {
   ) => void;
   organizeNodes: (target: SaveTarget) => void;
   setNodeArgument: (nodeId: string, name: string, value: unknown) => void;
+  cloneNode: (target: SaveTarget, nodeId: string) => void;
+  deleteNode: (target: SaveTarget, nodeId: string) => void;
   setNodes: (nodes: Node<WorkflowNodeData>[]) => void;
   setEdges: (edges: Edge<WorkflowEdgeData>[]) => void;
   setCanvas: (
@@ -129,6 +131,42 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
           : node
       ),
     });
+  },
+  cloneNode: (target, nodeId) => {
+    const source = get().nodes.find((node) => node.id === nodeId);
+    if (!source) {
+      return;
+    }
+    const node_id = crypto.randomUUID();
+    const clone: Node<WorkflowNodeData> = {
+      id: node_id,
+      type: WORKFLOW_NODE,
+      position: { x: source.position.x + 32, y: source.position.y + 32 },
+      selected: true,
+      data: {
+        ...source.data,
+        node_id,
+        arguments: { ...source.data.arguments },
+        parents: [],
+        children: [],
+      },
+    };
+    set({
+      nodes: [
+        ...get().nodes.map((node) => ({ ...node, selected: false })),
+        clone,
+      ],
+    });
+    get().saveWorkflow(target);
+  },
+  deleteNode: (target, nodeId) => {
+    set({
+      nodes: get().nodes.filter((node) => node.id !== nodeId),
+      edges: get().edges.filter(
+        (edge) => edge.source !== nodeId && edge.target !== nodeId
+      ),
+    });
+    get().saveWorkflow(target);
   },
   setNodes: (nodes) => set({ nodes }),
   setEdges: (edges) => set({ edges }),

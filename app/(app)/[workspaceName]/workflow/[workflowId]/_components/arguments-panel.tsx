@@ -1,5 +1,6 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -9,7 +10,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { SlidersHorizontalIcon } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { CopyIcon, SlidersHorizontalIcon, Trash2Icon } from 'lucide-react';
 
 import { getNodeSpec } from '../_lib/get-node-spec';
 import { useCanvasStore } from '../_store/canvas-store';
@@ -140,6 +142,46 @@ function PanelBody({ selectedNode }: { selectedNode: Node<WorkflowNodeData> }) {
   );
 }
 
+function PanelFooter({
+  selectedNode,
+}: {
+  selectedNode: Node<WorkflowNodeData>;
+}) {
+  const workflowId = useWorkflowId();
+  const workspaceName = useWorkspaceName();
+  const cloneNode = useCanvasStore((s) => s.cloneNode);
+  const deleteNode = useCanvasStore((s) => s.deleteNode);
+
+  return (
+    <div className='flex items-center gap-1'>
+      <Button
+        variant='ghost'
+        size='sm'
+        onClick={() => {
+          cloneNode({ workspaceName, workflowId }, selectedNode.id);
+        }}
+        className='hover:bg-accent hover:text-accent-foreground flex-1 gap-2
+          rounded-md text-[13px]'
+      >
+        <CopyIcon className='text-muted-foreground size-3.5' />
+        Clone
+      </Button>
+      <Button
+        variant='ghost'
+        size='sm'
+        onClick={() => {
+          deleteNode({ workspaceName, workflowId }, selectedNode.id);
+        }}
+        className='hover:bg-accent hover:text-accent-foreground flex-1 gap-2
+          rounded-md text-[13px]'
+      >
+        <Trash2Icon className='text-muted-foreground size-3.5' />
+        Delete
+      </Button>
+    </div>
+  );
+}
+
 /** Floating panel in the top-right corner of the canvas; edits the selected
  * node's arguments. Hidden while no node is selected. */
 export function ArgumentsPanel() {
@@ -168,6 +210,10 @@ export function ArgumentsPanel() {
       </div>
 
       <PanelBody selectedNode={selectedNode} />
+
+      <Separator className='-mx-1 my-1 w-auto' />
+
+      <PanelFooter selectedNode={selectedNode} />
     </div>
   );
 }
