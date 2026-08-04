@@ -1,11 +1,3 @@
-import type {
-  WorkflowCanvasData,
-  WorkflowEdgeData,
-  WorkflowNodeData,
-} from '@/convex/canvas';
-
-export type { WorkflowCanvasData, WorkflowEdgeData, WorkflowNodeData };
-
 export type ArgumentType = 'NUMBER' | 'TEXT' | 'BOOLEAN' | 'MAP';
 
 export type NodeGroup = 'INPUT' | 'MODEL' | 'OUTPUT';
@@ -30,7 +22,7 @@ export interface NodeArgument {
 export interface NodeInfo {
   node_group: NodeGroup;
   node_type: string;
-  node_uid: string;
+  node_uid: `N_${string}`;
 }
 
 export interface NodeRequirement {
