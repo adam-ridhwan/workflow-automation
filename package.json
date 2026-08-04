@@ -12,6 +12,7 @@
     "format:check": "prettier --check ."
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.115.0",
     "@base-ui/react": "^1.6.0",
     "@convex-dev/auth": "^0.0.94",
     "@dagrejs/dagre": "^3.0.0",

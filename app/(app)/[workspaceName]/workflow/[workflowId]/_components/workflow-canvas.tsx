@@ -20,7 +20,7 @@ import { useWorkflowId } from '../../../_hooks/use-workflow-id';
 import { useWorkspaceName } from '../../../_hooks/use-workspace-name';
 import { ArgumentsPanel } from './arguments-panel';
 import { CanvasPalette } from './canvas-palette';
-import { NodePalette } from './node-palette';
+import { NODE_META, NodePalette } from './node-palette';
 import { WorkflowNode } from './workflow-node';
 import { WorkflowProvider } from './workflow-provider';
 import { WorkflowEdge } from './workfow-edge';
@@ -57,6 +57,36 @@ const snapCenterToCursor: Modifier = ({
 type WorkflowCanvasProps = {
   canvas: WorkflowCanvasData;
 };
+
+/** Cursor-attached clone of the canvas node while dragging from the palette. */
+function DragPreviewNode({ dragItem }: { dragItem: PaletteDragData }) {
+  const meta = NODE_META[dragItem.uid];
+  const Icon = meta?.icon;
+
+  return (
+    <Card
+      className='flex h-14 w-56 flex-row items-center gap-2.5 rounded-md p-0
+        px-3 shadow-sm'
+    >
+      {Icon && (
+        <div
+          className='bg-muted flex size-8 shrink-0 items-center justify-center
+            rounded-md'
+        >
+          <Icon className='text-muted-foreground size-4' />
+        </div>
+      )}
+      <div className='flex min-w-0 flex-col'>
+        <div className='truncate text-[13px] font-medium'>{dragItem.label}</div>
+        {meta?.description && (
+          <div className='text-muted-foreground truncate text-[11px]'>
+            {meta.description}
+          </div>
+        )}
+      </div>
+    </Card>
+  );
+}
 
 export function WorkflowCanvas({ canvas }: WorkflowCanvasProps) {
   const workflowId = useWorkflowId();
@@ -183,14 +213,7 @@ export function WorkflowCanvas({ canvas }: WorkflowCanvasProps) {
               style={{ width: 'auto', height: 'auto' }}
               className='pointer-events-none'
             >
-              {dragItem && (
-                <Card
-                  className='flex h-12 w-48 flex-row items-center justify-center
-                    gap-0 rounded-md p-0 px-4 text-sm font-medium shadow-sm'
-                >
-                  {dragItem.label}
-                </Card>
-              )}
+              {dragItem && <DragPreviewNode dragItem={dragItem} />}
             </DragOverlay>,
             document.body
           )}
