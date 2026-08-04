@@ -1,12 +1,8 @@
 'use client';
 
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
-import { Card } from '@/components/ui/card';
-import { WorkflowCanvasData } from '@/convex/canvas';
 import {
   DndContext,
-  DragOverlay,
   PointerSensor,
   useSensor,
   useSensors,
@@ -20,73 +16,26 @@ import { useWorkflowId } from '../../../_hooks/use-workflow-id';
 import { useWorkspaceName } from '../../../_hooks/use-workspace-name';
 import { ArgumentsPanel } from './arguments-panel';
 import { CanvasPalette } from './canvas-palette';
-import { NODE_META, NodePalette } from './node-palette';
+import { NodeDragPreview } from './node-drag-preview';
+import { NodePalette } from './node-palette';
 import { WorkflowNode } from './workflow-node';
 import { WorkflowProvider } from './workflow-provider';
 import { WorkflowEdge } from './workfow-edge';
 
-import type { PaletteDragData } from './node-palette';
-import type { WorkflowEdgeData, WorkflowNodeData } from '@/convex/canvas';
-import type { DragEndEvent, DragStartEvent, Modifier } from '@dnd-kit/core';
+import type { PaletteDragData } from './node-drag-preview';
+import type {
+  WorkflowCanvasData,
+  WorkflowEdgeData,
+  WorkflowNodeData,
+} from '@/convex/canvas';
+import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
 import type { Connection, Edge, Node, ReactFlowInstance } from '@xyflow/react';
 
 import '@xyflow/react/dist/style.css';
 
-// Center the overlay on the cursor, matching where the node will drop.
-const snapCenterToCursor: Modifier = ({
-  activatorEvent,
-  draggingNodeRect,
-  transform,
-}) => {
-  if (draggingNodeRect && activatorEvent instanceof PointerEvent) {
-    return {
-      ...transform,
-      x:
-        transform.x +
-        (activatorEvent.clientX - draggingNodeRect.left) -
-        draggingNodeRect.width / 2,
-      y:
-        transform.y +
-        (activatorEvent.clientY - draggingNodeRect.top) -
-        draggingNodeRect.height / 2,
-    };
-  }
-  return transform;
-};
-
 type WorkflowCanvasProps = {
   canvas: WorkflowCanvasData;
 };
-
-/** Cursor-attached clone of the canvas node while dragging from the palette. */
-function DragPreviewNode({ dragItem }: { dragItem: PaletteDragData }) {
-  const meta = NODE_META[dragItem.uid];
-  const Icon = meta?.icon;
-
-  return (
-    <Card
-      className='flex h-14 w-56 flex-row items-center gap-2.5 rounded-md p-0
-        px-3 shadow-sm'
-    >
-      {Icon && (
-        <div
-          className='bg-muted flex size-8 shrink-0 items-center justify-center
-            rounded-md'
-        >
-          <Icon className='text-muted-foreground size-4' />
-        </div>
-      )}
-      <div className='flex min-w-0 flex-col'>
-        <div className='truncate text-[13px] font-medium'>{dragItem.label}</div>
-        {meta?.description && (
-          <div className='text-muted-foreground truncate text-[11px]'>
-            {meta.description}
-          </div>
-        )}
-      </div>
-    </Card>
-  );
-}
 
 export function WorkflowCanvas({ canvas }: WorkflowCanvasProps) {
   const workflowId = useWorkflowId();
@@ -122,6 +71,23 @@ export function WorkflowCanvas({ canvas }: WorkflowCanvasProps) {
   const onNodeDragStop = useCallback(() => {
     saveWorkflow({ workspaceName, workflowId });
   }, [saveWorkflow, workspaceName, workflowId]);
+
+  const onNodeClick = useCallback(
+    (_event: React.MouseEvent, node: Node<WorkflowNodeData>) => {
+      const instance = reactFlowInstance.current;
+      if (!instance) {
+        return;
+      }
+      const width = node.measured?.width ?? NODE_DIMENSIONS.WIDTH;
+      const height = node.measured?.height ?? NODE_DIMENSIONS.HEIGHT;
+      void instance.setCenter(
+        node.position.x + width / 2,
+        node.position.y + height / 2,
+        { zoom: instance.getZoom(), duration: 300 }
+      );
+    },
+    []
+  );
 
   const onInit = useCallback(
     (
@@ -194,6 +160,7 @@ export function WorkflowCanvas({ canvas }: WorkflowCanvasProps) {
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
             onNodeDragStop={onNodeDragStop}
+            onNodeClick={onNodeClick}
             onInit={onInit}
             selectNodesOnDrag={false}
             proOptions={{ hideAttribution: true }}
@@ -205,18 +172,7 @@ export function WorkflowCanvas({ canvas }: WorkflowCanvasProps) {
           <ArgumentsPanel />
         </div>
 
-        {typeof document !== 'undefined' &&
-          createPortal(
-            <DragOverlay
-              dropAnimation={null}
-              modifiers={[snapCenterToCursor]}
-              style={{ width: 'auto', height: 'auto' }}
-              className='pointer-events-none'
-            >
-              {dragItem && <DragPreviewNode dragItem={dragItem} />}
-            </DragOverlay>,
-            document.body
-          )}
+        <NodeDragPreview dragItem={dragItem} />
       </DndContext>
     </WorkflowProvider>
   );

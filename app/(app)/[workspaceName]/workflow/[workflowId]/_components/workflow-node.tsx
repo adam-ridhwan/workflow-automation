@@ -1,6 +1,7 @@
 'use client';
 
 import { Card } from '@/components/ui/card';
+import { cn } from '@/lib/cn';
 import { Position } from '@xyflow/react';
 import { CircleIcon } from 'lucide-react';
 
@@ -11,7 +12,10 @@ import { WorkflowPort } from './workflow-port';
 import type { WorkflowNodeData } from '@/convex/canvas';
 import type { Node, NodeProps } from '@xyflow/react';
 
-export function WorkflowNode({ data }: NodeProps<Node<WorkflowNodeData>>) {
+export function WorkflowNode({
+  data,
+  selected,
+}: NodeProps<Node<WorkflowNodeData>>) {
   const meta = NODE_META[data.node_uid];
   const Icon = meta?.icon ?? CircleIcon;
 
@@ -21,8 +25,11 @@ export function WorkflowNode({ data }: NodeProps<Node<WorkflowNodeData>>) {
 
   return (
     <Card
-      className='flex h-14 w-56 flex-row items-center gap-2.5 overflow-visible
-        rounded-md p-0 px-3 shadow-sm'
+      className={cn(
+        `flex h-14 w-56 flex-row items-center gap-2.5 overflow-visible
+        rounded-md p-0 px-3 shadow-sm`,
+        selected && 'ring-primary'
+      )}
     >
       {hasInPort && <WorkflowPort type='target' position={Position.Left} />}
       <div

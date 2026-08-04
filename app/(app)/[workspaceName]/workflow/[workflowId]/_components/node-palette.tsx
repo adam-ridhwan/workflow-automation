@@ -22,18 +22,13 @@ import {
 
 import { NODE_SPECS } from '../_constants/node-specs';
 
+import type { PaletteDragData } from './node-drag-preview';
 import type { LucideIcon } from 'lucide-react';
 
 const GROUP_LABELS: Record<string, string> = {
   INPUT: 'Input',
   MODEL: 'Model',
   OUTPUT: 'Output',
-};
-
-/** Payload carried by a palette drag. */
-export type PaletteDragData = {
-  uid: string;
-  label: string;
 };
 
 /** Display name, icon and description per node_uid. */
