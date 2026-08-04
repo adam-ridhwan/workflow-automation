@@ -10,6 +10,13 @@ description: React component structure conventions for this codebase — one com
   inline in the same file.
 - Declare components as `export function Component() {}` — no arrow-function
   consts, no default exports.
+- Component names (and their kebab-case file names) start with the feature,
+  then the component's role: `arguments-panel.tsx` (`ArgumentsPanel`),
+  `arguments-panel-body.tsx` (`ArgumentsPanelBody`),
+  `arguments-panel-footer.tsx` (`ArgumentsPanelFooter`) — never role-only
+  names like `panel-body.tsx` or `PanelBody`. When a feature spans several
+  files, group them in a directory named after the feature
+  (`_components/arguments-panel/`).
 - Name the props type `{Component}Props` and declare it in the same file,
   above the component:
 

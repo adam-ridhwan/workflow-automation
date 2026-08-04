@@ -9,20 +9,20 @@ import {
 } from '@dnd-kit/core';
 import { Background, BackgroundVariant, ReactFlow } from '@xyflow/react';
 
-import { WORKFLOW_EDGE, WORKFLOW_NODE } from '../_lib/normalize';
-import { NODE_DIMENSIONS } from '../_lib/organize-canvas-layout';
-import { useCanvasStore } from '../_store/canvas-store';
-import { useWorkflowId } from '../../../_hooks/use-workflow-id';
-import { useWorkspaceName } from '../../../_hooks/use-workspace-name';
-import { ArgumentsPanel } from './arguments-panel';
-import { CanvasPalette } from './canvas-palette';
-import { NodeDragPreview } from './node-drag-preview';
-import { NodePalette } from './node-palette';
+import { WORKFLOW_EDGE, WORKFLOW_NODE } from '../../_lib/normalize';
+import { NODE_DIMENSIONS } from '../../_lib/organize-canvas-layout';
+import { useCanvasStore } from '../../_store/canvas-store';
+import { useWorkflowId } from '../../../../_hooks/use-workflow-id';
+import { useWorkspaceName } from '../../../../_hooks/use-workspace-name';
+import { ArgumentsPanel } from '../arguments-panel/arguments-panel';
+import { CanvasPalette } from '../canvas-palette/canvas-palette';
+import { NodeDragPreview } from '../node-palette/node-drag-preview';
+import { NodePalette } from '../node-palette/node-palette';
+import { WorkflowEdge } from './workflow-edge';
 import { WorkflowNode } from './workflow-node';
 import { WorkflowProvider } from './workflow-provider';
-import { WorkflowEdge } from './workfow-edge';
 
-import type { PaletteDragData } from './node-drag-preview';
+import type { PaletteDragData } from '../node-palette/node-drag-preview';
 import type {
   WorkflowCanvasData,
   WorkflowEdgeData,

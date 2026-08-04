@@ -5,8 +5,8 @@ import { cn } from '@/lib/cn';
 import { Position } from '@xyflow/react';
 import { CircleIcon } from 'lucide-react';
 
-import { findNodeSpec } from '../_lib/get-node-spec';
-import { NODE_META } from './node-palette';
+import { NODE_META } from '../../_constants/node-meta';
+import { findNodeSpec } from '../../_lib/get-node-spec';
 import { WorkflowPort } from './workflow-port';
 
 import type { WorkflowNodeData } from '@/convex/canvas';

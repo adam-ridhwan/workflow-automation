@@ -3,8 +3,8 @@
 import { useEffect, useRef } from 'react';
 import { ReactFlowProvider } from '@xyflow/react';
 
-import { toFlowEdges, toFlowNodes } from '../_lib/normalize';
-import { useCanvasStore } from '../_store/canvas-store';
+import { toFlowEdges, toFlowNodes } from '../../_lib/normalize';
+import { useCanvasStore } from '../../_store/canvas-store';
 
 import type { WorkflowCanvasData } from '@/convex/canvas';
 import type { ReactNode } from 'react';

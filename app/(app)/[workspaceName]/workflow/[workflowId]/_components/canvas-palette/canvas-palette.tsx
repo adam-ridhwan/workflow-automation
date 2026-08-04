@@ -12,9 +12,9 @@ import { Separator } from '@/components/ui/separator';
 import { Panel, useReactFlow, useViewport } from '@xyflow/react';
 import { MinusIcon, NetworkIcon, PlusIcon } from 'lucide-react';
 
-import { useCanvasStore } from '../_store/canvas-store';
-import { useWorkflowId } from '../../../_hooks/use-workflow-id';
-import { useWorkspaceName } from '../../../_hooks/use-workspace-name';
+import { useCanvasStore } from '../../_store/canvas-store';
+import { useWorkflowId } from '../../../../_hooks/use-workflow-id';
+import { useWorkspaceName } from '../../../../_hooks/use-workspace-name';
 
 const ZOOM_PRESETS = [0.5, 1, 2];
 

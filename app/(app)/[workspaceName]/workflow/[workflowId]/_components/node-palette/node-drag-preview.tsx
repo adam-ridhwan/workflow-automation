@@ -4,8 +4,8 @@ import { createPortal } from 'react-dom';
 import { Card } from '@/components/ui/card';
 import { DragOverlay } from '@dnd-kit/core';
 
-import { snapCenterToCursor } from '../_lib/snap-center-to-cursor';
-import { NODE_META } from './node-palette';
+import { NODE_META } from '../../_constants/node-meta';
+import { snapCenterToCursor } from '../../_lib/snap-center-to-cursor';
 
 type NodeDragPreviewProps = {
   dragItem: PaletteDragData | null;
