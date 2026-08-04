@@ -16,3 +16,9 @@ export function getNodeSpec(nodeUid: string): NodeSpec {
   }
   return spec;
 }
+
+/** Like getNodeSpec, but returns undefined for unknown uids (e.g. the seeded
+ * start node) instead of throwing. */
+export function findNodeSpec(nodeUid: string): NodeSpec | undefined {
+  return specsByUid.get(nodeUid);
+}

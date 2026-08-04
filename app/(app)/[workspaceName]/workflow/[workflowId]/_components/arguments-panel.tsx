@@ -13,7 +13,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { CopyIcon, SlidersHorizontalIcon, Trash2Icon } from 'lucide-react';
 
-import { getNodeSpec } from '../_lib/get-node-spec';
+import { findNodeSpec } from '../_lib/get-node-spec';
 import { useCanvasStore } from '../_store/canvas-store';
 import { useWorkflowId } from '../../../_hooks/use-workflow-id';
 import { useWorkspaceName } from '../../../_hooks/use-workspace-name';
@@ -106,12 +106,7 @@ function ArgumentField({
 }
 
 function PanelBody({ selectedNode }: { selectedNode: Node<WorkflowNodeData> }) {
-  let spec = null;
-  try {
-    spec = getNodeSpec(selectedNode.data.node_uid);
-  } catch {
-    spec = null;
-  }
+  const spec = findNodeSpec(selectedNode.data.node_uid);
   const visibleArguments =
     spec?.node_arguments.filter(
       (argument) => !argument.is_hidden && !argument.is_deprecated
