@@ -6,7 +6,11 @@ import { Handle, Position } from '@xyflow/react';
 import type { HandleProps } from '@xyflow/react';
 
 /** Styled connection port for workflow nodes; wraps React Flow's Handle. */
-export function WorkflowPort({ className, position, ...props }: HandleProps) {
+export function WorkflowCanvasPort({
+  className,
+  position,
+  ...props
+}: HandleProps) {
   return (
     <Handle
       position={position}

@@ -7,12 +7,12 @@ import { CircleIcon } from 'lucide-react';
 
 import { NODE_META } from '../../_constants/node-meta';
 import { findNodeSpec } from '../../_lib/get-node-spec';
-import { WorkflowPort } from './workflow-port';
+import { WorkflowCanvasPort } from './workflow-canvas-port';
 
 import type { WorkflowNodeData } from '@/convex/canvas';
 import type { Node, NodeProps } from '@xyflow/react';
 
-export function WorkflowNode({
+export function WorkflowCanvasNode({
   data,
   selected,
 }: NodeProps<Node<WorkflowNodeData>>) {
@@ -31,7 +31,9 @@ export function WorkflowNode({
         selected && 'ring-primary'
       )}
     >
-      {hasInPort && <WorkflowPort type='target' position={Position.Left} />}
+      {hasInPort && (
+        <WorkflowCanvasPort type='target' position={Position.Left} />
+      )}
       <div
         className='bg-muted flex size-8 shrink-0 items-center justify-center
           rounded-md'
@@ -47,7 +49,9 @@ export function WorkflowNode({
           </div>
         )}
       </div>
-      {hasOutPort && <WorkflowPort type='source' position={Position.Right} />}
+      {hasOutPort && (
+        <WorkflowCanvasPort type='source' position={Position.Right} />
+      )}
     </Card>
   );
 }

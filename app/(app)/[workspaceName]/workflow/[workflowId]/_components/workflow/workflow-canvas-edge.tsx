@@ -4,7 +4,7 @@ import { BaseEdge, getBezierPath } from '@xyflow/react';
 
 import type { EdgeProps } from '@xyflow/react';
 
-export function WorkflowEdge({
+export function WorkflowCanvasEdge({
   id,
   sourceX,
   sourceY,

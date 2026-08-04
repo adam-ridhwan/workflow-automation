@@ -14,7 +14,10 @@ type WorkflowProviderProps = {
   canvas: WorkflowCanvasData;
 };
 
-export function WorkflowProvider({ children, canvas }: WorkflowProviderProps) {
+export function WorkflowCanvasProvider({
+  children,
+  canvas,
+}: WorkflowProviderProps) {
   const initialized = useRef(false);
   const setCanvas = useCanvasStore((s) => s.setCanvas);
 

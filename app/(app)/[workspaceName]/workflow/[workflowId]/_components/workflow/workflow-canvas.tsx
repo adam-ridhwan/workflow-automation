@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import {
   DndContext,
   PointerSensor,
@@ -18,9 +18,9 @@ import { ArgumentsPanel } from '../arguments-panel/arguments-panel';
 import { CanvasPalette } from '../canvas-palette/canvas-palette';
 import { NodeDragPreview } from '../node-palette/node-drag-preview';
 import { NodePalette } from '../node-palette/node-palette';
-import { WorkflowEdge } from './workflow-edge';
-import { WorkflowNode } from './workflow-node';
-import { WorkflowProvider } from './workflow-provider';
+import { WorkflowCanvasEdge } from './workflow-canvas-edge';
+import { WorkflowCanvasNode } from './workflow-canvas-node';
+import { WorkflowCanvasProvider } from './workflow-canvas-provider';
 
 import type { PaletteDragData } from '../node-palette/node-drag-preview';
 import type {
@@ -32,6 +32,9 @@ import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
 import type { Connection, Edge, Node, ReactFlowInstance } from '@xyflow/react';
 
 import '@xyflow/react/dist/style.css';
+
+const nodeTypes = { [WORKFLOW_NODE]: WorkflowCanvasNode };
+const edgeTypes = { [WORKFLOW_EDGE]: WorkflowCanvasEdge };
 
 type WorkflowCanvasProps = {
   canvas: WorkflowCanvasData;
@@ -49,9 +52,6 @@ export function WorkflowCanvas({ canvas }: WorkflowCanvasProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } })
   );
-
-  const nodeTypes = useMemo(() => ({ [WORKFLOW_NODE]: WorkflowNode }), []);
-  const edgeTypes = useMemo(() => ({ [WORKFLOW_EDGE]: WorkflowEdge }), []);
 
   const nodes = useCanvasStore((s) => s.nodes);
   const edges = useCanvasStore((s) => s.edges);
@@ -80,10 +80,15 @@ export function WorkflowCanvas({ canvas }: WorkflowCanvasProps) {
       }
       const width = node.measured?.width ?? NODE_DIMENSIONS.WIDTH;
       const height = node.measured?.height ?? NODE_DIMENSIONS.HEIGHT;
+      const zoom = instance.getZoom();
+      // Center on a point below the node so the node itself sits above the
+      // viewport's vertical center.
+      const bounds = wrapperRef.current?.getBoundingClientRect();
+      const verticalOffset = bounds ? (bounds.height * 0.15) / zoom : 0;
       void instance.setCenter(
         node.position.x + width / 2,
-        node.position.y + height / 2,
-        { zoom: instance.getZoom(), duration: 300 }
+        node.position.y + height / 2 + verticalOffset,
+        { zoom, duration: 300 }
       );
     },
     []
@@ -141,7 +146,7 @@ export function WorkflowCanvas({ canvas }: WorkflowCanvasProps) {
   }
 
   return (
-    <WorkflowProvider canvas={canvas}>
+    <WorkflowCanvasProvider canvas={canvas}>
       <DndContext
         sensors={sensors}
         onDragStart={handleDragStart}
@@ -174,6 +179,6 @@ export function WorkflowCanvas({ canvas }: WorkflowCanvasProps) {
 
         <NodeDragPreview dragItem={dragItem} />
       </DndContext>
-    </WorkflowProvider>
+    </WorkflowCanvasProvider>
   );
 }
