@@ -6,8 +6,9 @@ import type { Edge, Node } from '@xyflow/react';
 /** Matches the rendered WorkflowNode card (w-56 h-14). */
 export const NODE_DIMENSIONS = { WIDTH: 224, HEIGHT: 56 };
 
-/** Keeps the organized layout off the canvas origin. */
-const LAYOUT_MARGIN = { X: 100, Y: 100 };
+/** Keeps the organized layout off the canvas origin — X clears the floating
+ * node palette (left-4 + w-44 ≈ 192px) at default zoom. */
+const LAYOUT_MARGIN = { X: 256, Y: 100 };
 
 /**
  * Auto layout via dagre (the engine behind React Flow's layouting example):
