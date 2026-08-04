@@ -34,7 +34,7 @@ export type DropTargetData = {
 };
 
 // Position the drag overlay so its top-left corner rides the cursor.
-const snapTopLeftToCursor: Modifier = ({
+export const snapTopLeftToCursor: Modifier = ({
   activatorEvent,
   draggingNodeRect,
   transform,

@@ -6,7 +6,7 @@ import { api } from '@/convex/_generated/api';
 import { addEdge, applyEdgeChanges, applyNodeChanges } from '@xyflow/react';
 import { create } from 'zustand';
 
-import { toCanvasData, WORKFLOW_EDGE } from '../_lib/normalize';
+import { toCanvasData, WORKFLOW_EDGE, WORKFLOW_NODE } from '../_lib/normalize';
 import { organizeCanvasLayout } from '../_lib/organize-canvas-layout';
 
 import type { Id } from '@/convex/_generated/dataModel';
@@ -34,6 +34,12 @@ interface CanvasState {
   onEdgesChange: (changes: EdgeChange[]) => void;
   onConnect: (connection: Connection, target: SaveTarget) => void;
   saveWorkflow: (target: SaveTarget) => void;
+  addNode: (
+    target: SaveTarget,
+    uid: string,
+    label: string,
+    position: { x: number; y: number }
+  ) => void;
   organizeNodes: (target: SaveTarget) => void;
   setNodes: (nodes: Node<WorkflowNodeData>[]) => void;
   setEdges: (edges: Edge<WorkflowEdgeData>[]) => void;
@@ -84,6 +90,24 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
           title: 'Could not save the canvas. Please try again.',
         });
       });
+  },
+  addNode: (target, uid, label, position) => {
+    const node_id = crypto.randomUUID();
+    const newNode = {
+      id: node_id,
+      type: WORKFLOW_NODE,
+      position,
+      data: {
+        node_id,
+        node_uid: uid,
+        name: label,
+        arguments: {},
+        parents: [],
+        children: [],
+      },
+    } satisfies Node<WorkflowNodeData>;
+    set({ nodes: [...get().nodes, newNode] });
+    get().saveWorkflow(target);
   },
   organizeNodes: (target) => {
     const { nodes, edges } = get();
