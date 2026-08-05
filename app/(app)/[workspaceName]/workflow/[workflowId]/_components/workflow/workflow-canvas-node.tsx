@@ -34,8 +34,7 @@ export function WorkflowCanvasNode({
     : null;
 
   const output = useCanvasStore((s) => s.nodeOutputs[id]);
-  const showsOutput =
-    data.node_uid === DISPLAY_NODE_UID && output !== undefined;
+  const isDisplayNode = data.node_uid === DISPLAY_NODE_UID;
 
   return (
     <Card
@@ -86,13 +85,13 @@ export function WorkflowCanvasNode({
 
       <NodeArguments nodeId={id} data={data} />
 
-      {showsOutput && (
+      {isDisplayNode && (
         <div
-          className='nowheel border-border max-h-40 overflow-y-auto border-t
-            px-3 py-2 font-mono text-[11px] whitespace-pre-wrap'
+          className='nowheel border-border max-h-40 min-h-14 overflow-y-auto
+            border-t px-3 py-2 font-mono text-[11px] whitespace-pre-wrap'
         >
-          {output === '' ? (
-            <span className='text-muted-foreground'>(empty)</span>
+          {output === undefined || output === '' ? (
+            <span className='text-muted-foreground'>No output yet</span>
           ) : (
             output
           )}
