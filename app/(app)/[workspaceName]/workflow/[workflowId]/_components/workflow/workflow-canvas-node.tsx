@@ -5,6 +5,7 @@ import { cn } from '@/lib/cn';
 import { Position } from '@xyflow/react';
 import { CircleIcon } from 'lucide-react';
 
+import { NODE_GROUP_META } from '../../_constants/node-groups';
 import { NODE_META } from '../../_constants/node-meta';
 import { findNodeSpec } from '../../_lib/get-node-spec';
 import { useCanvasStore } from '../../_store/canvas-store';
@@ -28,6 +29,9 @@ export function WorkflowCanvasNode({
   const nodeSpec = findNodeSpec(data.node_uid);
   const hasInPort = (nodeSpec?.node_requirement.max_in_edges ?? 1) > 0;
   const hasOutPort = (nodeSpec?.node_requirement.max_out_edges ?? 1) > 0;
+  const groupMeta = nodeSpec
+    ? NODE_GROUP_META[nodeSpec.node_info.node_group]
+    : null;
 
   const output = useCanvasStore((s) => s.nodeOutputs[id]);
   const showsOutput =
@@ -41,6 +45,18 @@ export function WorkflowCanvasNode({
         selected && 'ring-primary'
       )}
     >
+      {groupMeta && (
+        <div
+          className='menu-inverted bg-popover text-popover-foreground absolute
+            bottom-full left-0.5 -z-10 flex translate-y-1 items-center gap-1
+            rounded-t-md px-2 pt-1 pb-1.5 text-[11px] font-medium
+            backdrop-blur-xl'
+        >
+          <groupMeta.icon className='size-3 shrink-0' />
+          {groupMeta.label}
+        </div>
+      )}
+
       {hasInPort && (
         <WorkflowCanvasPort type='target' position={Position.Left} />
       )}
