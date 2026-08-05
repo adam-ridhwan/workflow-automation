@@ -12,19 +12,18 @@ export function RunWorkflowButton() {
 
   return (
     <Button
-      size='sm'
       disabled={isRunning}
       onClick={() => {
         runWorkflow();
       }}
-      className='gap-1.5'
+      className='w-36 gap-1.5'
     >
       {isRunning ? (
         <Loader2Icon className='size-3.5 animate-spin' />
       ) : (
         <PlayIcon className='size-3.5' />
       )}
-      {isRunning ? 'Running…' : 'Run'}
+      {isRunning ? 'Running…' : 'Run Workflow'}
     </Button>
   );
 }
