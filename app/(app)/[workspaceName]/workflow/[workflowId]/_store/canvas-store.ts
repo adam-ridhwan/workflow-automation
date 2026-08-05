@@ -6,6 +6,7 @@ import { api } from '@/convex/_generated/api';
 import { addEdge, applyEdgeChanges, applyNodeChanges } from '@xyflow/react';
 import { create } from 'zustand';
 
+import { getHelperLines } from '../_lib/get-helper-lines';
 import { toCanvasData, WORKFLOW_EDGE, WORKFLOW_NODE } from '../_lib/normalize';
 import { organizeCanvasLayout } from '../_lib/organize-canvas-layout';
 import { runWorkflow } from '../_lib/run-workflow';
@@ -33,6 +34,8 @@ interface CanvasState {
   version: number;
   nodeOutputs: Record<string, string>;
   isRunning: boolean;
+  helperLineHorizontal: number | undefined;
+  helperLineVertical: number | undefined;
   runWorkflow: () => Promise<void>;
   onNodesChange: (changes: NodeChange[]) => void;
   onEdgesChange: (changes: EdgeChange[]) => void;
@@ -83,9 +86,33 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
       set({ isRunning: false });
     }
   },
+  helperLineHorizontal: undefined,
+  helperLineVertical: undefined,
   onNodesChange: (changes) => {
+    let helperLineHorizontal: number | undefined;
+    let helperLineVertical: number | undefined;
+
+    // Alignment snapping only applies to a plain single-node drag.
+    const [change] = changes;
+    if (
+      changes.length === 1 &&
+      change.type === 'position' &&
+      change.dragging &&
+      change.position
+    ) {
+      const helperLines = getHelperLines(change, get().nodes);
+      change.position.x = helperLines.snapPosition.x ?? change.position.x;
+      change.position.y = helperLines.snapPosition.y ?? change.position.y;
+      helperLineHorizontal = helperLines.horizontal;
+      helperLineVertical = helperLines.vertical;
+    }
+
     const updated = applyNodeChanges(changes, get().nodes);
-    set({ nodes: updated as Node<WorkflowNodeData>[] });
+    set({
+      nodes: updated as Node<WorkflowNodeData>[],
+      helperLineHorizontal,
+      helperLineVertical,
+    });
   },
   onEdgesChange: (changes) => {
     const updated = applyEdgeChanges(changes, get().edges);

@@ -18,6 +18,7 @@ import { CanvasPalette } from '../canvas-palette/canvas-palette';
 import { NodeDragPreview } from '../node-palette/node-drag-preview';
 import { NodePalette } from '../node-palette/node-palette';
 import { WorkflowCanvasEdge } from './workflow-canvas-edge';
+import { WorkflowCanvasHelperLines } from './workflow-canvas-helper-lines';
 import { WorkflowCanvasNode } from './workflow-canvas-node';
 import { WorkflowCanvasProvider } from './workflow-canvas-provider';
 
@@ -144,9 +145,12 @@ export function WorkflowCanvas({ canvas }: WorkflowCanvasProps) {
             onNodeDragStop={onNodeDragStop}
             onInit={onInit}
             selectNodesOnDrag={false}
+            snapToGrid
+            snapGrid={[12, 12]}
             proOptions={{ hideAttribution: true }}
           >
             <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
+            <WorkflowCanvasHelperLines />
             <CanvasPalette />
           </ReactFlow>
           <NodePalette />

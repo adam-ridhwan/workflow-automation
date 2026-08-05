@@ -47,10 +47,9 @@ export function WorkflowCanvasNode({
     >
       {groupMeta && (
         <div
-          className='menu-inverted bg-popover text-popover-foreground absolute
-            bottom-full left-0.5 -z-10 flex translate-y-1 items-center gap-1
-            rounded-t-md px-2 pt-1 pb-1.5 text-[11px] font-medium
-            backdrop-blur-xl'
+          className='bg-muted text-muted-foreground absolute bottom-full
+            left-0.5 -z-10 flex translate-y-1 items-center gap-1 rounded-t-md
+            px-2 pt-1 pb-1.5 text-[11px] font-medium'
         >
           <groupMeta.icon className='size-3 shrink-0' />
           {groupMeta.label}
