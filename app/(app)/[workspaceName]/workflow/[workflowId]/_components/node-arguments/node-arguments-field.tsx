@@ -9,7 +9,6 @@ import { TextField } from './text/default/text-field';
 
 import type { NodeArgument } from '../../_types';
 import type { WorkflowNodeData } from '@/convex/canvas';
-import type { Node } from '@xyflow/react';
 
 /** "max_tokens" -> "Max tokens" */
 function formatLabel(name: string) {
@@ -17,35 +16,61 @@ function formatLabel(name: string) {
   return spaced.charAt(0).toUpperCase() + spaced.slice(1);
 }
 
-type ArgumentsPanelFieldProps = {
-  node: Node<WorkflowNodeData>;
+type NodeArgumentsFieldProps = {
+  nodeId: string;
+  data: WorkflowNodeData;
   argument: NodeArgument;
 };
 
-export function ArgumentsPanelField({
-  node,
+export function NodeArgumentsField({
+  nodeId,
+  data,
   argument,
-}: ArgumentsPanelFieldProps) {
-  const fieldId = `arg-${node.id}-${argument.name}`;
+}: NodeArgumentsFieldProps) {
+  const fieldId = `arg-${nodeId}-${argument.name}`;
 
   function renderControl() {
     if (argument.have_options && argument.options) {
-      return <SelectField fieldId={fieldId} node={node} argument={argument} />;
+      return (
+        <SelectField
+          fieldId={fieldId}
+          nodeId={nodeId}
+          data={data}
+          argument={argument}
+        />
+      );
     }
 
     switch (argument.argument_type) {
       case 'NUMBER':
         return (
-          <NumberField fieldId={fieldId} node={node} argument={argument} />
+          <NumberField
+            fieldId={fieldId}
+            nodeId={nodeId}
+            data={data}
+            argument={argument}
+          />
         );
 
       case 'BOOLEAN':
         return (
-          <BooleanField fieldId={fieldId} node={node} argument={argument} />
+          <BooleanField
+            fieldId={fieldId}
+            nodeId={nodeId}
+            data={data}
+            argument={argument}
+          />
         );
 
       case 'TEXT':
-        return <TextField fieldId={fieldId} node={node} argument={argument} />;
+        return (
+          <TextField
+            fieldId={fieldId}
+            nodeId={nodeId}
+            data={data}
+            argument={argument}
+          />
+        );
 
       default:
         return <div>Not implemented</div>;
@@ -53,7 +78,7 @@ export function ArgumentsPanelField({
   }
 
   return (
-    <div className='flex flex-col gap-1 px-2 py-1.5'>
+    <div className='flex flex-col gap-1 px-3 py-1.5'>
       <Label htmlFor={fieldId} className='text-muted-foreground text-xs'>
         {formatLabel(argument.name)}
         {argument.is_required && <span className='text-destructive'>*</span>}

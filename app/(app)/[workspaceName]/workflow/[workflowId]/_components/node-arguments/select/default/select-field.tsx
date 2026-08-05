@@ -14,21 +14,26 @@ import { useWorkspaceName } from '../../../../../../_hooks/use-workspace-name';
 
 import type { NodeArgument } from '../../../../_types';
 import type { WorkflowNodeData } from '@/convex/canvas';
-import type { Node } from '@xyflow/react';
 
 type SelectFieldProps = {
   fieldId: string;
-  node: Node<WorkflowNodeData>;
+  nodeId: string;
+  data: WorkflowNodeData;
   argument: NodeArgument;
 };
 
-export function SelectField({ fieldId, node, argument }: SelectFieldProps) {
+export function SelectField({
+  fieldId,
+  nodeId,
+  data,
+  argument,
+}: SelectFieldProps) {
   const workflowId = useWorkflowId();
   const workspaceName = useWorkspaceName();
   const setNodeArgument = useCanvasStore((s) => s.setNodeArgument);
   const saveWorkflow = useCanvasStore((s) => s.saveWorkflow);
 
-  const value = node.data.arguments[argument.name] ?? argument.default_value;
+  const value = data.arguments[argument.name] ?? argument.default_value;
   const stringValue =
     value === undefined || value === null ? '' : String(value);
 
@@ -36,7 +41,7 @@ export function SelectField({ fieldId, node, argument }: SelectFieldProps) {
     <Select
       value={stringValue}
       onValueChange={(next) => {
-        setNodeArgument(node.id, argument.name, next);
+        setNodeArgument(nodeId, argument.name, next);
         saveWorkflow({ workspaceName, workflowId });
       }}
     >

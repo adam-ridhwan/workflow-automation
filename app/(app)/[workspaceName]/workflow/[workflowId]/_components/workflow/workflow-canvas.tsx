@@ -14,7 +14,6 @@ import { NODE_DIMENSIONS } from '../../_lib/organize-canvas-layout';
 import { useCanvasStore } from '../../_store/canvas-store';
 import { useWorkflowId } from '../../../../_hooks/use-workflow-id';
 import { useWorkspaceName } from '../../../../_hooks/use-workspace-name';
-import { ArgumentsPanel } from '../arguments-panel/arguments-panel';
 import { CanvasPalette } from '../canvas-palette/canvas-palette';
 import { NodeDragPreview } from '../node-palette/node-drag-preview';
 import { NodePalette } from '../node-palette/node-palette';
@@ -71,28 +70,6 @@ export function WorkflowCanvas({ canvas }: WorkflowCanvasProps) {
   const onNodeDragStop = useCallback(() => {
     saveWorkflow({ workspaceName, workflowId });
   }, [saveWorkflow, workspaceName, workflowId]);
-
-  const onNodeClick = useCallback(
-    (_event: React.MouseEvent, node: Node<WorkflowNodeData>) => {
-      const instance = reactFlowInstance.current;
-      if (!instance) {
-        return;
-      }
-      const width = node.measured?.width ?? NODE_DIMENSIONS.WIDTH;
-      const height = node.measured?.height ?? NODE_DIMENSIONS.HEIGHT;
-      const zoom = instance.getZoom();
-      // Center on a point below the node so the node itself sits above the
-      // viewport's vertical center.
-      const bounds = wrapperRef.current?.getBoundingClientRect();
-      const verticalOffset = bounds ? (bounds.height * 0.15) / zoom : 0;
-      void instance.setCenter(
-        node.position.x + width / 2,
-        node.position.y + height / 2 + verticalOffset,
-        { zoom, duration: 300 }
-      );
-    },
-    []
-  );
 
   const onInit = useCallback(
     (
@@ -165,7 +142,6 @@ export function WorkflowCanvas({ canvas }: WorkflowCanvasProps) {
             onEdgesChange={onEdgesChange}
             onConnect={handleConnect}
             onNodeDragStop={onNodeDragStop}
-            onNodeClick={onNodeClick}
             onInit={onInit}
             selectNodesOnDrag={false}
             proOptions={{ hideAttribution: true }}
@@ -174,7 +150,6 @@ export function WorkflowCanvas({ canvas }: WorkflowCanvasProps) {
             <CanvasPalette />
           </ReactFlow>
           <NodePalette />
-          <ArgumentsPanel />
         </div>
 
         <NodeDragPreview dragItem={dragItem} />

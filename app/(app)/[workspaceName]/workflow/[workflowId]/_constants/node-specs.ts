@@ -129,14 +129,20 @@ export const NODE_SPECS = {
         {
           argument_type: 'TEXT',
           children: {},
-          default_value: '',
-          have_options: false,
+          default_value: 'claude-sonnet-5',
+          have_options: true,
           have_sub_arguments: false,
           is_deprecated: false,
           is_hidden: false,
           is_list: false,
           is_required: false,
           name: 'model',
+          options: [
+            'claude-sonnet-5',
+            'claude-haiku-4-5-20251001',
+            'claude-opus-4-8',
+            'claude-fable-5',
+          ],
         },
         {
           argument_type: 'TEXT',

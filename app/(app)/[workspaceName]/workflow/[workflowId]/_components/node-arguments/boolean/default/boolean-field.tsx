@@ -8,21 +8,26 @@ import { useWorkspaceName } from '../../../../../../_hooks/use-workspace-name';
 
 import type { NodeArgument } from '../../../../_types';
 import type { WorkflowNodeData } from '@/convex/canvas';
-import type { Node } from '@xyflow/react';
 
 type BooleanFieldProps = {
   fieldId: string;
-  node: Node<WorkflowNodeData>;
+  nodeId: string;
+  data: WorkflowNodeData;
   argument: NodeArgument;
 };
 
-export function BooleanField({ fieldId, node, argument }: BooleanFieldProps) {
+export function BooleanField({
+  fieldId,
+  nodeId,
+  data,
+  argument,
+}: BooleanFieldProps) {
   const workflowId = useWorkflowId();
   const workspaceName = useWorkspaceName();
   const setNodeArgument = useCanvasStore((s) => s.setNodeArgument);
   const saveWorkflow = useCanvasStore((s) => s.saveWorkflow);
 
-  const value = node.data.arguments[argument.name] ?? argument.default_value;
+  const value = data.arguments[argument.name] ?? argument.default_value;
   const boolValue = value === true || value === 'true';
 
   return (
@@ -39,7 +44,7 @@ export function BooleanField({ fieldId, node, argument }: BooleanFieldProps) {
         if (next === undefined) {
           return;
         }
-        setNodeArgument(node.id, argument.name, next === 'true');
+        setNodeArgument(nodeId, argument.name, next === 'true');
         saveWorkflow({ workspaceName, workflowId });
       }}
       className='w-full'

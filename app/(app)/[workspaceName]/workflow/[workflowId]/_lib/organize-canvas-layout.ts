@@ -3,8 +3,8 @@ import dagre from '@dagrejs/dagre';
 import type { WorkflowEdgeData, WorkflowNodeData } from '@/convex/canvas';
 import type { Edge, Node } from '@xyflow/react';
 
-/** Matches the rendered WorkflowCanvasNode card (w-56 h-14). */
-export const NODE_DIMENSIONS = { WIDTH: 224, HEIGHT: 56 };
+/** Matches the rendered WorkflowCanvasNode card (w-64, h-14 header). */
+export const NODE_DIMENSIONS = { WIDTH: 256, HEIGHT: 56 };
 
 /** Keeps the organized layout off the canvas origin — X clears the floating
  * node palette (left-4 + w-44 ≈ 192px) at default zoom. */

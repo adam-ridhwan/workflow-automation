@@ -9,27 +9,34 @@ import { PromptField } from '../custom/prompt-field';
 
 import type { NodeArgument } from '../../../../_types';
 import type { WorkflowNodeData } from '@/convex/canvas';
-import type { Node } from '@xyflow/react';
 
 type TextFieldProps = {
   fieldId: string;
-  node: Node<WorkflowNodeData>;
+  nodeId: string;
+  data: WorkflowNodeData;
   argument: NodeArgument;
 };
 
-export function TextField({ fieldId, node, argument }: TextFieldProps) {
+export function TextField({ fieldId, nodeId, data, argument }: TextFieldProps) {
   const workflowId = useWorkflowId();
   const workspaceName = useWorkspaceName();
   const setNodeArgument = useCanvasStore((s) => s.setNodeArgument);
   const saveWorkflow = useCanvasStore((s) => s.saveWorkflow);
 
-  const value = node.data.arguments[argument.name] ?? argument.default_value;
+  const value = data.arguments[argument.name] ?? argument.default_value;
   const stringValue =
     value === undefined || value === null ? '' : String(value);
 
   switch (argument.name) {
     case 'prompt':
-      return <PromptField fieldId={fieldId} node={node} argument={argument} />;
+      return (
+        <PromptField
+          fieldId={fieldId}
+          nodeId={nodeId}
+          data={data}
+          argument={argument}
+        />
+      );
 
     default:
       return (
@@ -38,7 +45,7 @@ export function TextField({ fieldId, node, argument }: TextFieldProps) {
           type='text'
           value={stringValue}
           onChange={(event) => {
-            setNodeArgument(node.id, argument.name, event.target.value);
+            setNodeArgument(nodeId, argument.name, event.target.value);
           }}
           onBlur={() => {
             saveWorkflow({ workspaceName, workflowId });

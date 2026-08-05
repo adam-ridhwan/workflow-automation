@@ -108,7 +108,7 @@ export function WorkflowRow({ workflow, onDelete }: WorkflowRowProps) {
                   onKeyDown={(event) => {
                     if (event.key === 'Enter') {
                       event.preventDefault();
-                      void submitRename(event.currentTarget.value);
+                      submitRename(event.currentTarget.value);
                     }
                     if (event.key === 'Escape') {
                       event.currentTarget.value = workflow.name;
@@ -116,7 +116,7 @@ export function WorkflowRow({ workflow, onDelete }: WorkflowRowProps) {
                     }
                   }}
                   onBlur={(event) => {
-                    void submitRename(event.currentTarget.value);
+                    submitRename(event.currentTarget.value);
                   }}
                 />
                 {renameError && (

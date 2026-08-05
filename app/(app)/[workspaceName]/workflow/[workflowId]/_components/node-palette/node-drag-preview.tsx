@@ -35,7 +35,7 @@ export function NodeDragPreview({ dragItem }: NodeDragPreviewProps) {
     >
       {dragItem && (
         <Card
-          className='flex h-14 w-56 flex-row items-center gap-2.5 rounded-md p-0
+          className='flex h-14 w-64 flex-row items-center gap-2.5 rounded-md p-0
             px-3 shadow-sm'
         >
           {Icon && (

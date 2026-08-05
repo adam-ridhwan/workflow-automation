@@ -8,6 +8,7 @@ import { create } from 'zustand';
 
 import { toCanvasData, WORKFLOW_EDGE, WORKFLOW_NODE } from '../_lib/normalize';
 import { organizeCanvasLayout } from '../_lib/organize-canvas-layout';
+import { runWorkflow } from '../_lib/run-workflow';
 
 import type { Id } from '@/convex/_generated/dataModel';
 import type { WorkflowEdgeData, WorkflowNodeData } from '@/convex/canvas';
@@ -30,6 +31,9 @@ interface CanvasState {
   nodes: Node<WorkflowNodeData>[];
   edges: Edge<WorkflowEdgeData>[];
   version: number;
+  nodeOutputs: Record<string, string>;
+  isRunning: boolean;
+  runWorkflow: () => Promise<void>;
   onNodesChange: (changes: NodeChange[]) => void;
   onEdgesChange: (changes: EdgeChange[]) => void;
   onConnect: (connection: Connection, target: SaveTarget) => void;
@@ -57,6 +61,28 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   nodes: [],
   edges: [],
   version: 1,
+  nodeOutputs: {},
+  isRunning: false,
+  runWorkflow: async () => {
+    const { nodes, edges, isRunning } = get();
+    if (isRunning) {
+      return;
+    }
+    set({ isRunning: true, nodeOutputs: {} });
+    try {
+      await runWorkflow(nodes, edges, (nodeId, output) => {
+        set({ nodeOutputs: { ...get().nodeOutputs, [nodeId]: output } });
+      });
+    } catch (error) {
+      toast.add({
+        type: 'error',
+        title:
+          error instanceof Error ? error.message : 'The workflow run failed.',
+      });
+    } finally {
+      set({ isRunning: false });
+    }
+  },
   onNodesChange: (changes) => {
     const updated = applyNodeChanges(changes, get().nodes);
     set({ nodes: updated as Node<WorkflowNodeData>[] });

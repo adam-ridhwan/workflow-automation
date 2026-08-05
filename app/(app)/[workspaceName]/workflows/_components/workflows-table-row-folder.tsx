@@ -135,7 +135,7 @@ export function FolderRow({ folder, onDelete }: FolderRowProps) {
                 onKeyDown={(event) => {
                   if (event.key === 'Enter') {
                     event.preventDefault();
-                    void submitRename(event.currentTarget.value);
+                    submitRename(event.currentTarget.value);
                   }
                   if (event.key === 'Escape') {
                     event.currentTarget.value = folder.name;
@@ -143,7 +143,7 @@ export function FolderRow({ folder, onDelete }: FolderRowProps) {
                   }
                 }}
                 onBlur={(event) => {
-                  void submitRename(event.currentTarget.value);
+                  submitRename(event.currentTarget.value);
                 }}
               />
               {renameError && (

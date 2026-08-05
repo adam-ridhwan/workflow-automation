@@ -148,7 +148,7 @@ export function NavUser({ user }: NavUserProps) {
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={() => {
-                void signOut().then(() => router.push('/signin'));
+                signOut().then(() => router.push('/signin'));
               }}
             >
               <LogOutIcon />
