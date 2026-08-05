@@ -57,7 +57,11 @@ export function WorkflowCanvasNode({
       )}
 
       {hasInPort && (
-        <WorkflowCanvasPort type='target' position={Position.Left} />
+        <WorkflowCanvasPort
+          type='target'
+          position={Position.Left}
+          isConnectableStart={false}
+        />
       )}
 
       <div className='flex h-14 shrink-0 flex-row items-center gap-2.5 px-3'>
