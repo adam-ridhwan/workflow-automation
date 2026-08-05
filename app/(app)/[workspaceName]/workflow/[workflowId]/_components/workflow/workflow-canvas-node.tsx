@@ -1,17 +1,15 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/cn';
 import { Position } from '@xyflow/react';
-import { CircleIcon, CopyIcon, Trash2Icon } from 'lucide-react';
+import { CircleIcon } from 'lucide-react';
 
 import { NODE_META } from '../../_constants/node-meta';
 import { findNodeSpec } from '../../_lib/get-node-spec';
 import { useCanvasStore } from '../../_store/canvas-store';
-import { useWorkflowId } from '../../../../_hooks/use-workflow-id';
-import { useWorkspaceName } from '../../../../_hooks/use-workspace-name';
 import { NodeArguments } from '../node-arguments/node-arguments';
+import { WorkflowCanvasNodeToolbar } from './workflow-canvas-node-toolbar';
 import { WorkflowCanvasPort } from './workflow-canvas-port';
 
 import type { WorkflowNodeData } from '@/convex/canvas';
@@ -24,11 +22,6 @@ export function WorkflowCanvasNode({
   data,
   selected,
 }: NodeProps<Node<WorkflowNodeData>>) {
-  const workflowId = useWorkflowId();
-  const workspaceName = useWorkspaceName();
-  const cloneNode = useCanvasStore((s) => s.cloneNode);
-  const deleteNode = useCanvasStore((s) => s.deleteNode);
-
   const meta = NODE_META[data.node_uid];
   const Icon = meta?.icon ?? CircleIcon;
 
@@ -43,7 +36,8 @@ export function WorkflowCanvasNode({
   return (
     <Card
       className={cn(
-        'flex w-64 flex-col gap-0 overflow-visible rounded-md p-0 shadow-sm',
+        `group/node relative flex w-64 flex-col gap-0 overflow-visible
+        rounded-md p-0 shadow-sm`,
         selected && 'ring-primary'
       )}
     >
@@ -68,30 +62,7 @@ export function WorkflowCanvasNode({
           )}
         </div>
 
-        {selected && (
-          <div className='nodrag flex shrink-0 items-center'>
-            <Button
-              variant='ghost'
-              size='icon-xs'
-              aria-label='Clone node'
-              onClick={() => {
-                cloneNode({ workspaceName, workflowId }, id);
-              }}
-            >
-              <CopyIcon className='text-muted-foreground' />
-            </Button>
-            <Button
-              variant='ghost'
-              size='icon-xs'
-              aria-label='Delete node'
-              onClick={() => {
-                deleteNode({ workspaceName, workflowId }, id);
-              }}
-            >
-              <Trash2Icon className='text-muted-foreground' />
-            </Button>
-          </div>
-        )}
+        <WorkflowCanvasNodeToolbar nodeId={id} />
       </div>
 
       <NodeArguments nodeId={id} data={data} />
