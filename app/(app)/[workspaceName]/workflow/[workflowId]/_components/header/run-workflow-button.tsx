@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Loader2Icon, PlayIcon } from 'lucide-react';
 
-import { useCanvasStore } from '../_store/canvas-store';
+import { useCanvasStore } from '../../_store/canvas-store';
 
 /** Header button that runs the whole canvas workflow. */
 export function RunWorkflowButton() {

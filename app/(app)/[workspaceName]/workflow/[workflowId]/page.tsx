@@ -7,7 +7,7 @@ import { ArrowLeftIcon } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
-import { RunWorkflowButton } from './_components/run-workflow-button';
+import { RunWorkflowButton } from './_components/header/run-workflow-button';
 import { WorkflowCanvas } from './_components/workflow/workflow-canvas';
 
 import type { Id } from '@/convex/_generated/dataModel';
