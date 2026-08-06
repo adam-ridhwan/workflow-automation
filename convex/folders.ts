@@ -18,6 +18,7 @@ const folderValidator = v.object({
   parentId: v.optional(v.id('folders')),
   createdBy: v.id('users'),
   createdByName: v.string(),
+  createdByEmail: v.string(),
 });
 
 export type Folder = Infer<typeof folderValidator>;
@@ -50,7 +51,11 @@ export const get = query({
       return null;
     }
     const creator = await ctx.db.get(folder.createdBy);
-    return { ...folder, createdByName: creator?.name ?? 'Unknown' };
+    return {
+      ...folder,
+      createdByName: creator?.name ?? 'Unknown',
+      createdByEmail: creator?.email ?? '',
+    };
   },
 });
 
@@ -108,16 +113,23 @@ export const list = query({
         q.eq('workspaceId', workspace._id).eq('parentId', args.parentId)
       )
       .collect();
-    const nameCache = new Map<Id<'users'>, string>();
+    const creatorCache = new Map<
+      Id<'users'>,
+      { name: string; email: string }
+    >();
     const result: Folder[] = [];
     for (const row of rows) {
-      let createdByName = nameCache.get(row.createdBy);
-      if (createdByName === undefined) {
+      let creator = creatorCache.get(row.createdBy);
+      if (creator === undefined) {
         const user = await ctx.db.get(row.createdBy);
-        createdByName = user?.name ?? 'Unknown';
-        nameCache.set(row.createdBy, createdByName);
+        creator = { name: user?.name ?? 'Unknown', email: user?.email ?? '' };
+        creatorCache.set(row.createdBy, creator);
       }
-      result.push({ ...row, createdByName });
+      result.push({
+        ...row,
+        createdByName: creator.name,
+        createdByEmail: creator.email,
+      });
     }
     return result;
   },

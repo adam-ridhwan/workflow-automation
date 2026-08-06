@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -11,10 +10,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { TableCell, TableRow } from '@/components/ui/table';
+import { UserAvatar } from '@/components/user-avatar';
 import { api } from '@/convex/_generated/api';
 import { cn } from '@/lib/cn';
 import { formatTime } from '@/lib/format-time';
-import { getInitials } from '@/lib/get-initials';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
 import { useMutation } from 'convex/react';
 import { ConvexError } from 'convex/values';
@@ -167,11 +166,12 @@ export function FolderRow({ folder, onDelete }: FolderRowProps) {
       </TableCell>
 
       <TableCell className='px-5'>
-        <Avatar size='sm' title={folder.createdByName}>
-          <AvatarFallback className='text-[10px] font-semibold'>
-            {getInitials(folder.createdByName)}
-          </AvatarFallback>
-        </Avatar>
+        <UserAvatar
+          user={{ name: folder.createdByName, email: folder.createdByEmail }}
+          size='sm'
+          className='relative'
+          fallbackClassName='text-[10px] font-semibold'
+        />
       </TableCell>
 
       <TableCell className='px-5'>

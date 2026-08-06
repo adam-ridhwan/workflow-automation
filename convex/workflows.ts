@@ -21,6 +21,7 @@ const workflowValidator = v.object({
   folderId: v.optional(v.id('folders')),
   ownerId: v.id('users'),
   ownerName: v.string(),
+  ownerEmail: v.string(),
   canvas: workflowCanvasValidator,
   runCount: v.number(),
   successCount: v.number(),
@@ -58,7 +59,11 @@ export const get = query({
       return null;
     }
     const owner = await ctx.db.get(workflow.ownerId);
-    return { ...workflow, ownerName: owner?.name ?? 'Unknown' };
+    return {
+      ...workflow,
+      ownerName: owner?.name ?? 'Unknown',
+      ownerEmail: owner?.email ?? '',
+    };
   },
 });
 
@@ -81,16 +86,16 @@ export const list = query({
         q.eq('workspaceId', workspace._id).eq('folderId', args.folderId)
       )
       .collect();
-    const nameCache = new Map<Id<'users'>, string>();
+    const ownerCache = new Map<Id<'users'>, { name: string; email: string }>();
     const result: Workflow[] = [];
     for (const row of rows) {
-      let ownerName = nameCache.get(row.ownerId);
-      if (ownerName === undefined) {
+      let owner = ownerCache.get(row.ownerId);
+      if (owner === undefined) {
         const user = await ctx.db.get(row.ownerId);
-        ownerName = user?.name ?? 'Unknown';
-        nameCache.set(row.ownerId, ownerName);
+        owner = { name: user?.name ?? 'Unknown', email: user?.email ?? '' };
+        ownerCache.set(row.ownerId, owner);
       }
-      result.push({ ...row, ownerName });
+      result.push({ ...row, ownerName: owner.name, ownerEmail: owner.email });
     }
     return result;
   },
