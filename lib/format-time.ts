@@ -2,19 +2,6 @@ const MINUTE = 60 * 1000;
 const HOUR = 60 * MINUTE;
 const DAY = 24 * HOUR;
 
-/** Absolute date/time; defaults to a short "Aug 6, 7:01 PM" style. */
-function formatAbsolute(ms: number, options?: Intl.DateTimeFormatOptions) {
-  return new Date(ms).toLocaleString(
-    undefined,
-    options ?? {
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-    }
-  );
-}
-
 /** Relative time ("Just now", "5 minutes ago") that falls back to an absolute
  * date once it's older than a day. */
 export function formatTime(timestamp: number) {
@@ -34,9 +21,10 @@ export function formatTime(timestamp: number) {
     return `${hours} ${hours === 1 ? 'hour' : 'hours'} ago`;
   }
 
-  return formatAbsolute(timestamp, {
+  return new Date(timestamp).toLocaleString(undefined, {
     month: 'short',
     day: 'numeric',
-    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
   });
 }
