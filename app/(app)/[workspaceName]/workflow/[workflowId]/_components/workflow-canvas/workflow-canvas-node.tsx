@@ -9,6 +9,7 @@ import { CircleIcon } from 'lucide-react';
 import { NODE_META } from '../../_constants/node-meta';
 import { NodeArguments } from '../node-arguments/node-arguments';
 import { useCanvasMode } from './canvas-mode-context';
+import { NodeOutputMarkdown } from './node-output-markdown';
 import { WorkflowCanvasNodeAnnotation } from './workflow-canvas-node-annotation';
 import { WorkflowCanvasNodeStatus } from './workflow-canvas-node-status';
 import { WorkflowCanvasNodeToolbar } from './workflow-canvas-node-toolbar';
@@ -79,12 +80,14 @@ export function WorkflowCanvasNode({
       {isDisplayNode && (
         <div
           className='nowheel border-border max-h-40 min-h-14 overflow-y-auto
-            border-t px-3 py-2 font-mono text-[11px] whitespace-pre-wrap'
+            border-t px-3 py-2'
         >
           {output === undefined || output === '' ? (
-            <span className='text-muted-foreground'>No output yet</span>
+            <span className='text-muted-foreground text-[11px]'>
+              No output yet
+            </span>
           ) : (
-            output
+            <NodeOutputMarkdown output={output} />
           )}
         </div>
       )}
