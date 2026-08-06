@@ -38,7 +38,10 @@ interface CanvasState {
   isRunning: boolean;
   helperLineHorizontal: number | undefined;
   helperLineVertical: number | undefined;
-  runWorkflow: (target: SaveTarget) => Promise<void>;
+  runWorkflow: (
+    target: SaveTarget,
+    fromRunHistoryId?: Id<'runHistory'>
+  ) => Promise<Id<'runHistory'> | undefined>;
   onNodesChange: (changes: NodeChange[]) => void;
   onEdgesChange: (changes: EdgeChange[]) => void;
   onConnect: (connection: Connection, target: SaveTarget) => void;
@@ -71,24 +74,34 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   edges: [],
   version: 1,
   isRunning: false,
-  runWorkflow: async (target) => {
+  runWorkflow: async (target, fromRunHistoryId) => {
     if (get().isRunning) {
-      return;
+      return undefined;
     }
     set({ isRunning: true });
     try {
-      // Statuses and outputs stream in via the runs subscription.
-      await convex.action(api.runWorkflow.run, {
+      if (fromRunHistoryId !== undefined) {
+        // Re-run in the background; returns the new run id immediately so the
+        // caller can navigate to it while it executes.
+        return await convex.mutation(api.runHistory.startRerun, {
+          workspaceName: target.workspaceName,
+          workflowId: target.workflowId,
+          fromRunHistoryId,
+        });
+      }
+      const runHistoryId = await convex.action(api.runWorkflow.run, {
         workspaceName: target.workspaceName,
         workflowId: target.workflowId,
       });
       toast.add({ type: 'success', title: 'Workflow ran successfully.' });
+      return runHistoryId;
     } catch (error) {
       toast.add({
         type: 'error',
         title:
           error instanceof Error ? error.message : 'The workflow run failed.',
       });
+      return undefined;
     } finally {
       set({ isRunning: false });
     }

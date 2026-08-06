@@ -81,7 +81,7 @@ export function RunHistoryPalette({ selectedId }: RunHistoryPaletteProps) {
           transition-[height] duration-200 ease-out data-ending-style:h-0
           data-starting-style:h-0'
       >
-        <div className='flex max-h-64 flex-col overflow-y-auto'>
+        <div className='flex max-h-[calc(100vh-9rem)] flex-col overflow-y-auto'>
           {runs === undefined ? (
             <div className='text-muted-foreground px-2 py-1.5 text-[13px]'>
               Loading…
@@ -91,9 +91,11 @@ export function RunHistoryPalette({ selectedId }: RunHistoryPaletteProps) {
               No runs yet.
             </div>
           ) : (
-            runs.map((run) => {
+            runs.map((run, index) => {
               const meta = STATUS_META[run.status];
               const isSelected = run._id === selectedId;
+              // Newest first, so the oldest run in the list is #1.
+              const runNumber = runs.length - index;
               return (
                 <Link
                   key={run._id}
@@ -112,7 +114,13 @@ export function RunHistoryPalette({ selectedId }: RunHistoryPaletteProps) {
                       run.status === 'running' && 'animate-spin'
                     )}
                   />
-                  <span className='truncate'>{formatTime(run.startedAt)}</span>
+                  <span className='shrink-0'>Run # {runNumber}</span>
+                  <span
+                    className='text-muted-foreground ml-auto truncate
+                      text-[11px]'
+                  >
+                    {formatTime(run.startedAt)}
+                  </span>
                 </Link>
               );
             })

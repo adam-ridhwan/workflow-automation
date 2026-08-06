@@ -18,7 +18,7 @@ import { CanvasModeContext } from '../workflow-canvas/canvas-mode-context';
 import { WorkflowCanvasEdge } from '../workflow-canvas/workflow-canvas-edge';
 import { WorkflowCanvasNode } from '../workflow-canvas/workflow-canvas-node';
 
-import type { RunHistory } from '@/convex/runHistory';
+import type { RunHistory, RunStatus } from '@/convex/runHistory';
 
 import '@xyflow/react/dist/style.css';
 
@@ -34,14 +34,18 @@ export function RunHistoryCanvas({ run }: RunHistoryCanvasProps) {
   const nodes = useMemo(() => toFlowNodes(run.canvas), [run.canvas]);
   const edges = useMemo(() => toFlowEdges(run.canvas), [run.canvas]);
 
-  // Mark every executed node (it has an output) as a success for the badges.
+  // Per-node statuses recorded live during the run; older runs without them
+  // fall back to marking every node that produced an output as a success.
   const nodeStatuses = useMemo(() => {
-    const statuses: Record<string, 'success'> = {};
+    if (run.nodeStatuses !== undefined) {
+      return run.nodeStatuses;
+    }
+    const statuses: Record<string, RunStatus> = {};
     for (const nodeId of Object.keys(run.nodeOutputs)) {
       statuses[nodeId] = 'success';
     }
     return statuses;
-  }, [run.nodeOutputs]);
+  }, [run.nodeStatuses, run.nodeOutputs]);
 
   return (
     <CanvasModeContext.Provider

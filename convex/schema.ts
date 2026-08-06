@@ -66,6 +66,12 @@ export default defineSchema({
       v.literal('success'),
       v.literal('error')
     ),
+    nodeStatuses: v.optional(
+      v.record(
+        v.string(),
+        v.union(v.literal('running'), v.literal('success'), v.literal('error'))
+      )
+    ),
     nodeOutputs: v.record(v.string(), v.string()),
     error: v.optional(v.string()),
     startedAt: v.number(),

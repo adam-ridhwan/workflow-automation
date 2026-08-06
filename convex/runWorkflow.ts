@@ -5,15 +5,116 @@ import { ConvexError, v } from 'convex/values';
 
 import { findNodeSpec, getArgumentValue } from '../lib/node-specs';
 import { api, internal } from './_generated/api';
-import { action } from './_generated/server';
+import { action, internalAction } from './_generated/server';
+import { workflowCanvasValidator } from './canvas';
 
+import type { Id } from './_generated/dataModel';
 import type { WorkflowCanvasData, WorkflowNodeData } from './canvas';
+
+/** Returns a copy of the canvas with every node id replaced by a fresh one
+ * (edges, parents, and children remapped to match), plus the old→new id map. */
+function remapCanvasIds(canvas: WorkflowCanvasData): {
+  canvas: WorkflowCanvasData;
+  idMap: Record<string, string>;
+} {
+  const idMap: Record<string, string> = {};
+  for (const node of Object.values(canvas.nodes)) {
+    idMap[node.node_id] = crypto.randomUUID();
+  }
+  const remap = (id: string) => idMap[id] ?? id;
+
+  const nodes: Record<string, WorkflowNodeData> = {};
+  for (const node of Object.values(canvas.nodes)) {
+    const newId = remap(node.node_id);
+    nodes[newId] = {
+      ...node,
+      node_id: newId,
+      parents: node.parents.map(remap),
+      children: node.children.map(remap),
+    };
+  }
+  const edges = canvas.edges.map((edge) => ({
+    ...edge,
+    source: remap(edge.source),
+    target: remap(edge.target),
+  }));
+
+  return { canvas: { ...canvas, nodes, edges }, idMap };
+}
+
+/** Re-keys node outputs from the original ids to the snapshot's fresh ids. */
+function remapOutputs(
+  outputs: Record<string, string>,
+  idMap: Record<string, string>
+): Record<string, string> {
+  const remapped: Record<string, string> = {};
+  for (const [nodeId, output] of Object.entries(outputs)) {
+    remapped[idMap[nodeId] ?? nodeId] = output;
+  }
+  return remapped;
+}
+
+/**
+ * Runs a canvas whose history record already exists, in the background. Used
+ * by `runHistory.startRerun` so the client can navigate to the new run
+ * immediately while it executes. No live-run badges — the run-history view
+ * reads the history record, which is reactive.
+ */
+export const execute = internalAction({
+  args: {
+    workflowId: v.id('workflows'),
+    runHistoryId: v.id('runHistory'),
+    canvas: workflowCanvasValidator,
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const setNodeStatus = async (
+      nodeId: string,
+      status: 'running' | 'success' | 'error'
+    ) => {
+      await ctx.runMutation(internal.runHistory.setNodeStatus, {
+        runHistoryId: args.runHistoryId,
+        nodeId,
+        status,
+      });
+      return null;
+    };
+
+    try {
+      const outputs = await executeCanvas(args.canvas, setNodeStatus);
+      await ctx.runMutation(internal.workflows.recordRun, {
+        workflowId: args.workflowId,
+        success: true,
+      });
+      await ctx.runMutation(internal.runHistory.finish, {
+        runHistoryId: args.runHistoryId,
+        status: 'success',
+        nodeOutputs: outputs,
+      });
+    } catch (error) {
+      await ctx.runMutation(internal.workflows.recordRun, {
+        workflowId: args.workflowId,
+        success: false,
+      });
+      await ctx.runMutation(internal.runHistory.finish, {
+        runHistoryId: args.runHistoryId,
+        status: 'error',
+        nodeOutputs: {},
+        error: error instanceof Error ? error.message : 'The run failed.',
+      });
+    }
+    return null;
+  },
+});
 
 export const run = action({
   args: { workspaceName: v.string(), workflowId: v.id('workflows') },
-  returns: v.record(v.string(), v.string()),
-  handler: async (ctx, args) => {
-    const workflow = await ctx.runQuery(api.workflows.get, args);
+  returns: v.id('runHistory'),
+  handler: async (ctx, args): Promise<Id<'runHistory'>> => {
+    const workflow = await ctx.runQuery(api.workflows.get, {
+      workspaceName: args.workspaceName,
+      workflowId: args.workflowId,
+    });
     if (workflow === null) {
       throw new ConvexError('Workflow not found.');
     }
@@ -21,22 +122,34 @@ export const run = action({
     await ctx.runMutation(internal.runs.start, {
       workflowId: args.workflowId,
     });
-    // Permanent history record with a snapshot of the canvas as it ran.
+    // The history snapshot gets fresh node ids so its data can never collide
+    // with the live editing canvas (whose badges are keyed by the original
+    // ids). Execution runs on the original canvas; outputs are remapped.
+    const { canvas: snapshotCanvas, idMap } = remapCanvasIds(workflow.canvas);
     const runHistoryId = await ctx.runMutation(internal.runHistory.create, {
       workflowId: args.workflowId,
-      canvas: workflow.canvas,
+      canvas: snapshotCanvas,
     });
-    const setNodeStatus = (
+    const setNodeStatus = async (
       nodeId: string,
       status: 'running' | 'success' | 'error',
       output?: string
-    ) =>
-      ctx.runMutation(internal.runs.setNodeStatus, {
+    ) => {
+      // Live editing-canvas badges (original ids) + the history record
+      // (remapped ids).
+      await ctx.runMutation(internal.runs.setNodeStatus, {
         workflowId: args.workflowId,
         nodeId,
         status,
         output,
       });
+      await ctx.runMutation(internal.runHistory.setNodeStatus, {
+        runHistoryId,
+        nodeId: idMap[nodeId] ?? nodeId,
+        status,
+      });
+      return null;
+    };
 
     try {
       const outputs = await executeCanvas(workflow.canvas, setNodeStatus);
@@ -47,12 +160,12 @@ export const run = action({
       await ctx.runMutation(internal.runHistory.finish, {
         runHistoryId,
         status: 'success',
-        nodeOutputs: outputs,
+        nodeOutputs: remapOutputs(outputs, idMap),
       });
       await ctx.scheduler.runAfter(1000, internal.runs.clearStatuses, {
         workflowId: args.workflowId,
       });
-      return outputs;
+      return runHistoryId;
     } catch (error) {
       await ctx.runMutation(internal.workflows.recordRun, {
         workflowId: args.workflowId,
