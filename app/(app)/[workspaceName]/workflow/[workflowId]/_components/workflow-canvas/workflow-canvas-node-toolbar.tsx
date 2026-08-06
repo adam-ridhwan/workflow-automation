@@ -40,7 +40,7 @@ export function WorkflowCanvasNodeToolbar({
             render={
               <Button
                 variant='ghost'
-                size='icon-xs'
+                size='icon-sm'
                 aria-label='Add note'
                 disabled={isRunning}
                 onClick={() => {
@@ -59,7 +59,7 @@ export function WorkflowCanvasNodeToolbar({
           render={
             <Button
               variant='ghost'
-              size='icon-xs'
+              size='icon-sm'
               aria-label='Clone node'
               disabled={isRunning}
               onClick={() => {
@@ -77,7 +77,7 @@ export function WorkflowCanvasNodeToolbar({
           render={
             <Button
               variant='ghost'
-              size='icon-xs'
+              size='icon-sm'
               aria-label='Delete node'
               disabled={isRunning}
               onClick={() => {
