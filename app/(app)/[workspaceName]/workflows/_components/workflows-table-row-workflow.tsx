@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { TableCell, TableRow } from '@/components/ui/table';
 import { api } from '@/convex/_generated/api';
 import { cn } from '@/lib/cn';
-import { formatCreated } from '@/lib/format-created-time';
+import { formatTime } from '@/lib/format-time';
 import { getInitials } from '@/lib/get-initials';
 import { useDraggable } from '@dnd-kit/core';
 import { useMutation } from 'convex/react';
@@ -157,7 +157,7 @@ export function WorkflowRow({ workflow, onDelete }: WorkflowRowProps) {
       </TableCell>
 
       <TableCell className='text-muted-foreground px-5 text-xs'>
-        {formatCreated(workflow._creationTime)}
+        {formatTime(workflow._creationTime)}
       </TableCell>
 
       <TableCell className='px-5'>

@@ -7,6 +7,7 @@ import {
 } from '@/components/ui/collapsible';
 import { api } from '@/convex/_generated/api';
 import { cn } from '@/lib/cn';
+import { formatTime } from '@/lib/format-time';
 import { useQuery } from 'convex/react';
 import {
   ChevronDownIcon,
@@ -35,15 +36,6 @@ const STATUS_META: Record<RunStatus, { icon: LucideIcon; className: string }> =
     stopped: { icon: CircleSlashIcon, className: 'text-muted-foreground' },
   };
 
-function formatTime(ms: number) {
-  return new Date(ms).toLocaleString(undefined, {
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  });
-}
-
 type RunHistoryPaletteProps = {
   selectedId: Id<'runHistory'> | undefined;
 };
@@ -57,33 +49,29 @@ export function RunHistoryPalette({ selectedId }: RunHistoryPaletteProps) {
   const base = `/${encodeURIComponent(workspaceName)}/workflow/${workflowId}/run-history`;
 
   return (
-    <Collapsible
-      defaultOpen
-      className='menu-inverted bg-popover text-popover-foreground
-        ring-foreground/10 absolute top-4 left-4 z-10 flex w-56 flex-col
-        rounded-lg p-1 shadow-md ring-1 backdrop-blur-xl'
-    >
-      <CollapsibleTrigger
-        className='group/palette hover:bg-accent hover:text-accent-foreground
-          flex w-full cursor-pointer items-center justify-between rounded-md
-          px-2 py-1.5 text-[13px] font-medium select-none'
+    <div className='absolute top-0 left-0 z-10 flex max-h-full flex-col p-4'>
+      <Collapsible
+        defaultOpen
+        className='menu-inverted bg-popover text-popover-foreground
+          ring-foreground/10 flex max-h-full min-h-0 w-56 flex-col rounded-lg
+          p-1 shadow-md ring-1 backdrop-blur-xl'
       >
-        <span className='flex items-center gap-2'>
-          <HistoryIcon className='text-muted-foreground size-3.5 shrink-0' />
-          Run history
-        </span>
-        <ChevronDownIcon
-          className='text-muted-foreground size-3.5 shrink-0
-            transition-transform group-data-panel-open/palette:rotate-180'
-        />
-      </CollapsibleTrigger>
+        <CollapsibleTrigger
+          className='group/palette hover:bg-accent hover:text-accent-foreground
+            flex w-full shrink-0 cursor-pointer items-center justify-between
+            rounded-md px-2 py-1.5 text-[13px] font-medium select-none'
+        >
+          <span className='flex items-center gap-2'>
+            <HistoryIcon className='text-muted-foreground size-3.5 shrink-0' />
+            Run history
+          </span>
+          <ChevronDownIcon
+            className='text-muted-foreground size-3.5 shrink-0
+              transition-transform group-data-panel-open/palette:rotate-180'
+          />
+        </CollapsibleTrigger>
 
-      <CollapsibleContent
-        className='flex h-(--collapsible-panel-height) flex-col overflow-hidden
-          transition-[height] duration-200 ease-out data-ending-style:h-0
-          data-starting-style:h-0'
-      >
-        <div className='flex max-h-[calc(100vh-9rem)] flex-col overflow-y-auto'>
+        <CollapsibleContent className='flex min-h-0 flex-col overflow-y-auto'>
           {runs === undefined ? (
             <div className='text-muted-foreground px-2 py-1.5 text-[13px]'>
               Loading…
@@ -103,19 +91,23 @@ export function RunHistoryPalette({ selectedId }: RunHistoryPaletteProps) {
                   key={run._id}
                   href={`${base}/${run._id}`}
                   className={cn(
-                    `hover:bg-accent hover:text-accent-foreground flex
+                    `hover:bg-accent hover:text-accent-foreground flex shrink-0
                       items-center gap-2 rounded-md px-2 py-1.5 text-[13px]
                       font-medium select-none`,
                     isSelected && 'bg-accent text-accent-foreground'
                   )}
                 >
-                  <meta.icon
-                    className={cn(
-                      'size-3.5 shrink-0',
-                      meta.className,
-                      run.status === 'running' && 'animate-spin'
-                    )}
-                  />
+                  <span
+                    className='flex size-4 shrink-0 items-center justify-center'
+                  >
+                    <meta.icon
+                      className={cn(
+                        'size-3.5',
+                        meta.className,
+                        run.status === 'running' && 'animate-spin'
+                      )}
+                    />
+                  </span>
                   <span className='shrink-0'>Run # {runNumber}</span>
                   <span
                     className='text-muted-foreground ml-auto truncate
@@ -127,8 +119,8 @@ export function RunHistoryPalette({ selectedId }: RunHistoryPaletteProps) {
               );
             })
           )}
-        </div>
-      </CollapsibleContent>
-    </Collapsible>
+        </CollapsibleContent>
+      </Collapsible>
+    </div>
   );
 }

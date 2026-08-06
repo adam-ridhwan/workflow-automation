@@ -25,7 +25,7 @@ export default async function WorkflowLayout({
   const decodedWorkspaceName = decodeURIComponent(workspaceName);
 
   return (
-    <div className='flex flex-1 flex-col'>
+    <div className='flex min-h-0 flex-1 flex-col overflow-hidden'>
       <div
         className='bg-background relative flex h-13 shrink-0 items-center gap-3
           border-b px-2'

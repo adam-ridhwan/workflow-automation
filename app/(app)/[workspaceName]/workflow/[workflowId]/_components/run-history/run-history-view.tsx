@@ -2,19 +2,15 @@
 
 import { api } from '@/convex/_generated/api';
 import { useQuery } from 'convex/react';
-import { useParams } from 'next/navigation';
 
 import { useWorkspaceParams } from '../../../../_hooks/use-workspace-params';
 import { RunHistoryCanvas } from './run-history-canvas';
 import { RunHistoryPalette } from './run-history-palette';
 
-import type { Id } from '@/convex/_generated/dataModel';
-
 /** Run-history workspace: a read-only canvas of the selected run (from the
  * URL) with a palette of all runs. */
 export function RunHistoryView() {
-  const { workspaceName, workflowId } = useWorkspaceParams();
-  const { runHistoryId } = useParams<{ runHistoryId?: Id<'runHistory'> }>();
+  const { workspaceName, workflowId, runHistoryId } = useWorkspaceParams();
 
   const run = useQuery(
     api.runHistory.get,
