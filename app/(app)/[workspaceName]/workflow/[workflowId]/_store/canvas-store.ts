@@ -47,6 +47,7 @@ interface CanvasState {
   ) => void;
   organizeNodes: (target: SaveTarget) => void;
   setNodeArgument: (nodeId: string, name: string, value: unknown) => void;
+  setNodeAnnotation: (nodeId: string, annotation: string | undefined) => void;
   cloneNode: (target: SaveTarget, nodeId: string) => void;
   deleteNode: (target: SaveTarget, nodeId: string) => void;
   setNodes: (nodes: Node<WorkflowNodeData>[]) => void;
@@ -180,6 +181,15 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
                 arguments: { ...node.data.arguments, [name]: value },
               },
             }
+          : node
+      ),
+    });
+  },
+  setNodeAnnotation: (nodeId, annotation) => {
+    set({
+      nodes: get().nodes.map((node) =>
+        node.id === nodeId
+          ? { ...node, data: { ...node.data, annotation } }
           : node
       ),
     });

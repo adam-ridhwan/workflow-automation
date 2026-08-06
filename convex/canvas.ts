@@ -8,6 +8,7 @@ export const workflowNodeValidator = v.object({
   parents: v.array(v.string()),
   children: v.array(v.string()),
   position: v.optional(v.object({ x: v.number(), y: v.number() })),
+  annotation: v.optional(v.string()),
 });
 
 export const workflowEdgeValidator = v.object({

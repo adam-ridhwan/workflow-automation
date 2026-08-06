@@ -9,6 +9,7 @@ import { CircleIcon } from 'lucide-react';
 import { NODE_META } from '../../_constants/node-meta';
 import { useWorkflowRun } from '../../_hooks/use-workflow-run';
 import { NodeArguments } from '../node-arguments/node-arguments';
+import { WorkflowCanvasNodeAnnotation } from './workflow-canvas-node-annotation';
 import { WorkflowCanvasNodeStatus } from './workflow-canvas-node-status';
 import { WorkflowCanvasNodeToolbar } from './workflow-canvas-node-toolbar';
 import { WorkflowCanvasPort } from './workflow-canvas-port';
@@ -42,6 +43,7 @@ export function WorkflowCanvasNode({
         selected && 'ring-primary'
       )}
     >
+      <WorkflowCanvasNodeAnnotation nodeId={id} data={data} />
       <WorkflowCanvasNodeStatus nodeId={id} />
 
       {hasInPort && (

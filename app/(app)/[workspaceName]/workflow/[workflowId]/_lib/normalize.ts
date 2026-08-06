@@ -23,6 +23,7 @@ export function toFlowNodes(
       arguments: node.arguments,
       parents: node.parents,
       children: node.children,
+      annotation: node.annotation,
     },
   }));
 }
