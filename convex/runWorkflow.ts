@@ -21,6 +21,11 @@ export const run = action({
     await ctx.runMutation(internal.runs.start, {
       workflowId: args.workflowId,
     });
+    // Permanent history record with a snapshot of the canvas as it ran.
+    const runHistoryId = await ctx.runMutation(internal.runHistory.create, {
+      workflowId: args.workflowId,
+      canvas: workflow.canvas,
+    });
     const setNodeStatus = (
       nodeId: string,
       status: 'running' | 'success' | 'error',
@@ -39,6 +44,11 @@ export const run = action({
         workflowId: args.workflowId,
         success: true,
       });
+      await ctx.runMutation(internal.runHistory.finish, {
+        runHistoryId,
+        status: 'success',
+        nodeOutputs: outputs,
+      });
       await ctx.scheduler.runAfter(1000, internal.runs.clearStatuses, {
         workflowId: args.workflowId,
       });
@@ -47,6 +57,12 @@ export const run = action({
       await ctx.runMutation(internal.workflows.recordRun, {
         workflowId: args.workflowId,
         success: false,
+      });
+      await ctx.runMutation(internal.runHistory.finish, {
+        runHistoryId,
+        status: 'error',
+        nodeOutputs: {},
+        error: error instanceof Error ? error.message : 'The run failed.',
       });
       throw error;
     }

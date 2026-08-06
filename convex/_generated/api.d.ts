@@ -12,6 +12,7 @@ import type * as auth from "../auth.js";
 import type * as canvas from "../canvas.js";
 import type * as folders from "../folders.js";
 import type * as http from "../http.js";
+import type * as runHistory from "../runHistory.js";
 import type * as runWorkflow from "../runWorkflow.js";
 import type * as runs from "../runs.js";
 import type * as users from "../users.js";
@@ -29,6 +30,7 @@ declare const fullApi: ApiFromModules<{
   canvas: typeof canvas;
   folders: typeof folders;
   http: typeof http;
+  runHistory: typeof runHistory;
   runWorkflow: typeof runWorkflow;
   runs: typeof runs;
   users: typeof users;

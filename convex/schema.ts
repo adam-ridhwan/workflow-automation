@@ -56,6 +56,22 @@ export default defineSchema({
     nodeOutputs: v.record(v.string(), v.string()),
   }).index('workflow', ['workflowId']),
 
+  /** One permanent record per run: a snapshot of the canvas as it ran, plus
+   * the final outcome. Powers the run history view. */
+  runHistory: defineTable({
+    workflowId: v.id('workflows'),
+    canvas: workflowCanvasValidator,
+    status: v.union(
+      v.literal('running'),
+      v.literal('success'),
+      v.literal('error')
+    ),
+    nodeOutputs: v.record(v.string(), v.string()),
+    error: v.optional(v.string()),
+    startedAt: v.number(),
+    finishedAt: v.optional(v.number()),
+  }).index('workflow', ['workflowId']),
+
   workflows: defineTable({
     workspaceId: v.id('workspaces'),
     name: v.string(),

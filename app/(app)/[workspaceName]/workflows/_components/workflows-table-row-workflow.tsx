@@ -88,7 +88,7 @@ export function WorkflowRow({ workflow, onDelete }: WorkflowRowProps) {
       <TableCell className='px-5'>
         {!isRenaming && (
           <Link
-            href={`/${encodeURIComponent(workspaceName)}/workflow/${workflow._id}`}
+            href={`/${encodeURIComponent(workspaceName)}/workflow/${workflow._id}/canvas`}
             aria-label={workflow.name}
             draggable={false}
             className='absolute inset-0'

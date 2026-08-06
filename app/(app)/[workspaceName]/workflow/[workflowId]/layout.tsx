@@ -1,16 +1,14 @@
+import { Suspense } from 'react';
 import { Button } from '@/components/ui/button';
-import { api } from '@/convex/_generated/api';
-import { convexAuthNextjsToken } from '@convex-dev/auth/nextjs/server';
-import { fetchQuery } from 'convex/nextjs';
+import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeftIcon } from 'lucide-react';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
 
 import { RunWorkflowButton } from './_components/header/run-workflow-button';
 import { WorkflowTabs } from './_components/header/workflow-tabs';
+import { WorkflowTitle } from './_components/header/workflow-title';
 
 import type { Id } from '@/convex/_generated/dataModel';
-import type { Workflow } from '@/convex/workflows';
 
 type WorkflowLayoutProps = {
   children: React.ReactNode;
@@ -21,26 +19,10 @@ export default async function WorkflowLayout({
   children,
   params,
 }: WorkflowLayoutProps) {
+  // Only the params are awaited here (fast) so the header chrome paints right
+  // away; the title fetch streams in via Suspense below.
   const { workspaceName, workflowId } = await params;
   const decodedWorkspaceName = decodeURIComponent(workspaceName);
-
-  const token = await convexAuthNextjsToken();
-  let workflow: Workflow | null = null;
-  try {
-    workflow = await fetchQuery(
-      api.workflows.get,
-      {
-        workspaceName: decodedWorkspaceName,
-        workflowId: workflowId as Id<'workflows'>,
-      },
-      { token }
-    );
-  } catch {
-    notFound();
-  }
-  if (workflow === null) {
-    notFound();
-  }
 
   return (
     <div className='flex flex-1 flex-col'>
@@ -63,9 +45,12 @@ export default async function WorkflowLayout({
           <ArrowLeftIcon className='size-4' />
         </Button>
 
-        <span className='text-[13.5px] font-semibold tracking-tight'>
-          {workflow.name}
-        </span>
+        <Suspense fallback={<Skeleton className='h-4 w-40' />}>
+          <WorkflowTitle
+            workspaceName={decodedWorkspaceName}
+            workflowId={workflowId as Id<'workflows'>}
+          />
+        </Suspense>
 
         <WorkflowTabs />
 
