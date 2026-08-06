@@ -1,6 +1,5 @@
 import { Button } from '@/components/ui/button';
 import { api } from '@/convex/_generated/api';
-import { cn } from '@/lib/cn';
 import { convexAuthNextjsToken } from '@convex-dev/auth/nextjs/server';
 import { fetchQuery } from 'convex/nextjs';
 import { ArrowLeftIcon } from 'lucide-react';
@@ -62,19 +61,6 @@ export default async function WorkflowPage({ params }: WorkflowPageProps) {
 
         <span className='text-[13.5px] font-semibold tracking-tight'>
           {workflow.name}
-        </span>
-
-        <span
-          className={cn(
-            `inline-flex h-5 w-fit items-center gap-1.5 rounded-full px-2
-            text-[11px] font-semibold`,
-            workflow.isPublished
-              ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
-              : 'bg-muted text-muted-foreground'
-          )}
-        >
-          <span className='size-1.25 rounded-full bg-current' />
-          <span>{workflow.isPublished ? 'Published' : 'Unpublished'}</span>
         </span>
 
         <div className='ml-auto'>

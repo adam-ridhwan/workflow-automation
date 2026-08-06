@@ -82,7 +82,7 @@ export async function runWorkflow(
           model: String(
             getArgumentValue(node.data, 'model') ?? 'claude-sonnet-5'
           ),
-          prompt: template.replaceAll('{{input}}', input),
+          prompt: template.replaceAll('{{value}}', input),
           system:
             String(getArgumentValue(node.data, 'system') ?? '') || undefined,
           maxTokens: Number(getArgumentValue(node.data, 'max_tokens')) || 1024,
