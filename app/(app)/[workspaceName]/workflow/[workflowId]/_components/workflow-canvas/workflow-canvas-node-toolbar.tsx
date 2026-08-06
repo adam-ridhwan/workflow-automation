@@ -32,10 +32,7 @@ export function WorkflowCanvasNodeToolbar({
   );
 
   return (
-    <div
-      className='nodrag hidden shrink-0 items-center group-hover/node:flex
-        group-has-[[data-annotation]:hover]/node:hidden'
-    >
+    <div className='nodrag hidden shrink-0 items-center group-hover/header:flex'>
       {!hasAnnotation && (
         <Tooltip>
           <TooltipTrigger

@@ -1,6 +1,5 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
@@ -8,7 +7,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { XIcon } from 'lucide-react';
 
 import { useCanvasStore } from '../../../../_store/canvas-store';
 import { useWorkspaceParams } from '../../../../../../_hooks/use-workspace-params';
@@ -53,29 +51,27 @@ export function SelectField({
   }
 
   return (
-    <div className='flex items-center gap-1'>
-      <Select
-        disabled={disabled}
-        value={stringValue}
-        onValueChange={(next) => {
-          setNodeArgument(nodeId, argument.name, next);
-          for (const childName of childNames) {
-            setNodeArgument(nodeId, childName, '');
-          }
-          commit();
-        }}
-      >
-        <SelectTrigger id={fieldId} size='sm' className='w-full'>
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {(argument.options ?? []).map((option) => (
-            <SelectItem key={option} value={option}>
-              {option}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
+    <Select
+      disabled={disabled}
+      value={stringValue}
+      onValueChange={(next) => {
+        setNodeArgument(nodeId, argument.name, next);
+        for (const childName of childNames) {
+          setNodeArgument(nodeId, childName, '');
+        }
+        commit();
+      }}
+    >
+      <SelectTrigger id={fieldId} size='sm' className='w-full'>
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {(argument.options ?? []).map((option) => (
+          <SelectItem key={option} value={option}>
+            {option}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }

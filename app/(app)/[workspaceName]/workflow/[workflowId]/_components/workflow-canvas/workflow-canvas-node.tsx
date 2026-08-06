@@ -56,7 +56,10 @@ export function WorkflowCanvasNode({
         />
       )}
 
-      <div className='flex h-14 shrink-0 flex-row items-center gap-2.5 px-3'>
+      <div
+        className='group/header flex h-14 shrink-0 flex-row items-center gap-2.5
+          px-3'
+      >
         <div
           className='bg-muted flex size-8 shrink-0 items-center justify-center
             rounded-md'
