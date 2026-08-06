@@ -31,7 +31,7 @@ export function organizeCanvasLayout(
 
   const graph = new dagre.graphlib.Graph();
   graph.setDefaultEdgeLabel(() => ({}));
-  graph.setGraph({ rankdir: 'LR', nodesep: 48, ranksep: 120 });
+  graph.setGraph({ rankdir: 'LR', nodesep: 96, ranksep: 120 });
 
   for (const node of nodes) {
     graph.setNode(node.id, {

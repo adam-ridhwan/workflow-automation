@@ -6,7 +6,6 @@ import { findNodeSpec } from '@/lib/node-specs';
 import { Position } from '@xyflow/react';
 import { CircleIcon } from 'lucide-react';
 
-import { NODE_GROUP_META } from '../../_constants/node-groups';
 import { NODE_META } from '../../_constants/node-meta';
 import { useCanvasStore } from '../../_store/canvas-store';
 import { NodeArguments } from '../node-arguments/node-arguments';
@@ -29,9 +28,6 @@ export function WorkflowCanvasNode({
   const nodeSpec = findNodeSpec(data.node_uid);
   const hasInPort = (nodeSpec?.node_requirement.max_in_edges ?? 1) > 0;
   const hasOutPort = (nodeSpec?.node_requirement.max_out_edges ?? 1) > 0;
-  const groupMeta = nodeSpec
-    ? NODE_GROUP_META[nodeSpec.node_info.node_group]
-    : null;
 
   const output = useCanvasStore((s) => s.nodeOutputs[id]);
   const isDisplayNode = data.node_uid === DISPLAY_NODE_UID;
@@ -40,21 +36,10 @@ export function WorkflowCanvasNode({
     <Card
       className={cn(
         `group/node relative flex w-64 flex-col gap-0 overflow-visible
-        rounded-md p-0 shadow-sm`,
+        rounded-md p-0`,
         selected && 'ring-primary'
       )}
     >
-      {groupMeta && (
-        <div
-          className='bg-muted text-muted-foreground absolute bottom-full
-            left-0.5 -z-10 flex translate-y-1 items-center gap-1 rounded-t-md
-            px-2 pt-1 pb-1.5 text-[11px] font-medium'
-        >
-          <groupMeta.icon className='size-3 shrink-0' />
-          {groupMeta.label}
-        </div>
-      )}
-
       {hasInPort && (
         <WorkflowCanvasPort
           type='target'

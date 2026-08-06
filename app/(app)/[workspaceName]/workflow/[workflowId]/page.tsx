@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import { RunWorkflowButton } from './_components/header/run-workflow-button';
-import { WorkflowCanvas } from './_components/workflow/workflow-canvas';
+import { WorkflowCanvas } from './_components/workflow-canvas/workflow-canvas';
 
 import type { Id } from '@/convex/_generated/dataModel';
 import type { Workflow } from '@/convex/workflows';

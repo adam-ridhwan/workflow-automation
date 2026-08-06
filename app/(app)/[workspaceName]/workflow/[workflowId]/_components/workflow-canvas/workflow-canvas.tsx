@@ -133,7 +133,7 @@ export function WorkflowCanvas({ canvas }: WorkflowCanvasProps) {
           setDragItem(null);
         }}
       >
-        <div ref={wrapperRef} className='relative min-h-0 flex-1'>
+        <div ref={wrapperRef} className='bg-canvas relative min-h-0 flex-1'>
           <ReactFlow
             nodes={nodes}
             edges={edges}
