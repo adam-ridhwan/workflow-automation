@@ -13,12 +13,12 @@ import { Panel, useReactFlow, useViewport } from '@xyflow/react';
 import { MinusIcon, NetworkIcon, PlusIcon } from 'lucide-react';
 
 import { useCanvasStore } from '../../_store/canvas-store';
-import { useRequiredWorkspaceParams } from '../../../../_hooks/use-workspace-params';
+import { useWorkspaceParams } from '../../../../_hooks/use-workspace-params';
 
 const ZOOM_PRESETS = [0.5, 1, 2];
 
 export function CanvasPalette() {
-  const { workspaceName, workflowId } = useRequiredWorkspaceParams();
+  const { workspaceName, workflowId } = useWorkspaceParams();
   const { zoomIn, zoomOut, zoomTo, fitView } = useReactFlow();
   const { zoom } = useViewport();
   const organizeNodes = useCanvasStore((s) => s.organizeNodes);

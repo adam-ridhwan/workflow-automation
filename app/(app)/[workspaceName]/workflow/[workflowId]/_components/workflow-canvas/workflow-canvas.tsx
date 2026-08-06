@@ -13,7 +13,7 @@ import { useWorkflowRun } from '../../_hooks/use-workflow-run';
 import { WORKFLOW_EDGE, WORKFLOW_NODE } from '../../_lib/normalize';
 import { NODE_DIMENSIONS } from '../../_lib/organize-canvas-layout';
 import { useCanvasStore } from '../../_store/canvas-store';
-import { useRequiredWorkspaceParams } from '../../../../_hooks/use-workspace-params';
+import { useWorkspaceParams } from '../../../../_hooks/use-workspace-params';
 import { CanvasPalette } from '../canvas-palette/canvas-palette';
 import { NodeDragPreview } from '../node-palette/node-drag-preview';
 import { NodePalette } from '../node-palette/node-palette';
@@ -42,7 +42,7 @@ type WorkflowCanvasProps = {
 };
 
 export function WorkflowCanvas({ canvas }: WorkflowCanvasProps) {
-  const { workspaceName, workflowId } = useRequiredWorkspaceParams();
+  const { workspaceName, workflowId } = useWorkspaceParams();
   const wrapperRef = useRef<HTMLDivElement>(null);
   const reactFlowInstance = useRef<ReactFlowInstance<
     Node<WorkflowNodeData>,

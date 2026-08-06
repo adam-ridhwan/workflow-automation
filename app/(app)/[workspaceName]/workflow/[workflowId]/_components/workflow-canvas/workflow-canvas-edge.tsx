@@ -7,7 +7,7 @@ import { BaseEdge, EdgeLabelRenderer, getBezierPath } from '@xyflow/react';
 import { XIcon } from 'lucide-react';
 
 import { useCanvasStore } from '../../_store/canvas-store';
-import { useRequiredWorkspaceParams } from '../../../../_hooks/use-workspace-params';
+import { useWorkspaceParams } from '../../../../_hooks/use-workspace-params';
 import { useCanvasMode } from './canvas-mode-context';
 
 import type { EdgeProps } from '@xyflow/react';
@@ -24,7 +24,7 @@ export function WorkflowCanvasEdge({
   style,
 }: EdgeProps) {
   const { readOnly } = useCanvasMode();
-  const { workspaceName, workflowId } = useRequiredWorkspaceParams();
+  const { workspaceName, workflowId } = useWorkspaceParams();
   const deleteEdge = useCanvasStore((s) => s.deleteEdge);
   const [hovered, setHovered] = useState(false);
 

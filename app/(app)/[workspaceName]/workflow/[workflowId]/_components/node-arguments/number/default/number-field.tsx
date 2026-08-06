@@ -3,7 +3,7 @@
 import { Input } from '@/components/ui/input';
 
 import { useCanvasStore } from '../../../../_store/canvas-store';
-import { useRequiredWorkspaceParams } from '../../../../../../_hooks/use-workspace-params';
+import { useWorkspaceParams } from '../../../../../../_hooks/use-workspace-params';
 import { useCanvasMode } from '../../../workflow-canvas/canvas-mode-context';
 
 import type { WorkflowNodeData } from '@/convex/canvas';
@@ -22,7 +22,7 @@ export function NumberField({
   data,
   argument,
 }: NumberFieldProps) {
-  const { workspaceName, workflowId } = useRequiredWorkspaceParams();
+  const { workspaceName, workflowId } = useWorkspaceParams();
   const setNodeArgument = useCanvasStore((s) => s.setNodeArgument);
   const isRunning = useCanvasStore((s) => s.isRunning);
   const { readOnly } = useCanvasMode();

@@ -3,13 +3,13 @@
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { usePathname, useRouter } from 'next/navigation';
 
-import { useRequiredWorkspaceParams } from '../../../../_hooks/use-workspace-params';
+import { useWorkspaceParams } from '../../../../_hooks/use-workspace-params';
 
 /** Canvas / Runs switcher that navigates between the two workflow routes. */
 export function WorkflowTabs() {
   const router = useRouter();
   const pathname = usePathname();
-  const { workspaceName, workflowId } = useRequiredWorkspaceParams();
+  const { workspaceName, workflowId } = useWorkspaceParams();
 
   const base = `/${encodeURIComponent(workspaceName)}/workflow/${workflowId}`;
   const view = pathname.includes('/run-history') ? 'run-history' : 'canvas';

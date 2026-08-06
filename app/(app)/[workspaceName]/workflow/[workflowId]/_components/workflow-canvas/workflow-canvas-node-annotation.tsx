@@ -5,7 +5,7 @@ import { cn } from '@/lib/cn';
 import { StickyNoteIcon } from 'lucide-react';
 
 import { useCanvasStore } from '../../_store/canvas-store';
-import { useRequiredWorkspaceParams } from '../../../../_hooks/use-workspace-params';
+import { useWorkspaceParams } from '../../../../_hooks/use-workspace-params';
 import { useCanvasMode } from './canvas-mode-context';
 import { WorkflowCanvasNodeAnnotationBar } from './workflow-canvas-node-annotation-bar';
 
@@ -35,7 +35,7 @@ export function WorkflowCanvasNodeAnnotation({
   nodeId,
   data,
 }: WorkflowCanvasNodeAnnotationProps) {
-  const { workspaceName, workflowId } = useRequiredWorkspaceParams();
+  const { workspaceName, workflowId } = useWorkspaceParams();
   const setNodeAnnotation = useCanvasStore((s) => s.setNodeAnnotation);
   const saveWorkflow = useCanvasStore((s) => s.saveWorkflow);
   const isRunning = useCanvasStore((s) => s.isRunning);

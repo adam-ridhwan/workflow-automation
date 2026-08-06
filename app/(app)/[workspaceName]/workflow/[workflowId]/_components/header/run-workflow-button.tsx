@@ -7,7 +7,7 @@ import { usePathname, useRouter } from 'next/navigation';
 
 import { validateWorkflow } from '../../_lib/validate-workflow';
 import { useCanvasStore } from '../../_store/canvas-store';
-import { useRequiredWorkspaceParams } from '../../../../_hooks/use-workspace-params';
+import { useWorkspaceParams } from '../../../../_hooks/use-workspace-params';
 
 import type { Id } from '@/convex/_generated/dataModel';
 
@@ -16,7 +16,7 @@ import type { Id } from '@/convex/_generated/dataModel';
 export function RunWorkflowButton() {
   const router = useRouter();
   const pathname = usePathname();
-  const { workspaceName, workflowId } = useRequiredWorkspaceParams();
+  const { workspaceName, workflowId } = useWorkspaceParams();
   // A selected run reads as `.../run-history/<id>`.
   const runHistoryMatch = pathname.match(/\/run-history\/([^/]+)$/);
   const runHistoryId = runHistoryMatch

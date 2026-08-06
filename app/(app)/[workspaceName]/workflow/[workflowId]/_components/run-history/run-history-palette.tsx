@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
-import { useRequiredWorkspaceParams } from '../../../../_hooks/use-workspace-params';
+import { useWorkspaceParams } from '../../../../_hooks/use-workspace-params';
 
 import type { Id } from '@/convex/_generated/dataModel';
 import type { RunStatus } from '@/convex/runHistory';
@@ -49,7 +49,7 @@ type RunHistoryPaletteProps = {
 /** Floating list of a workflow's runs in the top-left of the canvas; clicking
  * a run loads its snapshot into the read-only canvas. */
 export function RunHistoryPalette({ selectedId }: RunHistoryPaletteProps) {
-  const { workspaceName, workflowId } = useRequiredWorkspaceParams();
+  const { workspaceName, workflowId } = useWorkspaceParams();
   const runs = useQuery(api.runHistory.list, { workspaceName, workflowId });
 
   const base = `/${encodeURIComponent(workspaceName)}/workflow/${workflowId}/run-history`;

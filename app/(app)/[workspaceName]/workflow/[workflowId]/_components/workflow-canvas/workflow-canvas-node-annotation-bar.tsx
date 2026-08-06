@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 
 import { useCanvasStore } from '../../_store/canvas-store';
-import { useRequiredWorkspaceParams } from '../../../../_hooks/use-workspace-params';
+import { useWorkspaceParams } from '../../../../_hooks/use-workspace-params';
 
 import type { WorkflowAnnotation, WorkflowNodeData } from '@/convex/canvas';
 
@@ -34,7 +34,7 @@ export function WorkflowCanvasNodeAnnotationBar({
   nodeId,
   data,
 }: WorkflowCanvasNodeAnnotationBarProps) {
-  const { workspaceName, workflowId } = useRequiredWorkspaceParams();
+  const { workspaceName, workflowId } = useWorkspaceParams();
   const setNodeAnnotation = useCanvasStore((s) => s.setNodeAnnotation);
   const saveWorkflow = useCanvasStore((s) => s.saveWorkflow);
 

@@ -4,29 +4,35 @@ import { useParams } from 'next/navigation';
 
 import type { Id } from '@/convex/_generated/dataModel';
 
-/** The workspace/workflow params from the current URL. `workspaceName` is
- * present throughout the `[workspaceName]` subtree; `workflowId` only on the
- * workflow detail route. */
+/**
+ * Workspace/workflow params from the current URL, read fail-fast:
+ * `workspaceName` is validated immediately (present throughout the
+ * `[workspaceName]` subtree), and `workflowId` throws when accessed on a route
+ * that doesn't have it — i.e. outside the workflow detail subtree — so callers
+ * never silently get `undefined`.
+ */
 export function useWorkspaceParams() {
   const params = useParams<{
     workspaceName: string;
     workflowId?: Id<'workflows'>;
   }>();
-  return {
-    workspaceName: decodeURIComponent(params.workspaceName),
-    workflowId: params.workflowId,
-  };
-}
 
-/** Like useWorkspaceParams, but fails fast when a workflow id isn't in the
- * route — for use inside the workflow detail subtree where both are required.
- */
-export function useRequiredWorkspaceParams() {
-  const { workspaceName, workflowId } = useWorkspaceParams();
-  if (workflowId === undefined) {
+  if (params.workspaceName === undefined) {
     throw new Error(
-      'useRequiredWorkspaceParams: workflowId is missing from the route.'
+      'useWorkspaceParams: workspaceName is missing from the route.'
     );
   }
-  return { workspaceName, workflowId };
+  const workspaceName = decodeURIComponent(params.workspaceName);
+
+  return {
+    workspaceName,
+    get workflowId(): Id<'workflows'> {
+      if (params.workflowId === undefined) {
+        throw new Error(
+          'useWorkspaceParams: workflowId is missing from the route.'
+        );
+      }
+      return params.workflowId;
+    },
+  };
 }
