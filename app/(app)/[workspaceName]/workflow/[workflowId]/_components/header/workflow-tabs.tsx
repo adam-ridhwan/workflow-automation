@@ -12,7 +12,7 @@ export function WorkflowTabs() {
   const { workspaceName, workflowId } = useRequiredWorkspaceParams();
 
   const base = `/${encodeURIComponent(workspaceName)}/workflow/${workflowId}`;
-  const view = pathname.endsWith('/run-history') ? 'run-history' : 'canvas';
+  const view = pathname.includes('/run-history') ? 'run-history' : 'canvas';
 
   return (
     <ToggleGroup

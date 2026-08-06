@@ -9,6 +9,7 @@ import {
 } from '@dnd-kit/core';
 import { Background, BackgroundVariant, ReactFlow } from '@xyflow/react';
 
+import { useWorkflowRun } from '../../_hooks/use-workflow-run';
 import { WORKFLOW_EDGE, WORKFLOW_NODE } from '../../_lib/normalize';
 import { NODE_DIMENSIONS } from '../../_lib/organize-canvas-layout';
 import { useCanvasStore } from '../../_store/canvas-store';
@@ -16,6 +17,7 @@ import { useRequiredWorkspaceParams } from '../../../../_hooks/use-workspace-par
 import { CanvasPalette } from '../canvas-palette/canvas-palette';
 import { NodeDragPreview } from '../node-palette/node-drag-preview';
 import { NodePalette } from '../node-palette/node-palette';
+import { CanvasModeContext } from './canvas-mode-context';
 import { WorkflowCanvasEdge } from './workflow-canvas-edge';
 import { WorkflowCanvasHelperLines } from './workflow-canvas-helper-lines';
 import { WorkflowCanvasNode } from './workflow-canvas-node';
@@ -51,6 +53,7 @@ export function WorkflowCanvas({ canvas }: WorkflowCanvasProps) {
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } })
   );
 
+  const run = useWorkflowRun();
   const nodes = useCanvasStore((s) => s.nodes);
   const edges = useCanvasStore((s) => s.edges);
   const onNodesChange = useCanvasStore((s) => s.onNodesChange);
@@ -122,40 +125,42 @@ export function WorkflowCanvas({ canvas }: WorkflowCanvasProps) {
   }
 
   return (
-    <WorkflowCanvasProvider canvas={canvas}>
-      <DndContext
-        sensors={sensors}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-        onDragCancel={() => {
-          setDragItem(null);
-        }}
-      >
-        <div ref={wrapperRef} className='bg-canvas relative min-h-0 flex-1'>
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            nodeTypes={nodeTypes}
-            edgeTypes={edgeTypes}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={handleConnect}
-            onNodeDragStop={onNodeDragStop}
-            onInit={onInit}
-            selectNodesOnDrag={false}
-            snapToGrid
-            snapGrid={[12, 12]}
-            proOptions={{ hideAttribution: true }}
-          >
-            <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
-            <WorkflowCanvasHelperLines />
-            <CanvasPalette />
-          </ReactFlow>
-          <NodePalette />
-        </div>
+    <CanvasModeContext.Provider value={{ readOnly: false, run }}>
+      <WorkflowCanvasProvider canvas={canvas}>
+        <DndContext
+          sensors={sensors}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+          onDragCancel={() => {
+            setDragItem(null);
+          }}
+        >
+          <div ref={wrapperRef} className='bg-canvas relative min-h-0 flex-1'>
+            <ReactFlow
+              nodes={nodes}
+              edges={edges}
+              nodeTypes={nodeTypes}
+              edgeTypes={edgeTypes}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onConnect={handleConnect}
+              onNodeDragStop={onNodeDragStop}
+              onInit={onInit}
+              selectNodesOnDrag={false}
+              snapToGrid
+              snapGrid={[12, 12]}
+              proOptions={{ hideAttribution: true }}
+            >
+              <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
+              <WorkflowCanvasHelperLines />
+              <CanvasPalette />
+            </ReactFlow>
+            <NodePalette />
+          </div>
 
-        <NodeDragPreview dragItem={dragItem} />
-      </DndContext>
-    </WorkflowCanvasProvider>
+          <NodeDragPreview dragItem={dragItem} />
+        </DndContext>
+      </WorkflowCanvasProvider>
+    </CanvasModeContext.Provider>
   );
 }

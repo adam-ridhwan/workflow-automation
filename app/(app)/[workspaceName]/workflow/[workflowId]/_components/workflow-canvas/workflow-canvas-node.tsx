@@ -7,8 +7,8 @@ import { Position } from '@xyflow/react';
 import { CircleIcon } from 'lucide-react';
 
 import { NODE_META } from '../../_constants/node-meta';
-import { useWorkflowRun } from '../../_hooks/use-workflow-run';
 import { NodeArguments } from '../node-arguments/node-arguments';
+import { useCanvasMode } from './canvas-mode-context';
 import { WorkflowCanvasNodeAnnotation } from './workflow-canvas-node-annotation';
 import { WorkflowCanvasNodeStatus } from './workflow-canvas-node-status';
 import { WorkflowCanvasNodeToolbar } from './workflow-canvas-node-toolbar';
@@ -31,7 +31,7 @@ export function WorkflowCanvasNode({
   const hasInPort = (nodeSpec?.node_requirement.max_in_edges ?? 1) > 0;
   const hasOutPort = (nodeSpec?.node_requirement.max_out_edges ?? 1) > 0;
 
-  const run = useWorkflowRun();
+  const { readOnly, run } = useCanvasMode();
   const output = run?.nodeOutputs[id];
   const isDisplayNode = data.node_uid === DISPLAY_NODE_UID;
 
@@ -71,7 +71,7 @@ export function WorkflowCanvasNode({
           )}
         </div>
 
-        <WorkflowCanvasNodeToolbar nodeId={id} />
+        {!readOnly && <WorkflowCanvasNodeToolbar nodeId={id} />}
       </div>
 
       <NodeArguments nodeId={id} data={data} />

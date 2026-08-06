@@ -6,6 +6,7 @@ import { StickyNoteIcon } from 'lucide-react';
 
 import { useCanvasStore } from '../../_store/canvas-store';
 import { useRequiredWorkspaceParams } from '../../../../_hooks/use-workspace-params';
+import { useCanvasMode } from './canvas-mode-context';
 import { WorkflowCanvasNodeAnnotationBar } from './workflow-canvas-node-annotation-bar';
 
 import type { WorkflowAnnotation, WorkflowNodeData } from '@/convex/canvas';
@@ -38,6 +39,7 @@ export function WorkflowCanvasNodeAnnotation({
   const setNodeAnnotation = useCanvasStore((s) => s.setNodeAnnotation);
   const saveWorkflow = useCanvasStore((s) => s.saveWorkflow);
   const isRunning = useCanvasStore((s) => s.isRunning);
+  const { readOnly } = useCanvasMode();
 
   const annotation = data.annotation;
   if (annotation === undefined) {
@@ -50,7 +52,9 @@ export function WorkflowCanvasNodeAnnotation({
       className='nodrag group/annotation absolute right-0 bottom-full left-0
         z-10 mb-2 flex flex-col'
     >
-      <WorkflowCanvasNodeAnnotationBar nodeId={nodeId} data={data} />
+      {!readOnly && (
+        <WorkflowCanvasNodeAnnotationBar nodeId={nodeId} data={data} />
+      )}
 
       <div className='relative'>
         <StickyNoteIcon
@@ -62,6 +66,7 @@ export function WorkflowCanvasNodeAnnotation({
           placeholder='Add a note…'
           autoFocus={annotation.text === ''}
           disabled={isRunning}
+          readOnly={readOnly}
           onChange={(event) => {
             setNodeAnnotation(nodeId, {
               ...annotation,

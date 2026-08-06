@@ -4,6 +4,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
 import { useCanvasStore } from '../../../../_store/canvas-store';
 import { useRequiredWorkspaceParams } from '../../../../../../_hooks/use-workspace-params';
+import { useCanvasMode } from '../../../workflow-canvas/canvas-mode-context';
 
 import type { WorkflowNodeData } from '@/convex/canvas';
 import type { NodeArgument } from '@/lib/node-specs';
@@ -24,6 +25,7 @@ export function BooleanField({
   const { workspaceName, workflowId } = useRequiredWorkspaceParams();
   const setNodeArgument = useCanvasStore((s) => s.setNodeArgument);
   const isRunning = useCanvasStore((s) => s.isRunning);
+  const { readOnly } = useCanvasMode();
   const saveWorkflow = useCanvasStore((s) => s.saveWorkflow);
 
   const value = data.arguments[argument.name] ?? argument.default_value;
@@ -32,7 +34,7 @@ export function BooleanField({
   return (
     <ToggleGroup
       id={fieldId}
-      disabled={isRunning}
+      disabled={isRunning || readOnly}
       variant='outline'
       size='sm'
       spacing={0}

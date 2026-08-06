@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/cn';
 import { CircleCheckIcon, CircleXIcon, Loader2Icon } from 'lucide-react';
 
-import { useWorkflowRun } from '../../_hooks/use-workflow-run';
+import { useCanvasMode } from './canvas-mode-context';
 
 import type { NodeStatus } from '@/convex/runs';
 import type { LucideIcon } from 'lucide-react';
@@ -38,7 +38,7 @@ type WorkflowCanvasNodeStatusProps = {
 export function WorkflowCanvasNodeStatus({
   nodeId,
 }: WorkflowCanvasNodeStatusProps) {
-  const run = useWorkflowRun();
+  const { run } = useCanvasMode();
   const status = run?.nodeStatuses[nodeId];
   if (!status) {
     return null;

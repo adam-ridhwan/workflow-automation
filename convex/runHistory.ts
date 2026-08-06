@@ -23,6 +23,8 @@ const runHistoryValidator = v.object({
   finishedAt: v.optional(v.number()),
 });
 
+export type RunHistory = Infer<typeof runHistoryValidator>;
+
 /** A workflow's runs, newest first. */
 export const list = query({
   args: { workspaceName: v.string(), workflowId: v.id('workflows') },
@@ -41,6 +43,31 @@ export const list = query({
       .withIndex('workflow', (q) => q.eq('workflowId', args.workflowId))
       .order('desc')
       .take(50);
+  },
+});
+
+/** A single run by id, member-checked. */
+export const get = query({
+  args: {
+    workspaceName: v.string(),
+    workflowId: v.id('workflows'),
+    runHistoryId: v.id('runHistory'),
+  },
+  returns: v.union(v.null(), runHistoryValidator),
+  handler: async (ctx, args) => {
+    const workspace = await getMemberWorkspaceByName(ctx, args.workspaceName);
+    if (workspace === null) {
+      return null;
+    }
+    const run = await ctx.db.get(args.runHistoryId);
+    if (run === null || run.workflowId !== args.workflowId) {
+      return null;
+    }
+    const workflow = await ctx.db.get(run.workflowId);
+    if (workflow === null || workflow.workspaceId !== workspace._id) {
+      return null;
+    }
+    return run;
   },
 });
 
