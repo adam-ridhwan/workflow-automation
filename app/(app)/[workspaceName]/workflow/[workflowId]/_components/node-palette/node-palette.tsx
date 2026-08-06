@@ -5,9 +5,9 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import { NODE_SPECS } from '@/lib/node-specs';
 import { ChevronDownIcon, LayersIcon } from 'lucide-react';
 
-import { NODE_SPECS } from '../../_constants/node-specs';
 import { NodePaletteItem } from './node-palette-item';
 
 const GROUP_LABELS: Record<string, string> = {

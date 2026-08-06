@@ -1,6 +1,6 @@
 import { ConvexError, Infer, v } from 'convex/values';
 
-import { mutation, query } from './_generated/server';
+import { internalMutation, mutation, query } from './_generated/server';
 import { workflowCanvasValidator } from './canvas';
 import {
   getMemberWorkspaceByName,
@@ -266,6 +266,25 @@ export const remove = mutation({
       args.workflowId
     );
     await ctx.db.delete(workflow._id);
+    return null;
+  },
+});
+
+/** Bumps the run counters after a backend workflow run. */
+export const recordRun = internalMutation({
+  args: { workflowId: v.id('workflows'), success: v.boolean() },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const workflow = await ctx.db.get(args.workflowId);
+    if (workflow === null) {
+      return null;
+    }
+    await ctx.db.patch(args.workflowId, {
+      runCount: workflow.runCount + 1,
+      successCount: workflow.successCount + (args.success ? 1 : 0),
+      failCount: workflow.failCount + (args.success ? 0 : 1),
+      updatedAt: Date.now(),
+    });
     return null;
   },
 });

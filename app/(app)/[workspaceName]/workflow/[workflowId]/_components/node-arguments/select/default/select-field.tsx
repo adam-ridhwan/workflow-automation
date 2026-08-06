@@ -12,8 +12,8 @@ import { useCanvasStore } from '../../../../_store/canvas-store';
 import { useWorkflowId } from '../../../../../../_hooks/use-workflow-id';
 import { useWorkspaceName } from '../../../../../../_hooks/use-workspace-name';
 
-import type { NodeArgument } from '../../../../_types';
 import type { WorkflowNodeData } from '@/convex/canvas';
+import type { NodeArgument } from '@/lib/node-specs';
 
 type SelectFieldProps = {
   fieldId: string;

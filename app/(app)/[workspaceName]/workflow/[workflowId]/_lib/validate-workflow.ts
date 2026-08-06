@@ -1,8 +1,7 @@
-import { getArgumentValue } from './get-argument-value';
-import { findNodeSpec } from './get-node-spec';
+import { findNodeSpec, getArgumentValue } from '@/lib/node-specs';
 
-import type { NodeArgument } from '../_types';
 import type { WorkflowEdgeData, WorkflowNodeData } from '@/convex/canvas';
+import type { NodeArgument } from '@/lib/node-specs';
 import type { Edge, Node } from '@xyflow/react';
 
 function plural(count: number, word: string) {

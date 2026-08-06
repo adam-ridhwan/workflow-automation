@@ -7,8 +7,8 @@ import { NumberField } from './number/default/number-field';
 import { SelectField } from './select/default/select-field';
 import { TextField } from './text/default/text-field';
 
-import type { NodeArgument } from '../../_types';
 import type { WorkflowNodeData } from '@/convex/canvas';
+import type { NodeArgument } from '@/lib/node-specs';
 
 /** "max_tokens" -> "Max tokens" */
 function formatLabel(name: string) {

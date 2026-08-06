@@ -9,7 +9,6 @@ import { create } from 'zustand';
 import { getHelperLines } from '../_lib/get-helper-lines';
 import { toCanvasData, WORKFLOW_EDGE, WORKFLOW_NODE } from '../_lib/normalize';
 import { organizeCanvasLayout } from '../_lib/organize-canvas-layout';
-import { runWorkflow } from '../_lib/run-workflow';
 
 import type { Id } from '@/convex/_generated/dataModel';
 import type { WorkflowEdgeData, WorkflowNodeData } from '@/convex/canvas';
@@ -36,7 +35,7 @@ interface CanvasState {
   isRunning: boolean;
   helperLineHorizontal: number | undefined;
   helperLineVertical: number | undefined;
-  runWorkflow: () => Promise<void>;
+  runWorkflow: (target: SaveTarget) => Promise<void>;
   onNodesChange: (changes: NodeChange[]) => void;
   onEdgesChange: (changes: EdgeChange[]) => void;
   onConnect: (connection: Connection, target: SaveTarget) => void;
@@ -66,16 +65,17 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   version: 1,
   nodeOutputs: {},
   isRunning: false,
-  runWorkflow: async () => {
-    const { nodes, edges, isRunning } = get();
-    if (isRunning) {
+  runWorkflow: async (target) => {
+    if (get().isRunning) {
       return;
     }
     set({ isRunning: true, nodeOutputs: {} });
     try {
-      await runWorkflow(nodes, edges, (nodeId, output) => {
-        set({ nodeOutputs: { ...get().nodeOutputs, [nodeId]: output } });
+      const outputs = await convex.action(api.runWorkflow.runWorkflow, {
+        workspaceName: target.workspaceName,
+        workflowId: target.workflowId,
       });
+      set({ nodeOutputs: outputs });
     } catch (error) {
       toast.add({
         type: 'error',

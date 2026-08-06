@@ -8,11 +8,11 @@
  * @module
  */
 
-import type * as ai from "../ai.js";
 import type * as auth from "../auth.js";
 import type * as canvas from "../canvas.js";
 import type * as folders from "../folders.js";
 import type * as http from "../http.js";
+import type * as runWorkflow from "../run-workflow.js";
 import type * as users from "../users.js";
 import type * as workflows from "../workflows.js";
 import type * as workspaces from "../workspaces.js";
@@ -24,11 +24,11 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
-  ai: typeof ai;
   auth: typeof auth;
   canvas: typeof canvas;
   folders: typeof folders;
   http: typeof http;
+  runWorkflow: typeof runWorkflow;
   users: typeof users;
   workflows: typeof workflows;
   workspaces: typeof workspaces;

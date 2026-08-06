@@ -1,6 +1,6 @@
 import { CircleArrowRightIcon, CpuIcon, SendIcon } from 'lucide-react';
 
-import type { NodeGroup } from '../_types';
+import type { NodeGroup } from '@/lib/node-specs';
 import type { LucideIcon } from 'lucide-react';
 
 /** Label and icon per node group. */

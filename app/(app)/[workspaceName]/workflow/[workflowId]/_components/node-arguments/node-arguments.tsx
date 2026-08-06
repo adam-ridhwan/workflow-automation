@@ -1,6 +1,7 @@
 'use client';
 
-import { findNodeSpec } from '../../_lib/get-node-spec';
+import { findNodeSpec } from '@/lib/node-specs';
+
 import { NodeArgumentsField } from './node-arguments-field';
 
 import type { WorkflowNodeData } from '@/convex/canvas';

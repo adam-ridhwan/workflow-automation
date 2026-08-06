@@ -2,12 +2,12 @@
 
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/cn';
+import { findNodeSpec } from '@/lib/node-specs';
 import { Position } from '@xyflow/react';
 import { CircleIcon } from 'lucide-react';
 
 import { NODE_GROUP_META } from '../../_constants/node-groups';
 import { NODE_META } from '../../_constants/node-meta';
-import { findNodeSpec } from '../../_lib/get-node-spec';
 import { useCanvasStore } from '../../_store/canvas-store';
 import { NodeArguments } from '../node-arguments/node-arguments';
 import { WorkflowCanvasNodeToolbar } from './workflow-canvas-node-toolbar';
