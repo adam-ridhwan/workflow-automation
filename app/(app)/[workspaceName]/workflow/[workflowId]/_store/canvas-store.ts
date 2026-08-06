@@ -11,7 +11,11 @@ import { toCanvasData, WORKFLOW_EDGE, WORKFLOW_NODE } from '../_lib/normalize';
 import { organizeCanvasLayout } from '../_lib/organize-canvas-layout';
 
 import type { Id } from '@/convex/_generated/dataModel';
-import type { WorkflowEdgeData, WorkflowNodeData } from '@/convex/canvas';
+import type {
+  WorkflowAnnotation,
+  WorkflowEdgeData,
+  WorkflowNodeData,
+} from '@/convex/canvas';
 import type {
   Connection,
   Edge,
@@ -47,7 +51,10 @@ interface CanvasState {
   ) => void;
   organizeNodes: (target: SaveTarget) => void;
   setNodeArgument: (nodeId: string, name: string, value: unknown) => void;
-  setNodeAnnotation: (nodeId: string, annotation: string | undefined) => void;
+  setNodeAnnotation: (
+    nodeId: string,
+    annotation: WorkflowAnnotation | undefined
+  ) => void;
   cloneNode: (target: SaveTarget, nodeId: string) => void;
   deleteNode: (target: SaveTarget, nodeId: string) => void;
   setNodes: (nodes: Node<WorkflowNodeData>[]) => void;

@@ -1,5 +1,13 @@
 import { Infer, v } from 'convex/values';
 
+export const workflowAnnotationValidator = v.object({
+  text: v.string(),
+  size: v.union(v.literal('sm'), v.literal('md'), v.literal('lg')),
+  bold: v.boolean(),
+  italic: v.boolean(),
+  align: v.union(v.literal('left'), v.literal('center'), v.literal('right')),
+});
+
 export const workflowNodeValidator = v.object({
   node_id: v.string(),
   node_uid: v.string(),
@@ -8,7 +16,7 @@ export const workflowNodeValidator = v.object({
   parents: v.array(v.string()),
   children: v.array(v.string()),
   position: v.optional(v.object({ x: v.number(), y: v.number() })),
-  annotation: v.optional(v.string()),
+  annotation: v.optional(workflowAnnotationValidator),
 });
 
 export const workflowEdgeValidator = v.object({
@@ -24,5 +32,6 @@ export const workflowCanvasValidator = v.object({
 });
 
 export type WorkflowNodeData = Infer<typeof workflowNodeValidator>;
+export type WorkflowAnnotation = Infer<typeof workflowAnnotationValidator>;
 export type WorkflowEdgeData = Infer<typeof workflowEdgeValidator>;
 export type WorkflowCanvasData = Infer<typeof workflowCanvasValidator>;

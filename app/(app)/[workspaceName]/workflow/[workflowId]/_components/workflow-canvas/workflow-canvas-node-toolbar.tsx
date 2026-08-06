@@ -11,6 +11,7 @@ import { CopyIcon, StickyNoteIcon, Trash2Icon } from 'lucide-react';
 import { useCanvasStore } from '../../_store/canvas-store';
 import { useWorkflowId } from '../../../../_hooks/use-workflow-id';
 import { useWorkspaceName } from '../../../../_hooks/use-workspace-name';
+import { DEFAULT_ANNOTATION } from './workflow-canvas-node-annotation-bar';
 
 type WorkflowCanvasNodeToolbarProps = {
   nodeId: string;
@@ -33,7 +34,10 @@ export function WorkflowCanvasNodeToolbar({
   );
 
   return (
-    <div className='nodrag hidden shrink-0 items-center group-hover/node:flex'>
+    <div
+      className='nodrag hidden shrink-0 items-center group-hover/node:flex
+        group-has-[[data-annotation]:hover]/node:hidden'
+    >
       {!hasAnnotation && (
         <Tooltip>
           <TooltipTrigger
@@ -44,7 +48,7 @@ export function WorkflowCanvasNodeToolbar({
                 aria-label='Add note'
                 disabled={isRunning}
                 onClick={() => {
-                  setNodeAnnotation(nodeId, '');
+                  setNodeAnnotation(nodeId, DEFAULT_ANNOTATION);
                 }}
               >
                 <StickyNoteIcon className='text-muted-foreground' />

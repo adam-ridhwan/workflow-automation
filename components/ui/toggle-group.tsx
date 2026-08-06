@@ -74,7 +74,8 @@ function ToggleGroupItem({
       data-size={context.size || size}
       data-spacing={context.spacing}
       className={cn(
-        `shrink-0 group-data-[spacing=0]/toggle-group:rounded-none
+        `shrink-0 cursor-pointer
+        group-data-[spacing=0]/toggle-group:rounded-none
         group-data-[spacing=0]/toggle-group:px-2 focus:z-10 focus-visible:z-10
         group-data-[spacing=0]/toggle-group:has-data-[icon=inline-end]:pr-1.5
         group-data-[spacing=0]/toggle-group:has-data-[icon=inline-start]:pl-1.5
