@@ -54,7 +54,10 @@ const onConnect = useCanvasStore((s) => s.onConnect);
   `@/components/ui/` — never from native HTML elements. `<button>` →
   `<Button>`, `<input>` → `<Input>`, `<select>` → `<Select>`, `<label>` →
   `<Label>`, `<hr>` → `<Separator>`, `<table>` → `<Table>`, container
-  panels → `<Card>`.
+  panels → `<Card>`, status pills / chips / tags → `<Badge>`.
+- This applies to styled divs/spans too: if the markup reproduces what an
+  existing shadcn component renders (a pill, a card, a separator), compose
+  that component with className overrides instead of rebuilding it.
 - If the needed component isn't in `components/ui/` yet, add it with
   `pnpm dlx shadcn@latest add <name>` instead of hand-rolling a native
   element.

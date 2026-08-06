@@ -7,8 +7,9 @@ import { Position } from '@xyflow/react';
 import { CircleIcon } from 'lucide-react';
 
 import { NODE_META } from '../../_constants/node-meta';
-import { useCanvasStore } from '../../_store/canvas-store';
+import { useWorkflowRun } from '../../_hooks/use-workflow-run';
 import { NodeArguments } from '../node-arguments/node-arguments';
+import { WorkflowCanvasNodeStatus } from './workflow-canvas-node-status';
 import { WorkflowCanvasNodeToolbar } from './workflow-canvas-node-toolbar';
 import { WorkflowCanvasPort } from './workflow-canvas-port';
 
@@ -29,7 +30,8 @@ export function WorkflowCanvasNode({
   const hasInPort = (nodeSpec?.node_requirement.max_in_edges ?? 1) > 0;
   const hasOutPort = (nodeSpec?.node_requirement.max_out_edges ?? 1) > 0;
 
-  const output = useCanvasStore((s) => s.nodeOutputs[id]);
+  const run = useWorkflowRun();
+  const output = run?.nodeOutputs[id];
   const isDisplayNode = data.node_uid === DISPLAY_NODE_UID;
 
   return (
@@ -40,6 +42,8 @@ export function WorkflowCanvasNode({
         selected && 'ring-primary'
       )}
     >
+      <WorkflowCanvasNodeStatus nodeId={id} />
+
       {hasInPort && (
         <WorkflowCanvasPort
           type='target'

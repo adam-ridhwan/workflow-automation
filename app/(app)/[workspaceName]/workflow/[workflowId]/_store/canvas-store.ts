@@ -31,7 +31,6 @@ interface CanvasState {
   nodes: Node<WorkflowNodeData>[];
   edges: Edge<WorkflowEdgeData>[];
   version: number;
-  nodeOutputs: Record<string, string>;
   isRunning: boolean;
   helperLineHorizontal: number | undefined;
   helperLineVertical: number | undefined;
@@ -63,20 +62,19 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   nodes: [],
   edges: [],
   version: 1,
-  nodeOutputs: {},
   isRunning: false,
   runWorkflow: async (target) => {
     if (get().isRunning) {
       return;
     }
-    set({ isRunning: true, nodeOutputs: {} });
+    set({ isRunning: true });
     try {
-      const outputs = await convex.action(api.runWorkflow.runWorkflow, {
+      // Statuses and outputs stream in via the runs subscription.
+      await convex.action(api.runWorkflow.run, {
         workspaceName: target.workspaceName,
         workflowId: target.workflowId,
       });
-      console.log(outputs);
-      set({ nodeOutputs: outputs });
+      toast.add({ type: 'success', title: 'Workflow ran successfully.' });
     } catch (error) {
       toast.add({
         type: 'error',

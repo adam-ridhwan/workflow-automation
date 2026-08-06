@@ -12,7 +12,8 @@ import type * as auth from "../auth.js";
 import type * as canvas from "../canvas.js";
 import type * as folders from "../folders.js";
 import type * as http from "../http.js";
-import type * as runWorkflow from "../run-workflow.js";
+import type * as runWorkflow from "../runWorkflow.js";
+import type * as runs from "../runs.js";
 import type * as users from "../users.js";
 import type * as workflows from "../workflows.js";
 import type * as workspaces from "../workspaces.js";
@@ -29,6 +30,7 @@ declare const fullApi: ApiFromModules<{
   folders: typeof folders;
   http: typeof http;
   runWorkflow: typeof runWorkflow;
+  runs: typeof runs;
   users: typeof users;
   workflows: typeof workflows;
   workspaces: typeof workspaces;

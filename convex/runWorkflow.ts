@@ -9,7 +9,7 @@ import { action } from './_generated/server';
 
 import type { WorkflowCanvasData, WorkflowNodeData } from './canvas';
 
-export const runWorkflow = action({
+export const run = action({
   args: { workspaceName: v.string(), workflowId: v.id('workflows') },
   returns: v.record(v.string(), v.string()),
   handler: async (ctx, args) => {
@@ -18,11 +18,29 @@ export const runWorkflow = action({
       throw new ConvexError('Workflow not found.');
     }
 
+    await ctx.runMutation(internal.runs.start, {
+      workflowId: args.workflowId,
+    });
+    const setNodeStatus = (
+      nodeId: string,
+      status: 'running' | 'success' | 'error',
+      output?: string
+    ) =>
+      ctx.runMutation(internal.runs.setNodeStatus, {
+        workflowId: args.workflowId,
+        nodeId,
+        status,
+        output,
+      });
+
     try {
-      const outputs = await executeCanvas(workflow.canvas);
+      const outputs = await executeCanvas(workflow.canvas, setNodeStatus);
       await ctx.runMutation(internal.workflows.recordRun, {
         workflowId: args.workflowId,
         success: true,
+      });
+      await ctx.scheduler.runAfter(1000, internal.runs.clearStatuses, {
+        workflowId: args.workflowId,
       });
       return outputs;
     } catch (error) {
@@ -41,7 +59,14 @@ export const runWorkflow = action({
  * parents' output, and every other node passes its input through — which is
  * what output nodes display. Returns each node's output keyed by node_id.
  */
-async function executeCanvas(canvas: WorkflowCanvasData) {
+async function executeCanvas(
+  canvas: WorkflowCanvasData,
+  setNodeStatus: (
+    nodeId: string,
+    status: 'running' | 'success' | 'error',
+    output?: string
+  ) => Promise<null>
+) {
   const nodes = Object.values(canvas.nodes);
   const edges = canvas.edges;
 
@@ -87,27 +112,34 @@ async function executeCanvas(canvas: WorkflowCanvasData) {
       .filter((output) => output !== undefined && output !== '')
       .join('\n');
 
+    await setNodeStatus(node.node_id, 'running');
     let output = input;
-    const spec = findNodeSpec(node.node_uid);
-    switch (spec?.node_info.node_type) {
-      case 'TEXT_INPUT':
-        output = String(getArgumentValue(node, 'value') ?? '');
-        break;
-      case 'FILE_INPUT':
-        output = String(getArgumentValue(node, 'content') ?? '');
-        break;
-      case 'WEBHOOK':
-        output = String(getArgumentValue(node, 'payload') ?? '');
-        break;
-      case 'LLM':
-        output = await runLlmNode(node, input);
-        break;
-      default:
-        // Output nodes (and unknown nodes) pass their input through.
-        break;
+    try {
+      const spec = findNodeSpec(node.node_uid);
+      switch (spec?.node_info.node_type) {
+        case 'TEXT_INPUT':
+          output = String(getArgumentValue(node, 'value') ?? '');
+          break;
+        case 'FILE_INPUT':
+          output = String(getArgumentValue(node, 'content') ?? '');
+          break;
+        case 'WEBHOOK':
+          output = String(getArgumentValue(node, 'payload') ?? '');
+          break;
+        case 'LLM':
+          output = await runLlmNode(node, input);
+          break;
+        default:
+          // Output nodes (and unknown nodes) pass their input through.
+          break;
+      }
+    } catch (error) {
+      await setNodeStatus(node.node_id, 'error');
+      throw error;
     }
 
     outputs[node.node_id] = output;
+    await setNodeStatus(node.node_id, 'success', output);
   }
   return outputs;
 }

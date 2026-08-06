@@ -45,6 +45,17 @@ export default defineSchema({
     .index('parent', ['workspaceId', 'parentId'])
     .index('parentName', ['workspaceId', 'parentId', 'name']),
 
+  /** Latest run per workflow: per-node statuses and outputs, updated live
+   * by the runWorkflow action and streamed to clients via subscriptions. */
+  runs: defineTable({
+    workflowId: v.id('workflows'),
+    nodeStatuses: v.record(
+      v.string(),
+      v.union(v.literal('running'), v.literal('success'), v.literal('error'))
+    ),
+    nodeOutputs: v.record(v.string(), v.string()),
+  }).index('workflow', ['workflowId']),
+
   workflows: defineTable({
     workspaceId: v.id('workspaces'),
     name: v.string(),
