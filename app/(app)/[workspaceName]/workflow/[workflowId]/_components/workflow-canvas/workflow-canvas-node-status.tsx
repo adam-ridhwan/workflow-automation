@@ -49,7 +49,7 @@ export function WorkflowCanvasNodeStatus({
     <Badge
       variant='secondary'
       className='menu-inverted bg-popover text-popover-foreground
-        ring-foreground/10 absolute -top-2.5 right-2 z-10 text-[11px] shadow-md
+        ring-foreground/10 absolute top-2 right-2 z-10 text-[11px] shadow-md
         ring-1 backdrop-blur-xl'
     >
       <meta.icon

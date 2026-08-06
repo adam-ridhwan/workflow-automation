@@ -45,6 +45,7 @@ export function WorkflowCanvasNode({
       )}
     >
       <WorkflowCanvasNodeAnnotation nodeId={id} data={data} />
+
       <WorkflowCanvasNodeStatus nodeId={id} />
 
       {hasInPort && (
