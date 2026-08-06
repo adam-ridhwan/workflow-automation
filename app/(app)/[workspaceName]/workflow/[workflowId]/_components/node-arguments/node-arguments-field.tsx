@@ -1,6 +1,7 @@
 'use client';
 
 import { Label } from '@/components/ui/label';
+import { getArgumentValue } from '@/lib/node-specs';
 
 import { BooleanField } from './boolean/default/boolean-field';
 import { NumberField } from './number/default/number-field';
@@ -28,6 +29,12 @@ export function NodeArgumentsField({
   argument,
 }: NodeArgumentsFieldProps) {
   const fieldId = `arg-${nodeId}-${argument.name}`;
+
+  // Sub-argument that depends on this argument's current value (e.g. `model`
+  // under the selected `provider`).
+  const childArgument = argument.have_sub_arguments
+    ? argument.children[String(getArgumentValue(data, argument.name) ?? '')]
+    : undefined;
 
   function renderControl() {
     if (argument.have_options && argument.options) {
@@ -78,13 +85,23 @@ export function NodeArgumentsField({
   }
 
   return (
-    <div className='flex flex-col gap-1 px-3 py-1.5'>
-      <Label htmlFor={fieldId} className='text-muted-foreground text-xs'>
-        {formatLabel(argument.name)}
-        {argument.is_required && <span className='text-destructive'>*</span>}
-      </Label>
+    <>
+      <div className='flex flex-col gap-1 px-3 py-1.5'>
+        <Label htmlFor={fieldId} className='text-muted-foreground text-xs'>
+          {formatLabel(argument.name)}
+          {argument.is_required && <span className='text-destructive'>*</span>}
+        </Label>
 
-      {renderControl()}
-    </div>
+        {renderControl()}
+      </div>
+
+      {childArgument && (
+        <NodeArgumentsField
+          nodeId={nodeId}
+          data={data}
+          argument={childArgument}
+        />
+      )}
+    </>
   );
 }

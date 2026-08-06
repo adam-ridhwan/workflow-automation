@@ -164,34 +164,61 @@ export const NODE_SPECS = {
       node_arguments: [
         {
           argument_type: 'TEXT',
-          children: {},
+          children: {
+            anthropic: {
+              argument_type: 'TEXT',
+              children: {},
+              default_value: 'claude-sonnet-5',
+              have_options: true,
+              have_sub_arguments: false,
+              is_deprecated: false,
+              is_hidden: false,
+              is_list: false,
+              is_required: false,
+              name: 'model',
+              options: [
+                'claude-sonnet-5',
+                'claude-haiku-4-5-20251001',
+                'claude-opus-4-8',
+                'claude-fable-5',
+              ],
+            },
+            openai: {
+              argument_type: 'TEXT',
+              children: {},
+              default_value: 'gpt-4o',
+              have_options: true,
+              have_sub_arguments: false,
+              is_deprecated: false,
+              is_hidden: false,
+              is_list: false,
+              is_required: false,
+              name: 'model',
+              options: ['gpt-4o', 'gpt-4o-mini', 'o1'],
+            },
+            deepseek: {
+              argument_type: 'TEXT',
+              children: {},
+              default_value: 'deepseek-chat',
+              have_options: true,
+              have_sub_arguments: false,
+              is_deprecated: false,
+              is_hidden: false,
+              is_list: false,
+              is_required: false,
+              name: 'model',
+              options: ['deepseek-chat', 'deepseek-reasoner'],
+            },
+          },
           default_value: 'anthropic',
           have_options: true,
-          have_sub_arguments: false,
+          have_sub_arguments: true,
           is_deprecated: false,
           is_hidden: false,
           is_list: false,
           is_required: true,
           name: 'provider',
           options: ['anthropic', 'openai', 'deepseek'],
-        },
-        {
-          argument_type: 'TEXT',
-          children: {},
-          default_value: 'claude-sonnet-5',
-          have_options: true,
-          have_sub_arguments: false,
-          is_deprecated: false,
-          is_hidden: false,
-          is_list: false,
-          is_required: false,
-          name: 'model',
-          options: [
-            'claude-sonnet-5',
-            'claude-haiku-4-5-20251001',
-            'claude-opus-4-8',
-            'claude-fable-5',
-          ],
         },
         {
           argument_type: 'TEXT',
@@ -234,92 +261,6 @@ export const NODE_SPECS = {
         node_group: 'MODEL',
         node_type: 'LLM',
         node_uid: 'N_005',
-      },
-      node_requirement: {
-        max_in_edges: 100,
-        max_out_edges: 100,
-        min_in_edges: 1,
-        min_out_edges: 1,
-        valid_inputs: ['INPUT', 'MODEL'],
-        valid_outputs: ['MODEL', 'OUTPUT'],
-      },
-      out_edge_arguments: [],
-    },
-    EMBEDDING: {
-      in_edge_arguments: [],
-      node_arguments: [
-        {
-          argument_type: 'TEXT',
-          children: {},
-          default_value: 'text-embedding-3-small',
-          have_options: false,
-          have_sub_arguments: false,
-          is_deprecated: false,
-          is_hidden: false,
-          is_list: false,
-          is_required: false,
-          name: 'model',
-        },
-        {
-          argument_type: 'TEXT',
-          children: {},
-          default_value: 'text',
-          have_options: false,
-          have_sub_arguments: false,
-          is_deprecated: false,
-          is_hidden: false,
-          is_list: false,
-          is_required: false,
-          name: 'input_column',
-        },
-      ],
-      node_info: {
-        node_group: 'MODEL',
-        node_type: 'EMBEDDING',
-        node_uid: 'N_006',
-      },
-      node_requirement: {
-        max_in_edges: 100,
-        max_out_edges: 100,
-        min_in_edges: 1,
-        min_out_edges: 1,
-        valid_inputs: ['INPUT', 'MODEL'],
-        valid_outputs: ['MODEL', 'OUTPUT'],
-      },
-      out_edge_arguments: [],
-    },
-    CLASSIFIER: {
-      in_edge_arguments: [],
-      node_arguments: [
-        {
-          argument_type: 'TEXT',
-          children: {},
-          default_value: 'positive,negative,neutral',
-          have_options: false,
-          have_sub_arguments: false,
-          is_deprecated: false,
-          is_hidden: false,
-          is_list: false,
-          is_required: true,
-          name: 'labels',
-        },
-        {
-          argument_type: 'TEXT',
-          children: {},
-          default_value: 'text',
-          have_options: false,
-          have_sub_arguments: false,
-          is_deprecated: false,
-          is_hidden: false,
-          is_list: false,
-          is_required: false,
-          name: 'input_column',
-        },
-      ],
-      node_info: {
-        node_group: 'MODEL',
-        node_type: 'CLASSIFIER',
-        node_uid: 'N_007',
       },
       node_requirement: {
         max_in_edges: 100,
@@ -384,15 +325,42 @@ export function findNodeSpec(nodeUid: string): NodeSpec | undefined {
   return specsByUid.get(nodeUid);
 }
 
+/** Finds an argument's spec default by name, descending into sub-arguments
+ * along the currently-selected parent value (so `model`'s default matches the
+ * chosen `provider`). */
+function findArgumentDefault(
+  data: WorkflowNodeData,
+  args: NodeArgument[] | undefined,
+  name: string
+): unknown {
+  for (const argument of args ?? []) {
+    if (argument.name === name) {
+      return argument.default_value;
+    }
+    if (argument.have_sub_arguments) {
+      const parentValue = String(
+        data.arguments[argument.name] ?? argument.default_value ?? ''
+      );
+      const child = argument.children[parentValue];
+      if (child) {
+        const found = findArgumentDefault(data, [child], name);
+        if (found !== undefined) {
+          return found;
+        }
+      }
+    }
+  }
+  return undefined;
+}
+
 /** A node's stored argument value, falling back to the spec default when the
  * node has never set one. A stored empty string counts as a value — matching
  * what the argument fields display — so clearing a field doesn't silently
- * revert to the default. */
+ * revert to the default. Resolves sub-argument defaults (e.g. `model`) through
+ * the selected parent value. */
 export function getArgumentValue(data: WorkflowNodeData, name: string) {
   return (
     data.arguments[name] ??
-    findNodeSpec(data.node_uid)?.node_arguments.find(
-      (argument) => argument.name === name
-    )?.default_value
+    findArgumentDefault(data, findNodeSpec(data.node_uid)?.node_arguments, name)
   );
 }
