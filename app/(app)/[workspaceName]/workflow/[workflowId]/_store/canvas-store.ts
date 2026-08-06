@@ -45,6 +45,7 @@ interface CanvasState {
   onNodesChange: (changes: NodeChange[]) => void;
   onEdgesChange: (changes: EdgeChange[]) => void;
   onConnect: (connection: Connection, target: SaveTarget) => void;
+  deleteEdge: (target: SaveTarget, edgeId: string) => void;
   saveWorkflow: (target: SaveTarget) => void;
   addNode: (
     target: SaveTarget,
@@ -150,6 +151,10 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
       },
     };
     set({ edges: addEdge(edge, get().edges) });
+    get().saveWorkflow(target);
+  },
+  deleteEdge: (target, edgeId) => {
+    set({ edges: get().edges.filter((edge) => edge.id !== edgeId) });
     get().saveWorkflow(target);
   },
   saveWorkflow: (target) => {
