@@ -3,8 +3,7 @@
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
 import { useCanvasStore } from '../../../../_store/canvas-store';
-import { useWorkflowId } from '../../../../../../_hooks/use-workflow-id';
-import { useWorkspaceName } from '../../../../../../_hooks/use-workspace-name';
+import { useRequiredWorkspaceParams } from '../../../../../../_hooks/use-workspace-params';
 
 import type { WorkflowNodeData } from '@/convex/canvas';
 import type { NodeArgument } from '@/lib/node-specs';
@@ -22,8 +21,7 @@ export function BooleanField({
   data,
   argument,
 }: BooleanFieldProps) {
-  const workflowId = useWorkflowId();
-  const workspaceName = useWorkspaceName();
+  const { workspaceName, workflowId } = useRequiredWorkspaceParams();
   const setNodeArgument = useCanvasStore((s) => s.setNodeArgument);
   const isRunning = useCanvasStore((s) => s.isRunning);
   const saveWorkflow = useCanvasStore((s) => s.saveWorkflow);

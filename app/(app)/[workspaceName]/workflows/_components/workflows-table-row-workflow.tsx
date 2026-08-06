@@ -28,7 +28,7 @@ import {
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
-import { useWorkspaceName } from '../../_hooks/use-workspace-name';
+import { useWorkspaceParams } from '../../_hooks/use-workspace-params';
 
 import type { DragData } from '../../_components/workspace-dnd-provider';
 import type { Workflow } from '@/convex/workflows';
@@ -39,7 +39,7 @@ type WorkflowRowProps = {
 };
 
 export function WorkflowRow({ workflow, onDelete }: WorkflowRowProps) {
-  const workspaceName = useWorkspaceName();
+  const { workspaceName } = useWorkspaceParams();
   const router = useRouter();
   const renameWorkflow = useMutation(api.workflows.rename);
   const [isRenaming, setIsRenaming] = useState(false);

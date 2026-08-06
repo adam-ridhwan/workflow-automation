@@ -15,7 +15,7 @@ import { api } from '@/convex/_generated/api';
 import { useMutation } from 'convex/react';
 import { useRouter } from 'next/navigation';
 
-import { useWorkspaceName } from '../_hooks/use-workspace-name';
+import { useWorkspaceParams } from '../_hooks/use-workspace-params';
 
 import type { Folder } from '@/convex/folders';
 
@@ -28,7 +28,7 @@ export function DeleteFolderDialog({
   folder,
   onOpenChange,
 }: DeleteFolderDialogProps) {
-  const workspaceName = useWorkspaceName();
+  const { workspaceName } = useWorkspaceParams();
   const removeFolder = useMutation(api.folders.remove);
   const router = useRouter();
   const [deleting, setDeleting] = useState(false);

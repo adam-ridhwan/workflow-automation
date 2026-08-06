@@ -15,7 +15,7 @@ import { api } from '@/convex/_generated/api';
 import { useMutation } from 'convex/react';
 import { useRouter } from 'next/navigation';
 
-import { useWorkspaceName } from '../../_hooks/use-workspace-name';
+import { useWorkspaceParams } from '../../_hooks/use-workspace-params';
 
 import type { Workflow } from '@/convex/workflows';
 
@@ -28,7 +28,7 @@ export function DeleteWorkflowDialog({
   workflow,
   onOpenChange,
 }: DeleteWorkflowDialogProps) {
-  const workspaceName = useWorkspaceName();
+  const { workspaceName } = useWorkspaceParams();
   const removeWorkflow = useMutation(api.workflows.remove);
   const router = useRouter();
   const [deleting, setDeleting] = useState(false);

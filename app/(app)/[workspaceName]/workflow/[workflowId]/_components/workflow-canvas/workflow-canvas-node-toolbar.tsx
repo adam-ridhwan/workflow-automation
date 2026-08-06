@@ -9,8 +9,7 @@ import {
 import { CopyIcon, StickyNoteIcon, Trash2Icon } from 'lucide-react';
 
 import { useCanvasStore } from '../../_store/canvas-store';
-import { useWorkflowId } from '../../../../_hooks/use-workflow-id';
-import { useWorkspaceName } from '../../../../_hooks/use-workspace-name';
+import { useRequiredWorkspaceParams } from '../../../../_hooks/use-workspace-params';
 import { DEFAULT_ANNOTATION } from './workflow-canvas-node-annotation-bar';
 
 type WorkflowCanvasNodeToolbarProps = {
@@ -22,8 +21,7 @@ type WorkflowCanvasNodeToolbarProps = {
 export function WorkflowCanvasNodeToolbar({
   nodeId,
 }: WorkflowCanvasNodeToolbarProps) {
-  const workflowId = useWorkflowId();
-  const workspaceName = useWorkspaceName();
+  const { workspaceName, workflowId } = useRequiredWorkspaceParams();
   const cloneNode = useCanvasStore((s) => s.cloneNode);
   const deleteNode = useCanvasStore((s) => s.deleteNode);
   const setNodeAnnotation = useCanvasStore((s) => s.setNodeAnnotation);

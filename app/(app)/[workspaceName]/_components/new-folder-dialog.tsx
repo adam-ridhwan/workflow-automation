@@ -17,7 +17,7 @@ import { useMutation } from 'convex/react';
 import { ConvexError } from 'convex/values';
 import { useRouter } from 'next/navigation';
 
-import { useWorkspaceName } from '../_hooks/use-workspace-name';
+import { useWorkspaceParams } from '../_hooks/use-workspace-params';
 
 import type { Folder } from '@/convex/folders';
 
@@ -32,7 +32,7 @@ export function NewFolderDialog({
   open,
   onOpenChange,
 }: NewFolderDialogProps) {
-  const workspaceName = useWorkspaceName();
+  const { workspaceName } = useWorkspaceParams();
   const createFolder = useMutation(api.folders.create);
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);

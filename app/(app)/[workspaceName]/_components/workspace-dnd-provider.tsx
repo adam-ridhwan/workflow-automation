@@ -17,7 +17,7 @@ import { ConvexError } from 'convex/values';
 import { FolderIcon, WorkflowIcon } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 
-import { useWorkspaceName } from '../_hooks/use-workspace-name';
+import { useWorkspaceParams } from '../_hooks/use-workspace-params';
 
 import type { Folder } from '@/convex/folders';
 import type { Workflow } from '@/convex/workflows';
@@ -58,7 +58,7 @@ type WorkspaceDndProviderProps = {
  * breadcrumb trail can act as drop targets. */
 export function WorkspaceDndProvider({ children }: WorkspaceDndProviderProps) {
   const router = useRouter();
-  const workspaceName = useWorkspaceName();
+  const { workspaceName } = useWorkspaceParams();
   // Present on /workflows/folder/[folderId] routes; the location items are
   // moved from, so Undo knows where to put them back.
   const params = useParams<{ folderId?: Folder['_id'] }>();

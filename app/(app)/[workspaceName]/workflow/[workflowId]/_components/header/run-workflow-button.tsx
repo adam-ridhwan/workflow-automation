@@ -6,14 +6,12 @@ import { Loader2Icon, PlayIcon } from 'lucide-react';
 
 import { validateWorkflow } from '../../_lib/validate-workflow';
 import { useCanvasStore } from '../../_store/canvas-store';
-import { useWorkflowId } from '../../../../_hooks/use-workflow-id';
-import { useWorkspaceName } from '../../../../_hooks/use-workspace-name';
+import { useRequiredWorkspaceParams } from '../../../../_hooks/use-workspace-params';
 
 /** Header button that runs the whole canvas workflow. Disabled while the
  * workflow is running or misconfigured per the node specs. */
 export function RunWorkflowButton() {
-  const workflowId = useWorkflowId();
-  const workspaceName = useWorkspaceName();
+  const { workspaceName, workflowId } = useRequiredWorkspaceParams();
   const runWorkflow = useCanvasStore((s) => s.runWorkflow);
   const isRunning = useCanvasStore((s) => s.isRunning);
   const nodes = useCanvasStore((s) => s.nodes);

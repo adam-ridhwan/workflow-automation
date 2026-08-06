@@ -17,7 +17,7 @@ import { useMutation } from 'convex/react';
 import { ConvexError } from 'convex/values';
 import { useRouter } from 'next/navigation';
 
-import { useWorkspaceName } from '../_hooks/use-workspace-name';
+import { useWorkspaceParams } from '../_hooks/use-workspace-params';
 
 type AddMemberDialogProps = {
   open: boolean;
@@ -25,7 +25,7 @@ type AddMemberDialogProps = {
 };
 
 export function AddMemberDialog({ open, onOpenChange }: AddMemberDialogProps) {
-  const workspaceName = useWorkspaceName();
+  const { workspaceName } = useWorkspaceParams();
   const addMember = useMutation(api.workspaces.addMember);
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);

@@ -11,8 +11,7 @@ import {
 } from 'lucide-react';
 
 import { useCanvasStore } from '../../_store/canvas-store';
-import { useWorkflowId } from '../../../../_hooks/use-workflow-id';
-import { useWorkspaceName } from '../../../../_hooks/use-workspace-name';
+import { useRequiredWorkspaceParams } from '../../../../_hooks/use-workspace-params';
 
 import type { WorkflowAnnotation, WorkflowNodeData } from '@/convex/canvas';
 
@@ -35,8 +34,7 @@ export function WorkflowCanvasNodeAnnotationBar({
   nodeId,
   data,
 }: WorkflowCanvasNodeAnnotationBarProps) {
-  const workflowId = useWorkflowId();
-  const workspaceName = useWorkspaceName();
+  const { workspaceName, workflowId } = useRequiredWorkspaceParams();
   const setNodeAnnotation = useCanvasStore((s) => s.setNodeAnnotation);
   const saveWorkflow = useCanvasStore((s) => s.saveWorkflow);
 
@@ -55,8 +53,8 @@ export function WorkflowCanvasNodeAnnotationBar({
       onMouseDown={(e) => {
         e.preventDefault();
       }}
-      className='bg-card ring-foreground/10 mb-1 hidden w-full items-center
-        justify-between gap-1 rounded-md p-0.5 shadow-sm ring-1
+      className='bg-card ring-foreground/10 mb-2 hidden w-full items-center
+        justify-between gap-1 rounded-md p-0.5 ring-1
         group-focus-within/annotation:flex'
     >
       <ToggleGroup

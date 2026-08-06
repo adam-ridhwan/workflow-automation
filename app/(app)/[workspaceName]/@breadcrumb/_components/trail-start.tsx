@@ -7,14 +7,14 @@ import { useDroppable } from '@dnd-kit/core';
 import { HomeIcon } from 'lucide-react';
 import Link from 'next/link';
 
-import { useWorkspaceName } from '../../_hooks/use-workspace-name';
+import { useWorkspaceParams } from '../../_hooks/use-workspace-params';
 
 import type { DropTargetData } from '../../_components/workspace-dnd-provider';
 
 /** Leading separator + home link, rendered only when a trail exists. Also a
  * drop target for moving items back to the workspace root. */
 export function TrailStart() {
-  const workspaceName = useWorkspaceName();
+  const { workspaceName } = useWorkspaceParams();
   const { setNodeRef, isOver } = useDroppable({
     id: 'trail-home',
     data: {

@@ -27,7 +27,7 @@ import {
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
-import { useWorkspaceName } from '../../_hooks/use-workspace-name';
+import { useWorkspaceParams } from '../../_hooks/use-workspace-params';
 
 import type {
   DragData,
@@ -41,7 +41,7 @@ type FolderRowProps = {
 };
 
 export function FolderRow({ folder, onDelete }: FolderRowProps) {
-  const workspaceName = useWorkspaceName();
+  const { workspaceName } = useWorkspaceParams();
   const router = useRouter();
   const renameFolder = useMutation(api.folders.rename);
   const [isRenaming, setIsRenaming] = useState(false);

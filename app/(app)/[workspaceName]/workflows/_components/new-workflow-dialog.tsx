@@ -17,7 +17,7 @@ import { useMutation } from 'convex/react';
 import { ConvexError } from 'convex/values';
 import { useRouter } from 'next/navigation';
 
-import { useWorkspaceName } from '../../_hooks/use-workspace-name';
+import { useWorkspaceParams } from '../../_hooks/use-workspace-params';
 
 import type { Folder } from '@/convex/folders';
 
@@ -32,7 +32,7 @@ export function NewWorkflowDialog({
   open,
   onOpenChange,
 }: NewWorkflowDialogProps) {
-  const workspaceName = useWorkspaceName();
+  const { workspaceName } = useWorkspaceParams();
   const createWorkflow = useMutation(api.workflows.create);
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);

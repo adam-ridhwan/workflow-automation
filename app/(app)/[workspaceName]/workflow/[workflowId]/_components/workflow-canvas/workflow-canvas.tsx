@@ -12,8 +12,7 @@ import { Background, BackgroundVariant, ReactFlow } from '@xyflow/react';
 import { WORKFLOW_EDGE, WORKFLOW_NODE } from '../../_lib/normalize';
 import { NODE_DIMENSIONS } from '../../_lib/organize-canvas-layout';
 import { useCanvasStore } from '../../_store/canvas-store';
-import { useWorkflowId } from '../../../../_hooks/use-workflow-id';
-import { useWorkspaceName } from '../../../../_hooks/use-workspace-name';
+import { useRequiredWorkspaceParams } from '../../../../_hooks/use-workspace-params';
 import { CanvasPalette } from '../canvas-palette/canvas-palette';
 import { NodeDragPreview } from '../node-palette/node-drag-preview';
 import { NodePalette } from '../node-palette/node-palette';
@@ -41,8 +40,7 @@ type WorkflowCanvasProps = {
 };
 
 export function WorkflowCanvas({ canvas }: WorkflowCanvasProps) {
-  const workflowId = useWorkflowId();
-  const workspaceName = useWorkspaceName();
+  const { workspaceName, workflowId } = useRequiredWorkspaceParams();
   const wrapperRef = useRef<HTMLDivElement>(null);
   const reactFlowInstance = useRef<ReactFlowInstance<
     Node<WorkflowNodeData>,

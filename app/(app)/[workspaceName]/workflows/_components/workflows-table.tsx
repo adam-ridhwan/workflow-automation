@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Table } from '@/components/ui/table';
 
 import { DeleteFolderDialog } from '../../_components/delete-folder-dialog';
-import { useWorkspaceName } from '../../_hooks/use-workspace-name';
+import { useWorkspaceParams } from '../../_hooks/use-workspace-params';
 import { DeleteWorkflowDialog } from './delete-workflow-dialog';
 import { WorkflowsTableBody } from './workflows-table-body';
 
@@ -22,7 +22,7 @@ export function WorkflowsTable({
   folders,
   isFiltered,
 }: WorkflowsTableProps) {
-  const workspaceName = useWorkspaceName();
+  const { workspaceName } = useWorkspaceParams();
   const [deleteTarget, setDeleteTarget] = useState<Workflow | null>(null);
   const [folderDeleteTarget, setFolderDeleteTarget] = useState<Folder | null>(
     null

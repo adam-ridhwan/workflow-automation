@@ -3,8 +3,7 @@
 import { Input } from '@/components/ui/input';
 
 import { useCanvasStore } from '../../../../_store/canvas-store';
-import { useWorkflowId } from '../../../../../../_hooks/use-workflow-id';
-import { useWorkspaceName } from '../../../../../../_hooks/use-workspace-name';
+import { useRequiredWorkspaceParams } from '../../../../../../_hooks/use-workspace-params';
 import { PromptField } from '../custom/prompt-field';
 
 import type { WorkflowNodeData } from '@/convex/canvas';
@@ -18,8 +17,7 @@ type TextFieldProps = {
 };
 
 export function TextField({ fieldId, nodeId, data, argument }: TextFieldProps) {
-  const workflowId = useWorkflowId();
-  const workspaceName = useWorkspaceName();
+  const { workspaceName, workflowId } = useRequiredWorkspaceParams();
   const setNodeArgument = useCanvasStore((s) => s.setNodeArgument);
   const isRunning = useCanvasStore((s) => s.isRunning);
   const saveWorkflow = useCanvasStore((s) => s.saveWorkflow);
