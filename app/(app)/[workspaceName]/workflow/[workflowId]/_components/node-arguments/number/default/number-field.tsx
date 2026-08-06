@@ -25,6 +25,7 @@ export function NumberField({
   const workflowId = useWorkflowId();
   const workspaceName = useWorkspaceName();
   const setNodeArgument = useCanvasStore((s) => s.setNodeArgument);
+  const isRunning = useCanvasStore((s) => s.isRunning);
   const saveWorkflow = useCanvasStore((s) => s.saveWorkflow);
 
   const value = data.arguments[argument.name] ?? argument.default_value;
@@ -35,6 +36,7 @@ export function NumberField({
     <Input
       id={fieldId}
       type='number'
+      disabled={isRunning}
       value={stringValue}
       onChange={(event) => {
         setNodeArgument(nodeId, argument.name, event.target.value);

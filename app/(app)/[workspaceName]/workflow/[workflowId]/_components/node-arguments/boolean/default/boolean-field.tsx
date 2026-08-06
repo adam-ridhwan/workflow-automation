@@ -25,6 +25,7 @@ export function BooleanField({
   const workflowId = useWorkflowId();
   const workspaceName = useWorkspaceName();
   const setNodeArgument = useCanvasStore((s) => s.setNodeArgument);
+  const isRunning = useCanvasStore((s) => s.isRunning);
   const saveWorkflow = useCanvasStore((s) => s.saveWorkflow);
 
   const value = data.arguments[argument.name] ?? argument.default_value;
@@ -33,6 +34,7 @@ export function BooleanField({
   return (
     <ToggleGroup
       id={fieldId}
+      disabled={isRunning}
       variant='outline'
       size='sm'
       spacing={0}

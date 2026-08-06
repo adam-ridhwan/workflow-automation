@@ -75,6 +75,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
         workspaceName: target.workspaceName,
         workflowId: target.workflowId,
       });
+      console.log(outputs);
       set({ nodeOutputs: outputs });
     } catch (error) {
       toast.add({

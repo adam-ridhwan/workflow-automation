@@ -31,6 +31,7 @@ export function SelectField({
   const workflowId = useWorkflowId();
   const workspaceName = useWorkspaceName();
   const setNodeArgument = useCanvasStore((s) => s.setNodeArgument);
+  const isRunning = useCanvasStore((s) => s.isRunning);
   const saveWorkflow = useCanvasStore((s) => s.saveWorkflow);
 
   const value = data.arguments[argument.name] ?? argument.default_value;
@@ -39,6 +40,7 @@ export function SelectField({
 
   return (
     <Select
+      disabled={isRunning}
       value={stringValue}
       onValueChange={(next) => {
         setNodeArgument(nodeId, argument.name, next);
