@@ -1,14 +1,29 @@
 import { ConvexError, Infer, v } from 'convex/values';
 
 import { internal } from './_generated/api';
-import { internalMutation, mutation, query } from './_generated/server';
+import {
+  internalMutation,
+  internalQuery,
+  mutation,
+  query,
+} from './_generated/server';
 import { workflowCanvasValidator } from './canvas';
 import { getMemberWorkspaceByName } from './workspaces';
 
-export const runStatusValidator = v.union(
+/** Per-node status. */
+export const nodeStatusValidator = v.union(
   v.literal('running'),
   v.literal('success'),
   v.literal('error')
+);
+export type NodeStatus = Infer<typeof nodeStatusValidator>;
+
+/** Overall run status (adds `stopped` for user-cancelled runs). */
+export const runStatusValidator = v.union(
+  v.literal('running'),
+  v.literal('success'),
+  v.literal('error'),
+  v.literal('stopped')
 );
 export type RunStatus = Infer<typeof runStatusValidator>;
 
@@ -18,7 +33,8 @@ const runHistoryValidator = v.object({
   workflowId: v.id('workflows'),
   canvas: workflowCanvasValidator,
   status: runStatusValidator,
-  nodeStatuses: v.optional(v.record(v.string(), runStatusValidator)),
+  stopRequested: v.optional(v.boolean()),
+  nodeStatuses: v.optional(v.record(v.string(), nodeStatusValidator)),
   nodeOutputs: v.record(v.string(), v.string()),
   error: v.optional(v.string()),
   startedAt: v.number(),
@@ -129,12 +145,49 @@ export const startRerun = mutation({
   },
 });
 
+/** Requests that the workflow's latest running run stop. The executor checks
+ * this between nodes. */
+export const stopRun = mutation({
+  args: { workspaceName: v.string(), workflowId: v.id('workflows') },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const workspace = await getMemberWorkspaceByName(ctx, args.workspaceName);
+    if (workspace === null) {
+      throw new ConvexError('Workspace not found.');
+    }
+    const workflow = await ctx.db.get(args.workflowId);
+    if (workflow === null || workflow.workspaceId !== workspace._id) {
+      throw new ConvexError('Workflow not found.');
+    }
+    // The newest run is the one currently executing, if any.
+    const latest = await ctx.db
+      .query('runHistory')
+      .withIndex('workflow', (q) => q.eq('workflowId', args.workflowId))
+      .order('desc')
+      .first();
+    if (latest !== null && latest.status === 'running') {
+      await ctx.db.patch(latest._id, { stopRequested: true });
+    }
+    return null;
+  },
+});
+
+/** Whether a stop has been requested for a run (checked mid-execution). */
+export const isStopRequested = internalQuery({
+  args: { runHistoryId: v.id('runHistory') },
+  returns: v.boolean(),
+  handler: async (ctx, args) => {
+    const run = await ctx.db.get(args.runHistoryId);
+    return run?.stopRequested ?? false;
+  },
+});
+
 /** Updates one node's status on the history record as the run progresses. */
 export const setNodeStatus = internalMutation({
   args: {
     runHistoryId: v.id('runHistory'),
     nodeId: v.string(),
-    status: runStatusValidator,
+    status: nodeStatusValidator,
   },
   returns: v.null(),
   handler: async (ctx, args) => {

@@ -18,7 +18,7 @@ import { CanvasModeContext } from '../workflow-canvas/canvas-mode-context';
 import { WorkflowCanvasEdge } from '../workflow-canvas/workflow-canvas-edge';
 import { WorkflowCanvasNode } from '../workflow-canvas/workflow-canvas-node';
 
-import type { RunHistory, RunStatus } from '@/convex/runHistory';
+import type { NodeStatus, RunHistory } from '@/convex/runHistory';
 
 import '@xyflow/react/dist/style.css';
 
@@ -40,7 +40,7 @@ export function RunHistoryCanvas({ run }: RunHistoryCanvasProps) {
     if (run.nodeStatuses !== undefined) {
       return run.nodeStatuses;
     }
-    const statuses: Record<string, RunStatus> = {};
+    const statuses: Record<string, NodeStatus> = {};
     for (const nodeId of Object.keys(run.nodeOutputs)) {
       statuses[nodeId] = 'success';
     }

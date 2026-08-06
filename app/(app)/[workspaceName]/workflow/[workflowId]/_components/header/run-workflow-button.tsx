@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Loader2Icon, PlayIcon } from 'lucide-react';
+import { Loader2Icon, PlayIcon, SquareIcon } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 
 import { validateWorkflow } from '../../_lib/validate-workflow';
@@ -23,16 +23,38 @@ export function RunWorkflowButton() {
     ? (runHistoryMatch[1] as Id<'runHistory'>)
     : undefined;
   const runWorkflow = useCanvasStore((s) => s.runWorkflow);
+  const stopWorkflow = useCanvasStore((s) => s.stopWorkflow);
   const isRunning = useCanvasStore((s) => s.isRunning);
+  const isStopping = useCanvasStore((s) => s.isStopping);
   const nodes = useCanvasStore((s) => s.nodes);
   const edges = useCanvasStore((s) => s.edges);
 
   const errors = useMemo(() => validateWorkflow(nodes, edges), [nodes, edges]);
   const isRerun = runHistoryId !== undefined;
 
+  if (isRunning) {
+    return (
+      <Button
+        variant='destructive'
+        disabled={isStopping}
+        onClick={() => {
+          stopWorkflow({ workspaceName, workflowId });
+        }}
+        className='w-36 gap-1.5'
+      >
+        {isStopping ? (
+          <Loader2Icon className='size-3.5 animate-spin' />
+        ) : (
+          <SquareIcon className='size-3.5' />
+        )}
+        {isStopping ? 'Stopping…' : 'Stop'}
+      </Button>
+    );
+  }
+
   return (
     <Button
-      disabled={isRunning || (!isRerun && errors.length > 0)}
+      disabled={!isRerun && errors.length > 0}
       title={isRerun ? undefined : errors[0]}
       onClick={async () => {
         const newRunId = await runWorkflow(
@@ -48,12 +70,8 @@ export function RunWorkflowButton() {
       }}
       className='w-36 gap-1.5'
     >
-      {isRunning ? (
-        <Loader2Icon className='size-3.5 animate-spin' />
-      ) : (
-        <PlayIcon className='size-3.5' />
-      )}
-      {isRunning ? 'Running…' : 'Run Workflow'}
+      <PlayIcon className='size-3.5' />
+      Run Workflow
     </Button>
   );
 }

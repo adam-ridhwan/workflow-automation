@@ -36,12 +36,14 @@ interface CanvasState {
   edges: Edge<WorkflowEdgeData>[];
   version: number;
   isRunning: boolean;
+  isStopping: boolean;
   helperLineHorizontal: number | undefined;
   helperLineVertical: number | undefined;
   runWorkflow: (
     target: SaveTarget,
     fromRunHistoryId?: Id<'runHistory'>
   ) => Promise<Id<'runHistory'> | undefined>;
+  stopWorkflow: (target: SaveTarget) => Promise<void>;
   onNodesChange: (changes: NodeChange[]) => void;
   onEdgesChange: (changes: EdgeChange[]) => void;
   onConnect: (connection: Connection, target: SaveTarget) => void;
@@ -75,11 +77,12 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   edges: [],
   version: 1,
   isRunning: false,
+  isStopping: false,
   runWorkflow: async (target, fromRunHistoryId) => {
     if (get().isRunning) {
       return undefined;
     }
-    set({ isRunning: true });
+    set({ isRunning: true, isStopping: false });
     try {
       if (fromRunHistoryId !== undefined) {
         // Re-run in the background; returns the new run id immediately so the
@@ -94,7 +97,12 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
         workspaceName: target.workspaceName,
         workflowId: target.workflowId,
       });
-      toast.add({ type: 'success', title: 'Workflow ran successfully.' });
+      // A stopped run returns normally too — don't claim success.
+      if (get().isStopping) {
+        toast.add({ type: 'info', title: 'Workflow stopped.' });
+      } else {
+        toast.add({ type: 'success', title: 'Workflow ran successfully.' });
+      }
       return runHistoryId;
     } catch (error) {
       toast.add({
@@ -104,7 +112,20 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
       });
       return undefined;
     } finally {
-      set({ isRunning: false });
+      set({ isRunning: false, isStopping: false });
+    }
+  },
+  stopWorkflow: async (target) => {
+    // Stays true until the run actually finishes (runWorkflow's finally).
+    set({ isStopping: true });
+    try {
+      await convex.mutation(api.runHistory.stopRun, {
+        workspaceName: target.workspaceName,
+        workflowId: target.workflowId,
+      });
+    } catch {
+      set({ isStopping: false });
+      toast.add({ type: 'error', title: 'Could not stop the run.' });
     }
   },
   helperLineHorizontal: undefined,

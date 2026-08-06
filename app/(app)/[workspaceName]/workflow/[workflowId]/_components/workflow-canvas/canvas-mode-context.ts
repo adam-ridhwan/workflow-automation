@@ -2,10 +2,10 @@
 
 import { createContext, useContext } from 'react';
 
-import type { RunStatus } from '@/convex/runHistory';
+import type { NodeStatus } from '@/convex/runHistory';
 
 export type CanvasRun = {
-  nodeStatuses: Record<string, RunStatus>;
+  nodeStatuses: Record<string, NodeStatus>;
   nodeOutputs: Record<string, string>;
 };
 

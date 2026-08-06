@@ -80,8 +80,17 @@ export const execute = internalAction({
       return null;
     };
 
+    const checkStop = () =>
+      ctx.runQuery(internal.runHistory.isStopRequested, {
+        runHistoryId: args.runHistoryId,
+      });
+
     try {
-      const outputs = await executeCanvas(args.canvas, setNodeStatus);
+      const outputs = await executeCanvas(
+        args.canvas,
+        setNodeStatus,
+        checkStop
+      );
       await ctx.runMutation(internal.workflows.recordRun, {
         workflowId: args.workflowId,
         success: true,
@@ -92,15 +101,20 @@ export const execute = internalAction({
         nodeOutputs: outputs,
       });
     } catch (error) {
+      const stopped = error instanceof StopError;
       await ctx.runMutation(internal.workflows.recordRun, {
         workflowId: args.workflowId,
         success: false,
       });
       await ctx.runMutation(internal.runHistory.finish, {
         runHistoryId: args.runHistoryId,
-        status: 'error',
+        status: stopped ? 'stopped' : 'error',
         nodeOutputs: {},
-        error: error instanceof Error ? error.message : 'The run failed.',
+        error: stopped
+          ? undefined
+          : error instanceof Error
+            ? error.message
+            : 'The run failed.',
       });
     }
     return null;
@@ -151,8 +165,15 @@ export const run = action({
       return null;
     };
 
+    const checkStop = () =>
+      ctx.runQuery(internal.runHistory.isStopRequested, { runHistoryId });
+
     try {
-      const outputs = await executeCanvas(workflow.canvas, setNodeStatus);
+      const outputs = await executeCanvas(
+        workflow.canvas,
+        setNodeStatus,
+        checkStop
+      );
       await ctx.runMutation(internal.workflows.recordRun, {
         workflowId: args.workflowId,
         success: true,
@@ -167,16 +188,29 @@ export const run = action({
       });
       return runHistoryId;
     } catch (error) {
+      const stopped = error instanceof StopError;
       await ctx.runMutation(internal.workflows.recordRun, {
         workflowId: args.workflowId,
         success: false,
       });
       await ctx.runMutation(internal.runHistory.finish, {
         runHistoryId,
-        status: 'error',
+        status: stopped ? 'stopped' : 'error',
         nodeOutputs: {},
-        error: error instanceof Error ? error.message : 'The run failed.',
+        error: stopped
+          ? undefined
+          : error instanceof Error
+            ? error.message
+            : 'The run failed.',
       });
+      await ctx.scheduler.runAfter(1000, internal.runs.clearStatuses, {
+        workflowId: args.workflowId,
+      });
+      // A user-requested stop isn't an error — return normally so the client
+      // doesn't show a failure toast.
+      if (stopped) {
+        return runHistoryId;
+      }
       throw error;
     }
   },
@@ -188,13 +222,17 @@ export const run = action({
  * parents' output, and every other node passes its input through — which is
  * what output nodes display. Returns each node's output keyed by node_id.
  */
+/** Thrown by the executor when a stop was requested mid-run. */
+class StopError extends Error {}
+
 async function executeCanvas(
   canvas: WorkflowCanvasData,
   setNodeStatus: (
     nodeId: string,
     status: 'running' | 'success' | 'error',
     output?: string
-  ) => Promise<null>
+  ) => Promise<null>,
+  checkStop: () => Promise<boolean>
 ) {
   const nodes = Object.values(canvas.nodes);
   const edges = canvas.edges;
@@ -236,6 +274,10 @@ async function executeCanvas(
 
   const outputs: Record<string, string> = {};
   for (const node of order) {
+    if (await checkStop()) {
+      throw new StopError();
+    }
+
     const input = (parents.get(node.node_id) ?? [])
       .map((parentId) => outputs[parentId])
       .filter((output) => output !== undefined && output !== '')

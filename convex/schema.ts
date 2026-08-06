@@ -64,8 +64,10 @@ export default defineSchema({
     status: v.union(
       v.literal('running'),
       v.literal('success'),
-      v.literal('error')
+      v.literal('error'),
+      v.literal('stopped')
     ),
+    stopRequested: v.optional(v.boolean()),
     nodeStatuses: v.optional(
       v.record(
         v.string(),

@@ -11,6 +11,7 @@ import { useQuery } from 'convex/react';
 import {
   ChevronDownIcon,
   CircleCheckIcon,
+  CircleSlashIcon,
   CircleXIcon,
   HistoryIcon,
   Loader2Icon,
@@ -31,6 +32,7 @@ const STATUS_META: Record<RunStatus, { icon: LucideIcon; className: string }> =
       className: 'text-emerald-600 dark:text-emerald-400',
     },
     error: { icon: CircleXIcon, className: 'text-destructive' },
+    stopped: { icon: CircleSlashIcon, className: 'text-muted-foreground' },
   };
 
 function formatTime(ms: number) {
