@@ -20,6 +20,7 @@ export function WorkflowCanvasNodeToolbar({
   const workspaceName = useWorkspaceName();
   const cloneNode = useCanvasStore((s) => s.cloneNode);
   const deleteNode = useCanvasStore((s) => s.deleteNode);
+  const isRunning = useCanvasStore((s) => s.isRunning);
 
   return (
     <div className='nodrag hidden shrink-0 items-center group-hover/node:flex'>
@@ -27,6 +28,7 @@ export function WorkflowCanvasNodeToolbar({
         variant='ghost'
         size='icon-xs'
         aria-label='Clone node'
+        disabled={isRunning}
         onClick={() => {
           cloneNode({ workspaceName, workflowId }, nodeId);
         }}
@@ -37,6 +39,7 @@ export function WorkflowCanvasNodeToolbar({
         variant='ghost'
         size='icon-xs'
         aria-label='Delete node'
+        disabled={isRunning}
         onClick={() => {
           deleteNode({ workspaceName, workflowId }, nodeId);
         }}
