@@ -147,6 +147,8 @@ export function WorkflowCanvas({ canvas }: WorkflowCanvasProps) {
               onNodeDragStop={onNodeDragStop}
               onInit={onInit}
               selectNodesOnDrag={false}
+              fitView
+              fitViewOptions={{ maxZoom: 1 }}
               snapToGrid
               snapGrid={[12, 12]}
               proOptions={{ hideAttribution: true }}

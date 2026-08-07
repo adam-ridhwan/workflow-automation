@@ -147,17 +147,7 @@ export const create = mutation({
       folderId: args.folderId,
       ownerId: membership.userId,
       canvas: {
-        nodes: {
-          start: {
-            node_id: 'start',
-            node_uid: crypto.randomUUID(),
-            name: 'Start',
-            arguments: {},
-            parents: [],
-            children: [],
-            position: { x: 0, y: 0 },
-          },
-        },
+        nodes: {},
         edges: [],
         version: 1,
       },
