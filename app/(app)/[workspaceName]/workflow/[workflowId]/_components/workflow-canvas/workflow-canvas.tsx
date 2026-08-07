@@ -153,7 +153,11 @@ export function WorkflowCanvas({ canvas }: WorkflowCanvasProps) {
               snapGrid={[12, 12]}
               proOptions={{ hideAttribution: true }}
             >
-              <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
+              <Background
+                variant={BackgroundVariant.Dots}
+                gap={50}
+                size={1.5}
+              />
               <WorkflowCanvasHelperLines />
               <CanvasPalette />
             </ReactFlow>
