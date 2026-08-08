@@ -9,6 +9,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Separator } from '@/components/ui/separator';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { Panel, useReactFlow, useViewport } from '@xyflow/react';
 import { MinusIcon, NetworkIcon, PlusIcon } from 'lucide-react';
 
@@ -30,18 +35,25 @@ export function CanvasPalette() {
           ring-foreground/10 flex items-center gap-1 rounded-lg p-1 shadow-md
           ring-1 backdrop-blur-xl'
       >
-        <Button
-          type='button'
-          variant='ghost'
-          size='icon-sm'
-          className='text-primary'
-          aria-label='Zoom out'
-          onClick={() => {
-            zoomOut({ duration: 200 });
-          }}
-        >
-          <MinusIcon />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                type='button'
+                variant='ghost'
+                size='icon-sm'
+                className='text-primary'
+                aria-label='Zoom out'
+                onClick={() => {
+                  zoomOut({ duration: 200 });
+                }}
+              >
+                <MinusIcon />
+              </Button>
+            }
+          />
+          <TooltipContent side='top'>Zoom out</TooltipContent>
+        </Tooltip>
 
         <DropdownMenu>
           <DropdownMenuTrigger
@@ -79,36 +91,50 @@ export function CanvasPalette() {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <Button
-          type='button'
-          variant='ghost'
-          size='icon-sm'
-          className='text-primary'
-          aria-label='Zoom in'
-          onClick={() => {
-            zoomIn({ duration: 200 });
-          }}
-        >
-          <PlusIcon />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                type='button'
+                variant='ghost'
+                size='icon-sm'
+                className='text-primary'
+                aria-label='Zoom in'
+                onClick={() => {
+                  zoomIn({ duration: 200 });
+                }}
+              >
+                <PlusIcon />
+              </Button>
+            }
+          />
+          <TooltipContent side='top'>Zoom in</TooltipContent>
+        </Tooltip>
 
         <Separator
           orientation='vertical'
           className='mx-0.5 data-vertical:h-4 data-vertical:self-auto'
         />
 
-        <Button
-          type='button'
-          variant='ghost'
-          size='icon-sm'
-          className='text-primary'
-          aria-label='Auto layout'
-          onClick={() => {
-            organizeNodes({ workspaceName, workflowId });
-          }}
-        >
-          <NetworkIcon />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                type='button'
+                variant='ghost'
+                size='icon-sm'
+                className='text-primary'
+                aria-label='Auto layout'
+                onClick={() => {
+                  organizeNodes({ workspaceName, workflowId });
+                }}
+              >
+                <NetworkIcon />
+              </Button>
+            }
+          />
+          <TooltipContent side='top'>Auto layout</TooltipContent>
+        </Tooltip>
       </div>
     </Panel>
   );
