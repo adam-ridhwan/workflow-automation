@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Background,
   BackgroundVariant,
@@ -14,7 +14,9 @@ import {
   WORKFLOW_EDGE,
   WORKFLOW_NODE,
 } from '../../_lib/normalize';
+import { NodeArgumentsPanel } from '../node-arguments/node-arguments-panel';
 import { CanvasModeContext } from '../workflow-canvas/canvas-mode-context';
+import { DisplayOutputPanel } from '../workflow-canvas/display-output-panel';
 import { WorkflowCanvasEdge } from '../workflow-canvas/workflow-canvas-edge';
 import { WorkflowCanvasNode } from '../workflow-canvas/workflow-canvas-node';
 
@@ -31,7 +33,9 @@ type RunHistoryCanvasProps = {
 
 /** Read-only canvas showing a single historical run's snapshot and outputs. */
 export function RunHistoryCanvas({ run }: RunHistoryCanvasProps) {
-  const nodes = useMemo(() => toFlowNodes(run.canvas), [run.canvas]);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+
+  const baseNodes = useMemo(() => toFlowNodes(run.canvas), [run.canvas]);
   const edges = useMemo(() => toFlowEdges(run.canvas), [run.canvas]);
 
   // Per-node statuses recorded live during the run; older runs without them
@@ -46,6 +50,18 @@ export function RunHistoryCanvas({ run }: RunHistoryCanvasProps) {
     }
     return statuses;
   }, [run.nodeStatuses, run.nodeOutputs]);
+
+  // React Flow doesn't manage selection here (elementsSelectable is off), so
+  // drive it locally off node clicks to open the side panels.
+  const nodes = useMemo(
+    () =>
+      baseNodes.map((node) => ({
+        ...node,
+        selected: node.id === selectedNodeId,
+      })),
+    [baseNodes, selectedNodeId]
+  );
+  const selectedNode = nodes.find((node) => node.id === selectedNodeId) ?? null;
 
   return (
     <CanvasModeContext.Provider
@@ -64,11 +80,19 @@ export function RunHistoryCanvas({ run }: RunHistoryCanvasProps) {
             nodesDraggable={false}
             nodesConnectable={false}
             elementsSelectable={false}
+            onNodeClick={(_, node) => {
+              setSelectedNodeId(node.id);
+            }}
+            onPaneClick={() => {
+              setSelectedNodeId(null);
+            }}
             fitView
             proOptions={{ hideAttribution: true }}
           >
             <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
           </ReactFlow>
+          <NodeArgumentsPanel node={selectedNode} />
+          <DisplayOutputPanel node={selectedNode} />
         </div>
       </ReactFlowProvider>
     </CanvasModeContext.Provider>

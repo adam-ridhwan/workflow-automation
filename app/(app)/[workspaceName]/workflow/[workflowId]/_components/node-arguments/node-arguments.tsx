@@ -24,10 +24,7 @@ export function NodeArguments({ nodeId, data }: NodeArgumentsProps) {
   }
 
   return (
-    <div
-      className='nodrag border-border flex cursor-default flex-col border-t
-        pb-1'
-    >
+    <div className='nodrag flex cursor-default flex-col pb-1'>
       {visibleArguments.map((argument) => (
         <NodeArgumentsField
           key={argument.name}
