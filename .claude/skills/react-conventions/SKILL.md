@@ -1,6 +1,6 @@
 ---
 name: react-conventions
-description: React component structure conventions for this codebase — one component per file, props naming, export style, and where util files live. Use when creating or refactoring any React component or utility file.
+description: React component structure conventions for this codebase — one component per file, props naming, export style, where util files live, and blank line between switch case arms. Use when creating or refactoring any React component or utility file.
 ---
 
 # Components
@@ -80,6 +80,28 @@ import type { Node, NodeProps } from '@xyflow/react';
 - Don't mix values and types in one statement — pull types into their own
   `import type` line (prettier sorts them into the separate types group at
   the bottom of the imports).
+
+# Switch statements
+
+- Separate every `case` arm with a blank line, including before `default` —
+  this applies to the render/dispatch switches inside components (e.g. a
+  field `renderControl`), not just plain modules:
+
+```tsx
+switch (argument.argument_type) {
+  case 'NUMBER':
+    return <NumberField {...fieldProps} />;
+
+  case 'BOOLEAN':
+    return <BooleanField {...fieldProps} />;
+
+  case 'TEXT':
+    return <TextField {...fieldProps} />;
+
+  default:
+    return <div>Not implemented</div>;
+}
+```
 
 # Util files
 

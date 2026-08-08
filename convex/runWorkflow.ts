@@ -291,15 +291,19 @@ async function executeCanvas(
         case 'TEXT_INPUT':
           output = String(getArgumentValue(node, 'text_input') ?? '');
           break;
+
         case 'FILE_INPUT':
           output = String(getArgumentValue(node, 'content') ?? '');
           break;
+
         case 'WEBHOOK':
           output = String(getArgumentValue(node, 'payload') ?? '');
           break;
+
         case 'LLM':
           output = await runLlmNode(node, input);
           break;
+
         default:
           // Output nodes (and unknown nodes) pass their input through.
           break;
