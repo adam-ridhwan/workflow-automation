@@ -2,6 +2,7 @@
 
 import { Input } from '@/components/ui/input';
 
+import { useArgumentField } from '../../../../_hooks/use-argument-field';
 import { useCanvasStore } from '../../../../_store/canvas-store';
 import { useWorkspaceParams } from '../../../../../../_hooks/use-workspace-params';
 import { useCanvasMode } from '../../../workflow-canvas/canvas-mode-context';
@@ -19,7 +20,6 @@ type TextFieldProps = {
 
 export function TextField({ fieldId, nodeId, data, argument }: TextFieldProps) {
   const { workspaceName, workflowId } = useWorkspaceParams();
-  const setNodeArgument = useCanvasStore((s) => s.setNodeArgument);
   const isRunning = useCanvasStore((s) => s.isRunning);
   const { readOnly } = useCanvasMode();
   const saveWorkflow = useCanvasStore((s) => s.saveWorkflow);
@@ -27,6 +27,11 @@ export function TextField({ fieldId, nodeId, data, argument }: TextFieldProps) {
   const value = data.arguments[argument.name] ?? argument.default_value;
   const stringValue =
     value === undefined || value === null ? '' : String(value);
+  const field = useArgumentField({
+    nodeId,
+    name: argument.name,
+    externalValue: stringValue,
+  });
 
   switch (argument.name) {
     case 'prompt':
@@ -45,11 +50,13 @@ export function TextField({ fieldId, nodeId, data, argument }: TextFieldProps) {
           id={fieldId}
           type='text'
           disabled={isRunning || readOnly}
-          value={stringValue}
+          value={field.value}
           onChange={(event) => {
-            setNodeArgument(nodeId, argument.name, event.target.value);
+            field.onChange(event.target.value);
           }}
+          onFocus={field.onFocus}
           onBlur={() => {
+            field.onBlur();
             saveWorkflow({ workspaceName, workflowId });
           }}
           className='h-7 rounded-md text-[13px]'

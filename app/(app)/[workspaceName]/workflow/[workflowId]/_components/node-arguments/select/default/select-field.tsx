@@ -65,7 +65,9 @@ export function SelectField({
       <SelectTrigger id={fieldId} size='sm' className='w-full'>
         <SelectValue />
       </SelectTrigger>
-      <SelectContent>
+      {/* Anchor below the trigger instead of overlaying the selected item on
+          it — the canvas zoom transform throws off that overlap positioning. */}
+      <SelectContent alignItemWithTrigger={false}>
         {(argument.options ?? []).map((option) => (
           <SelectItem key={option} value={option}>
             {option}

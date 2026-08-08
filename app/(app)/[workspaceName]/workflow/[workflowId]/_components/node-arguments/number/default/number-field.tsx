@@ -2,6 +2,7 @@
 
 import { Input } from '@/components/ui/input';
 
+import { useArgumentField } from '../../../../_hooks/use-argument-field';
 import { useCanvasStore } from '../../../../_store/canvas-store';
 import { useWorkspaceParams } from '../../../../../../_hooks/use-workspace-params';
 import { useCanvasMode } from '../../../workflow-canvas/canvas-mode-context';
@@ -31,17 +32,24 @@ export function NumberField({
   const value = data.arguments[argument.name] ?? argument.default_value;
   const stringValue =
     value === undefined || value === null ? '' : String(value);
+  const field = useArgumentField({
+    nodeId,
+    name: argument.name,
+    externalValue: stringValue,
+  });
 
   return (
     <Input
       id={fieldId}
       type='number'
       disabled={isRunning || readOnly}
-      value={stringValue}
+      value={field.value}
       onChange={(event) => {
-        setNodeArgument(nodeId, argument.name, event.target.value);
+        field.onChange(event.target.value);
       }}
+      onFocus={field.onFocus}
       onBlur={(event) => {
+        field.onBlur();
         const parsed = Number(event.target.value);
         if (event.target.value !== '' && !Number.isNaN(parsed)) {
           setNodeArgument(nodeId, argument.name, parsed);

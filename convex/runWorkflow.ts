@@ -289,7 +289,7 @@ async function executeCanvas(
       const spec = findNodeSpec(node.node_uid);
       switch (spec?.node_info.node_type) {
         case 'TEXT_INPUT':
-          output = String(getArgumentValue(node, 'value') ?? '');
+          output = String(getArgumentValue(node, 'text_input') ?? '');
           break;
         case 'FILE_INPUT':
           output = String(getArgumentValue(node, 'content') ?? '');
@@ -338,7 +338,7 @@ async function runLlmNode(node: WorkflowNodeData, input: string) {
     max_tokens: Number(getArgumentValue(node, 'max_tokens')) || 1024,
     system: system || undefined,
     messages: [
-      { role: 'user', content: template.replaceAll('{{value}}', input) },
+      { role: 'user', content: template.replaceAll('{{text_input}}', input) },
     ],
   });
 
