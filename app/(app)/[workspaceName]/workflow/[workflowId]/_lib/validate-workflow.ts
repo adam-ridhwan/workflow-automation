@@ -49,6 +49,21 @@ function getArgumentProblem(argument: NodeArgument, value: unknown) {
   }
 }
 
+/** Whether the node has any required argument left empty. */
+export function hasUnresolvedArguments(data: WorkflowNodeData): boolean {
+  const spec = findNodeSpec(data.node_uid);
+  if (!spec) {
+    return false;
+  }
+  return spec.node_arguments.some((argument) => {
+    if (argument.is_hidden || argument.is_deprecated || !argument.is_required) {
+      return false;
+    }
+    const value = getArgumentValue(data, argument.name);
+    return value === undefined || value === null || value === '';
+  });
+}
+
 /**
  * Checks the canvas against the node specs: edge counts within each node's
  * requirement, group compatibility along every edge, and required arguments

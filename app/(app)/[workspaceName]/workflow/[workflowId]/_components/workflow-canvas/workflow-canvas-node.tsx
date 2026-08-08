@@ -1,12 +1,18 @@
 'use client';
 
 import { Card } from '@/components/ui/card';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { cn } from '@/lib/cn';
 import { findNodeSpec } from '@/lib/node-specs';
 import { Position } from '@xyflow/react';
-import { CircleIcon } from 'lucide-react';
+import { CircleIcon, TriangleAlertIcon } from 'lucide-react';
 
 import { NODE_META } from '../../_constants/node-meta';
+import { hasUnresolvedArguments } from '../../_lib/validate-workflow';
 import { WorkflowCanvasNodeAnnotation } from './workflow-canvas-node-annotation';
 import { WorkflowCanvasNodeStatus } from './workflow-canvas-node-status';
 import { WorkflowCanvasPort } from './workflow-canvas-port';
@@ -25,6 +31,7 @@ export function WorkflowCanvasNode({
   const nodeSpec = findNodeSpec(data.node_uid);
   const hasInPort = (nodeSpec?.node_requirement.max_in_edges ?? 1) > 0;
   const hasOutPort = (nodeSpec?.node_requirement.max_out_edges ?? 1) > 0;
+  const unresolved = hasUnresolvedArguments(data);
 
   return (
     <Card
@@ -59,9 +66,34 @@ export function WorkflowCanvasNode({
 
         <div className='flex min-w-0 flex-1 flex-col'>
           <div className='truncate text-[13px] font-medium'>{data.name}</div>
-          {meta?.description && (
-            <div className='text-muted-foreground truncate text-[11px]'>
-              {meta.description}
+          {(meta?.description || unresolved) && (
+            <div className='flex items-center gap-1'>
+              {meta?.description && (
+                <div
+                  className='text-muted-foreground min-w-0 flex-1 truncate
+                    text-[11px]'
+                >
+                  {meta.description}
+                </div>
+              )}
+
+              {unresolved && (
+                <Tooltip>
+                  <TooltipTrigger
+                    render={
+                      <span
+                        className='flex shrink-0 items-center'
+                        aria-label='Unresolved argument fields'
+                      />
+                    }
+                  >
+                    <TriangleAlertIcon className='size-3.5 text-amber-500' />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    This node has unresolved argument fields.
+                  </TooltipContent>
+                </Tooltip>
+              )}
             </div>
           )}
         </div>
