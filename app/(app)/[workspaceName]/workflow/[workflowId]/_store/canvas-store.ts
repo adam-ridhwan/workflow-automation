@@ -40,6 +40,7 @@ interface CanvasState {
   isStopping: boolean;
   canUndo: boolean;
   canRedo: boolean;
+  saveStatus: 'saved' | 'saving' | 'error';
   helperLineHorizontal: number | undefined;
   helperLineVertical: number | undefined;
   undo: (target: SaveTarget) => void;
@@ -85,6 +86,16 @@ const history = new CanvasHistoryService();
  * isn't recorded back into history as a fresh entry. */
 let isRestoring = false;
 
+/** Number of canvas saves currently in flight, so `saveStatus` only flips back
+ * to 'saved' once every pending write has settled. */
+let pendingSaves = 0;
+
+/** When the current run of saves started, and the minimum time to keep the
+ * "Saving…" badge up — the writes are near-instant, so without a floor the
+ * indicator just flashes. The real save is never slowed, only the badge. */
+let savingSince = 0;
+const MIN_SAVING_MS = 300;
+
 export const useCanvasStore = create<CanvasState>((set, get) => ({
   nodes: [],
   edges: [],
@@ -93,6 +104,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   isStopping: false,
   canUndo: false,
   canRedo: false,
+  saveStatus: 'saved',
   undo: (target) => {
     const snapshot = history.undo();
     if (snapshot === undefined) {
@@ -231,13 +243,38 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
       history.record({ nodes, edges });
       set({ canUndo: history.canUndo(), canRedo: history.canRedo() });
     }
+    if (pendingSaves === 0) {
+      savingSince = Date.now();
+    }
+    pendingSaves += 1;
+    set({ saveStatus: 'saving' });
     convex
       .mutation(api.workflows.updateCanvas, {
         workspaceName: target.workspaceName,
         workflowId: target.workflowId,
         canvas: toCanvasData(nodes, edges, version),
       })
+      .then(() => {
+        pendingSaves -= 1;
+        // Only the last write to settle clears the indicator, so it doesn't
+        // flicker to 'saved' while other edits are still saving. Hold it up
+        // for at least MIN_SAVING_MS so a near-instant save doesn't flash.
+        if (pendingSaves === 0) {
+          const remaining = MIN_SAVING_MS - (Date.now() - savingSince);
+          if (remaining <= 0) {
+            set({ saveStatus: 'saved' });
+          } else {
+            setTimeout(() => {
+              if (pendingSaves === 0) {
+                set({ saveStatus: 'saved' });
+              }
+            }, remaining);
+          }
+        }
+      })
       .catch(() => {
+        pendingSaves -= 1;
+        set({ saveStatus: 'error' });
         toast.add({
           type: 'error',
           title: 'Could not save the canvas. Please try again.',
