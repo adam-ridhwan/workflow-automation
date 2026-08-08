@@ -20,11 +20,7 @@ export function WorkflowHeaderActions() {
   const isLoading = workflow === undefined;
 
   if (isLoading) {
-    return (
-      <div className='ml-auto'>
-        <Skeleton className='h-5 w-100' />
-      </div>
-    );
+    return <Skeleton className='h-5 w-100' />;
   }
 
   if (!workflow) {
@@ -32,7 +28,7 @@ export function WorkflowHeaderActions() {
   }
 
   return (
-    <div className='ml-auto flex items-center gap-2'>
+    <div className='flex items-center gap-2'>
       <SaveIndicator />
       <WorkflowStatusBadge
         isPublished={workflow.isPublished}

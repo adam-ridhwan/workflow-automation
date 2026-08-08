@@ -26,7 +26,6 @@ export function WorkflowTabs() {
           router.push(`${base}/${next}`);
         }
       }}
-      className='absolute left-1/2 -translate-x-1/2'
     >
       <ToggleGroupItem value='canvas'>Canvas</ToggleGroupItem>
       <ToggleGroupItem value='run-history'>Runs</ToggleGroupItem>
