@@ -19,13 +19,35 @@ import { useWorkspaceParams } from '../../../../_hooks/use-workspace-params';
 
 type WorkflowStatusBadgeProps = {
   isPublished: boolean;
+  isOwner: boolean;
 };
 
-/** Publish-status pill in the workflow header. Clicking it opens a menu to
- * publish or unpublish. State comes from the header's shared query. */
-export function WorkflowStatusBadge({ isPublished }: WorkflowStatusBadgeProps) {
+/** Publish-status pill in the workflow header. Owners get a dropdown to publish
+ * or unpublish; everyone else sees a read-only badge. State comes from the
+ * header's shared query. */
+export function WorkflowStatusBadge({
+  isPublished,
+  isOwner,
+}: WorkflowStatusBadgeProps) {
   const { workspaceName, workflowId } = useWorkspaceParams();
   const setPublished = useMutation(api.workflows.setPublished);
+
+  const colorClassName = isPublished
+    ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+    : 'bg-muted text-muted-foreground';
+
+  // Only the owner may change the published state (also guarded in the backend).
+  if (!isOwner) {
+    return (
+      <Badge
+        variant='secondary'
+        className={cn('gap-1.5 rounded-full', colorClassName)}
+      >
+        <span className='size-1.25 rounded-full bg-current' />
+        {isPublished ? 'Published' : 'Unpublished'}
+      </Badge>
+    );
+  }
 
   async function handleSelect(nextPublished: boolean) {
     if (nextPublished === isPublished) {
@@ -62,10 +84,10 @@ export function WorkflowStatusBadge({ isPublished }: WorkflowStatusBadgeProps) {
             aria-label='Publish status'
             className={cn(
               'cursor-pointer gap-1.5 rounded-full',
+              colorClassName,
               isPublished
-                ? `bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/25
-                  dark:text-emerald-400`
-                : 'bg-muted text-muted-foreground hover:bg-muted-foreground/15'
+                ? 'hover:bg-emerald-500/25'
+                : 'hover:bg-muted-foreground/15'
             )}
           />
         }

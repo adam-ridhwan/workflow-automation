@@ -6,6 +6,7 @@ import {
   getMemberWorkspaceByName,
   getWorkspaceByNameOrThrow,
   requireMember,
+  requireUserId,
 } from './workspaces';
 
 import type { Id } from './_generated/dataModel';
@@ -22,6 +23,9 @@ const workflowValidator = v.object({
   ownerId: v.id('users'),
   ownerName: v.string(),
   ownerEmail: v.string(),
+  /** Whether the requesting user owns this workflow — only they may publish it
+   * or see it while unpublished. */
+  isOwner: v.boolean(),
   canvas: workflowCanvasValidator,
   runCount: v.number(),
   successCount: v.number(),
@@ -58,6 +62,7 @@ export const get = query({
     if (workspace === null) {
       return null;
     }
+    const userId = await requireUserId(ctx);
     const workflow = await ctx.db.get(args.workflowId);
     if (workflow === null || workflow.workspaceId !== workspace._id) {
       return null;
@@ -67,6 +72,7 @@ export const get = query({
       ...workflow,
       ownerName: owner?.name ?? 'Unknown',
       ownerEmail: owner?.email ?? '',
+      isOwner: workflow.ownerId === userId,
     };
   },
 });
@@ -84,6 +90,7 @@ export const list = query({
     if (workspace === null) {
       return [];
     }
+    const userId = await requireUserId(ctx);
     const rows = await ctx.db
       .query('workflows')
       .withIndex('folder', (q) =>
@@ -93,13 +100,22 @@ export const list = query({
     const ownerCache = new Map<Id<'users'>, { name: string; email: string }>();
     const result: Workflow[] = [];
     for (const row of rows) {
+      // Unpublished workflows are visible only to their owner.
+      if (!row.isPublished && row.ownerId !== userId) {
+        continue;
+      }
       let owner = ownerCache.get(row.ownerId);
       if (owner === undefined) {
         const user = await ctx.db.get(row.ownerId);
         owner = { name: user?.name ?? 'Unknown', email: user?.email ?? '' };
         ownerCache.set(row.ownerId, owner);
       }
-      result.push({ ...row, ownerName: owner.name, ownerEmail: owner.email });
+      result.push({
+        ...row,
+        ownerName: owner.name,
+        ownerEmail: owner.email,
+        isOwner: row.ownerId === userId,
+      });
     }
     return result;
   },
@@ -214,6 +230,12 @@ export const setPublished = mutation({
       args.workspaceName,
       args.workflowId
     );
+    const userId = await requireUserId(ctx);
+    if (workflow.ownerId !== userId) {
+      throw new ConvexError(
+        'Only the workflow owner can change its published status.'
+      );
+    }
 
     if (workflow.isPublished === args.isPublished) {
       return null;

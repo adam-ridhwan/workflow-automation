@@ -34,7 +34,10 @@ export function WorkflowHeaderActions() {
   return (
     <div className='ml-auto flex items-center gap-2'>
       <SaveIndicator />
-      <WorkflowStatusBadge isPublished={workflow.isPublished} />
+      <WorkflowStatusBadge
+        isPublished={workflow.isPublished}
+        isOwner={workflow.isOwner}
+      />
       <UndoRedoButtons />
       <RunWorkflowButton />
       <WorkflowMoreMenu name={workflow?.name ?? ''} />
