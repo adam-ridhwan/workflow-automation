@@ -9,7 +9,7 @@ export const NODE_DIMENSIONS = { WIDTH: 256, HEIGHT: 56 };
 const LAYOUT_MARGIN = { X: 256, Y: 100 };
 
 /** Gap between execution ranks (columns) and between nodes within a rank. */
-const RANK_SEP = 120;
+const RANK_SEP = 200;
 const NODE_SEP = 96;
 
 /** Matches the canvas snapGrid, so organized nodes land on the dots. */
