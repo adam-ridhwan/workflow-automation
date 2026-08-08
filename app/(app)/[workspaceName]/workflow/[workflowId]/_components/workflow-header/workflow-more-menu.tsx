@@ -15,7 +15,7 @@ import { useMutation, useQuery } from 'convex/react';
 import { ConvexError } from 'convex/values';
 import {
   CopyIcon,
-  EllipsisIcon,
+  EllipsisVerticalIcon,
   GlobeIcon,
   PencilIcon,
   Trash2Icon,
@@ -88,10 +88,10 @@ export function WorkflowMoreMenu() {
       <DropdownMenu>
         <DropdownMenuTrigger
           render={
-            <Button variant='outline' size='icon' aria-label='More actions' />
+            <Button variant='ghost' size='icon' aria-label='More actions' />
           }
         >
-          <EllipsisIcon className='size-4' />
+          <EllipsisVerticalIcon className='size-4' />
         </DropdownMenuTrigger>
 
         <DropdownMenuContent align='end' className='w-32'>
