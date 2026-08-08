@@ -10,6 +10,9 @@ export default defineSchema({
   users: defineTable({
     name: v.string(),
     image: v.optional(v.string()),
+    /** An uploaded profile picture in Convex storage; takes precedence over
+     * `image` (which may hold a provider avatar URL). */
+    imageStorageId: v.optional(v.id('_storage')),
     email: v.string(),
     emailVerificationTime: v.optional(v.number()),
     phone: v.optional(v.string()),

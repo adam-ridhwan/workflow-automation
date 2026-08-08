@@ -7,6 +7,7 @@ import { getAuthUserId } from '@convex-dev/auth/server';
 import { ConvexError, Infer, v } from 'convex/values';
 
 import { mutation, query } from './_generated/server';
+import { resolveUserImageUrl } from './users';
 
 import type { Doc, Id } from './_generated/dataModel';
 import type { MutationCtx, QueryCtx } from './_generated/server';
@@ -26,6 +27,7 @@ const memberValidator = v.object({
   userId: v.id('users'),
   name: v.string(),
   email: v.string(),
+  imageUrl: v.union(v.null(), v.string()),
   role: v.union(v.literal('admin'), v.literal('collaborator')),
 });
 
@@ -231,6 +233,7 @@ export const members = query({
           userId: row.userId,
           name: user.name,
           email: user.email,
+          imageUrl: await resolveUserImageUrl(ctx, user),
           role: row.role,
         });
       }

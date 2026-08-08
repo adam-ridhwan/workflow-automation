@@ -1,6 +1,7 @@
 import { ConvexError, Infer, v } from 'convex/values';
 
 import { mutation, query } from './_generated/server';
+import { resolveUserImageUrl } from './users';
 import {
   getMemberWorkspaceByName,
   getWorkspaceByNameOrThrow,
@@ -19,6 +20,7 @@ const folderValidator = v.object({
   createdBy: v.id('users'),
   createdByName: v.string(),
   createdByEmail: v.string(),
+  createdByImageUrl: v.union(v.null(), v.string()),
 });
 
 export type Folder = Infer<typeof folderValidator>;
@@ -55,6 +57,7 @@ export const get = query({
       ...folder,
       createdByName: creator?.name ?? 'Unknown',
       createdByEmail: creator?.email ?? '',
+      createdByImageUrl: await resolveUserImageUrl(ctx, creator),
     };
   },
 });
@@ -115,20 +118,25 @@ export const list = query({
       .collect();
     const creatorCache = new Map<
       Id<'users'>,
-      { name: string; email: string }
+      { name: string; email: string; imageUrl: string | null }
     >();
     const result: Folder[] = [];
     for (const row of rows) {
       let creator = creatorCache.get(row.createdBy);
       if (creator === undefined) {
         const user = await ctx.db.get(row.createdBy);
-        creator = { name: user?.name ?? 'Unknown', email: user?.email ?? '' };
+        creator = {
+          name: user?.name ?? 'Unknown',
+          email: user?.email ?? '',
+          imageUrl: await resolveUserImageUrl(ctx, user),
+        };
         creatorCache.set(row.createdBy, creator);
       }
       result.push({
         ...row,
         createdByName: creator.name,
         createdByEmail: creator.email,
+        createdByImageUrl: creator.imageUrl,
       });
     }
     return result;

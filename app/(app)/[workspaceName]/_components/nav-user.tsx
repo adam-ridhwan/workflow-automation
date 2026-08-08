@@ -36,7 +36,10 @@ import {
   SunMoonIcon,
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+
+import { useWorkspaceParams } from '../_hooks/use-workspace-params';
 
 type NavUserProps = {
   user: {
@@ -51,8 +54,10 @@ export function NavUser({ user }: NavUserProps) {
   const { signOut } = useAuthActions();
   const { theme, setTheme } = useTheme();
   const router = useRouter();
+  const { workspaceName } = useWorkspaceParams();
 
   const initials = getInitials(user.name);
+  const workspaceSlug = encodeURIComponent(workspaceName);
 
   return (
     <SidebarMenu>
@@ -105,7 +110,11 @@ export function NavUser({ user }: NavUserProps) {
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem
+                render={
+                  <Link href={`/${workspaceSlug}/settings/account`} />
+                }
+              >
                 <BadgeCheckIcon />
                 Account
               </DropdownMenuItem>

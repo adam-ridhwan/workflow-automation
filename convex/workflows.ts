@@ -3,6 +3,7 @@ import { ConvexError, Infer, v } from 'convex/values';
 import { WORKFLOW_TEMPLATES } from '../lib/workflow-templates';
 import { internalMutation, mutation, query } from './_generated/server';
 import { workflowCanvasValidator } from './canvas';
+import { resolveUserImageUrl } from './users';
 import {
   getMemberWorkspaceByName,
   getWorkspaceByNameOrThrow,
@@ -24,6 +25,7 @@ const workflowValidator = v.object({
   ownerId: v.id('users'),
   ownerName: v.string(),
   ownerEmail: v.string(),
+  ownerImageUrl: v.union(v.null(), v.string()),
   /** Whether the requesting user owns this workflow — only they may publish it
    * or see it while unpublished. */
   isOwner: v.boolean(),
@@ -96,6 +98,7 @@ export const get = query({
       ...workflow,
       ownerName: owner?.name ?? 'Unknown',
       ownerEmail: owner?.email ?? '',
+      ownerImageUrl: await resolveUserImageUrl(ctx, owner),
       isOwner: workflow.ownerId === userId,
     };
   },
@@ -121,7 +124,10 @@ export const list = query({
         q.eq('workspaceId', workspace._id).eq('folderId', args.folderId)
       )
       .collect();
-    const ownerCache = new Map<Id<'users'>, { name: string; email: string }>();
+    const ownerCache = new Map<
+      Id<'users'>,
+      { name: string; email: string; imageUrl: string | null }
+    >();
     const result: Workflow[] = [];
     for (const row of rows) {
       // Unpublished workflows are visible only to their owner.
@@ -131,13 +137,18 @@ export const list = query({
       let owner = ownerCache.get(row.ownerId);
       if (owner === undefined) {
         const user = await ctx.db.get(row.ownerId);
-        owner = { name: user?.name ?? 'Unknown', email: user?.email ?? '' };
+        owner = {
+          name: user?.name ?? 'Unknown',
+          email: user?.email ?? '',
+          imageUrl: await resolveUserImageUrl(ctx, user),
+        };
         ownerCache.set(row.ownerId, owner);
       }
       result.push({
         ...row,
         ownerName: owner.name,
         ownerEmail: owner.email,
+        ownerImageUrl: owner.imageUrl,
         isOwner: row.ownerId === userId,
       });
     }

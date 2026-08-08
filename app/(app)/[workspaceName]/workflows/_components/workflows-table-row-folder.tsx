@@ -166,12 +166,19 @@ export function FolderRow({ folder, onDelete }: FolderRowProps) {
       </TableCell>
 
       <TableCell className='px-5'>
-        <UserAvatar
-          user={{ name: folder.createdByName, email: folder.createdByEmail }}
-          size='sm'
-          className='relative'
-          fallbackClassName='text-[10px] font-semibold'
-        />
+        <span className='flex min-w-0 items-center gap-2'>
+          <UserAvatar
+            user={{
+              name: folder.createdByName,
+              email: folder.createdByEmail,
+              avatar: folder.createdByImageUrl ?? undefined,
+            }}
+            size='sm'
+            className='relative'
+            fallbackClassName='text-[10px] font-semibold'
+          />
+          <span className='truncate text-xs'>{folder.createdByName}</span>
+        </span>
       </TableCell>
 
       <TableCell className='px-5'>

@@ -6,6 +6,7 @@ import {
   AvatarFallback,
   AvatarGroup,
   AvatarGroupCount,
+  AvatarImage,
 } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -50,6 +51,9 @@ export function CollaboratorsMenu({ members }: CollaboratorsMenuProps) {
         <AvatarGroup>
           {visibleMembers.map((member) => (
             <Avatar key={member.userId} title={member.name}>
+              {member.imageUrl && (
+                <AvatarImage src={member.imageUrl} alt={member.name} />
+              )}
               <AvatarFallback className='text-md font-semibold'>
                 {getInitials(member.name)}
               </AvatarFallback>
@@ -100,6 +104,9 @@ export function CollaboratorsMenu({ members }: CollaboratorsMenuProps) {
                   <TableCell className='px-3.5 py-2.5'>
                     <span className='flex min-w-0 items-center gap-2'>
                       <Avatar>
+                        {member.imageUrl && (
+                          <AvatarImage src={member.imageUrl} alt={member.name} />
+                        )}
                         <AvatarFallback className='text-md font-semibold'>
                           {getInitials(member.name)}
                         </AvatarFallback>

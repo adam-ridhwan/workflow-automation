@@ -10,7 +10,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { ArrowLeftIcon, Building2Icon } from 'lucide-react';
+import { ArrowLeftIcon, Building2Icon, User } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -22,7 +22,15 @@ export function SettingsSidebar({ workspaceName }: SettingsSidebarProps) {
   const pathname = usePathname();
   const workspaceSlug = encodeURIComponent(workspaceName);
 
-  const items = [
+  const PERSONAL_SETTINGS = [
+    {
+      title: 'Profile',
+      url: `/${workspaceSlug}/settings/account`,
+      icon: <User />,
+    },
+  ];
+
+  const WORKSPACE_SETTINGS = [
     {
       title: 'General',
       url: `/${workspaceSlug}/settings/workspace`,
@@ -32,7 +40,7 @@ export function SettingsSidebar({ workspaceName }: SettingsSidebarProps) {
 
   return (
     <Sidebar collapsible='none' className='h-auto'>
-      <SidebarHeader className='h-14 justify-center border-b'>
+      <SidebarHeader className='h-14 justify-center border-r border-b'>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton render={<Link href={`/${workspaceSlug}`} />}>
@@ -43,11 +51,29 @@ export function SettingsSidebar({ workspaceName }: SettingsSidebarProps) {
         </SidebarMenu>
       </SidebarHeader>
 
-      <SidebarContent>
+      <SidebarContent className='border-r'>
         <SidebarGroup>
-          <SidebarGroupLabel>Settings</SidebarGroupLabel>
+          <SidebarGroupLabel>Personal</SidebarGroupLabel>
           <SidebarMenu>
-            {items.map((item) => (
+            {PERSONAL_SETTINGS.map((item) => (
+              <SidebarMenuItem key={item.title}>
+                <SidebarMenuButton
+                  tooltip={item.title}
+                  isActive={pathname === item.url}
+                  render={<Link href={item.url} />}
+                >
+                  {item.icon}
+                  <span>{item.title}</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Workspace</SidebarGroupLabel>
+          <SidebarMenu>
+            {WORKSPACE_SETTINGS.map((item) => (
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton
                   tooltip={item.title}

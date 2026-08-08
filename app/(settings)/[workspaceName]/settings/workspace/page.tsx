@@ -4,6 +4,7 @@ import { convexAuthNextjsToken } from '@convex-dev/auth/nextjs/server';
 import { fetchQuery } from 'convex/nextjs';
 import { redirect } from 'next/navigation';
 
+import { SettingsAdminRequired } from '../_components/settings-admin-required';
 import { DangerZone } from './_components/danger-zone';
 import { WorkspaceLogoForm } from './_components/workspace-logo-form';
 import { WorkspaceNameForm } from './_components/workspace-name-form';
@@ -32,6 +33,10 @@ export default async function WorkspaceSettingsPage({
     redirect('/');
   }
   const isAdmin = user?._id === workspace.adminId;
+
+  if (!isAdmin) {
+    return <SettingsAdminRequired workspaceName={workspace.name} />;
+  }
 
   return (
     <div className='flex flex-col gap-8'>
