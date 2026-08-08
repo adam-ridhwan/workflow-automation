@@ -15,11 +15,10 @@ import { NODE_DIMENSIONS } from '../../_lib/organize-canvas-layout';
 import { useCanvasStore } from '../../_store/canvas-store';
 import { useWorkspaceParams } from '../../../../_hooks/use-workspace-params';
 import { CanvasPalette } from '../canvas-palette/canvas-palette';
-import { NodeArgumentsPanel } from '../node-arguments/node-arguments-panel';
 import { NodeDragPreview } from '../node-palette/node-drag-preview';
 import { NodePalette } from '../node-palette/node-palette';
 import { CanvasModeContext } from './canvas-mode-context';
-import { DisplayOutputPanel } from './display-output-panel';
+import { NodePanel } from './node-panel';
 import { WorkflowCanvasEdge } from './workflow-canvas-edge';
 import { WorkflowCanvasHelperLines } from './workflow-canvas-helper-lines';
 import { WorkflowCanvasNode } from './workflow-canvas-node';
@@ -171,8 +170,7 @@ export function WorkflowCanvas({ canvas }: WorkflowCanvasProps) {
               <CanvasPalette />
             </ReactFlow>
             <NodePalette />
-            <NodeArgumentsPanel node={selectedNode} />
-            <DisplayOutputPanel node={selectedNode} />
+            <NodePanel node={selectedNode} />
           </div>
 
           <NodeDragPreview dragItem={dragItem} />

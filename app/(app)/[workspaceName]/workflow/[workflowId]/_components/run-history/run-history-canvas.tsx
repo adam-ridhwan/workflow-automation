@@ -14,9 +14,8 @@ import {
   WORKFLOW_EDGE,
   WORKFLOW_NODE,
 } from '../../_lib/normalize';
-import { NodeArgumentsPanel } from '../node-arguments/node-arguments-panel';
 import { CanvasModeContext } from '../workflow-canvas/canvas-mode-context';
-import { DisplayOutputPanel } from '../workflow-canvas/display-output-panel';
+import { NodePanel } from '../workflow-canvas/node-panel';
 import { WorkflowCanvasEdge } from '../workflow-canvas/workflow-canvas-edge';
 import { WorkflowCanvasNode } from '../workflow-canvas/workflow-canvas-node';
 
@@ -91,8 +90,7 @@ export function RunHistoryCanvas({ run }: RunHistoryCanvasProps) {
           >
             <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
           </ReactFlow>
-          <NodeArgumentsPanel node={selectedNode} />
-          <DisplayOutputPanel node={selectedNode} />
+          <NodePanel node={selectedNode} />
         </div>
       </ReactFlowProvider>
     </CanvasModeContext.Provider>
