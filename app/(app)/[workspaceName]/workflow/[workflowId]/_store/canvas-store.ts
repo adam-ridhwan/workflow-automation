@@ -6,6 +6,7 @@ import { api } from '@/convex/_generated/api';
 import { addEdge, applyEdgeChanges, applyNodeChanges } from '@xyflow/react';
 import { create } from 'zustand';
 
+import { CanvasHistoryService } from '../_lib/canvas-history';
 import { getHelperLines } from '../_lib/get-helper-lines';
 import { toCanvasData, WORKFLOW_EDGE, WORKFLOW_NODE } from '../_lib/normalize';
 import { organizeCanvasLayout } from '../_lib/organize-canvas-layout';
@@ -37,8 +38,12 @@ interface CanvasState {
   version: number;
   isRunning: boolean;
   isStopping: boolean;
+  canUndo: boolean;
+  canRedo: boolean;
   helperLineHorizontal: number | undefined;
   helperLineVertical: number | undefined;
+  undo: (target: SaveTarget) => void;
+  redo: (target: SaveTarget) => void;
   runWorkflow: (
     target: SaveTarget,
     fromRunHistoryId?: Id<'runHistory'>
@@ -72,12 +77,52 @@ interface CanvasState {
   ) => void;
 }
 
+/** Undo/redo history, shared with the store. Lives outside React so a snapshot
+ * is recorded on every save (see `saveWorkflow`). */
+const history = new CanvasHistoryService();
+
+/** True only while `undo`/`redo` restores a snapshot, so the save it triggers
+ * isn't recorded back into history as a fresh entry. */
+let isRestoring = false;
+
 export const useCanvasStore = create<CanvasState>((set, get) => ({
   nodes: [],
   edges: [],
   version: 1,
   isRunning: false,
   isStopping: false,
+  canUndo: false,
+  canRedo: false,
+  undo: (target) => {
+    const snapshot = history.undo();
+    if (snapshot === undefined) {
+      return;
+    }
+    set({
+      nodes: snapshot.nodes,
+      edges: snapshot.edges,
+      canUndo: history.canUndo(),
+      canRedo: history.canRedo(),
+    });
+    isRestoring = true;
+    get().saveWorkflow(target);
+    isRestoring = false;
+  },
+  redo: (target) => {
+    const snapshot = history.redo();
+    if (snapshot === undefined) {
+      return;
+    }
+    set({
+      nodes: snapshot.nodes,
+      edges: snapshot.edges,
+      canUndo: history.canUndo(),
+      canRedo: history.canRedo(),
+    });
+    isRestoring = true;
+    get().saveWorkflow(target);
+    isRestoring = false;
+  },
   runWorkflow: async (target, fromRunHistoryId) => {
     if (get().isRunning) {
       return undefined;
@@ -180,6 +225,12 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   },
   saveWorkflow: (target) => {
     const { nodes, edges, version } = get();
+    // Capture the state being saved into history before hitting the API —
+    // unless this save is itself an undo/redo restoring a past snapshot.
+    if (!isRestoring) {
+      history.record({ nodes, edges });
+      set({ canUndo: history.canUndo(), canRedo: history.canRedo() });
+    }
     convex
       .mutation(api.workflows.updateCanvas, {
         workspaceName: target.workspaceName,
@@ -278,5 +329,15 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   },
   setNodes: (nodes) => set({ nodes }),
   setEdges: (edges) => set({ edges }),
-  setCanvas: (nodes, edges, version) => set({ nodes, edges, version }),
+  setCanvas: (nodes, edges, version) => {
+    // A fresh load is the history baseline — nothing to undo back past it.
+    history.reset({ nodes, edges });
+    set({
+      nodes,
+      edges,
+      version,
+      canUndo: history.canUndo(),
+      canRedo: history.canRedo(),
+    });
+  },
 }));

@@ -5,6 +5,7 @@ import { ArrowLeftIcon } from 'lucide-react';
 import Link from 'next/link';
 
 import { RunWorkflowButton } from './_components/header/run-workflow-button';
+import { UndoRedoButtons } from './_components/header/undo-redo-buttons';
 import { WorkflowTabs } from './_components/header/workflow-tabs';
 import { WorkflowTitle } from './_components/header/workflow-title';
 
@@ -54,7 +55,8 @@ export default async function WorkflowLayout({
 
         <WorkflowTabs />
 
-        <div className='ml-auto'>
+        <div className='ml-auto flex items-center gap-2'>
+          <UndoRedoButtons />
           <RunWorkflowButton />
         </div>
       </div>
