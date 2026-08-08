@@ -7,10 +7,8 @@ import { Position } from '@xyflow/react';
 import { CircleIcon } from 'lucide-react';
 
 import { NODE_META } from '../../_constants/node-meta';
-import { useCanvasMode } from './canvas-mode-context';
 import { WorkflowCanvasNodeAnnotation } from './workflow-canvas-node-annotation';
 import { WorkflowCanvasNodeStatus } from './workflow-canvas-node-status';
-import { WorkflowCanvasNodeToolbar } from './workflow-canvas-node-toolbar';
 import { WorkflowCanvasPort } from './workflow-canvas-port';
 
 import type { WorkflowNodeData } from '@/convex/canvas';
@@ -27,8 +25,6 @@ export function WorkflowCanvasNode({
   const nodeSpec = findNodeSpec(data.node_uid);
   const hasInPort = (nodeSpec?.node_requirement.max_in_edges ?? 1) > 0;
   const hasOutPort = (nodeSpec?.node_requirement.max_out_edges ?? 1) > 0;
-
-  const { readOnly } = useCanvasMode();
 
   return (
     <Card
@@ -69,8 +65,6 @@ export function WorkflowCanvasNode({
             </div>
           )}
         </div>
-
-        {!readOnly && <WorkflowCanvasNodeToolbar nodeId={id} />}
       </div>
 
       {hasOutPort && (

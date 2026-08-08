@@ -16,8 +16,8 @@ type WorkflowCanvasNodeToolbarProps = {
   nodeId: string;
 };
 
-/** Clone/delete controls in the node header, shown while hovering the node.
- * Requires `group/node` on the node card. */
+/** Add-note / clone / delete controls for the selected node, shown in the
+ * configuration panel. */
 export function WorkflowCanvasNodeToolbar({
   nodeId,
 }: WorkflowCanvasNodeToolbarProps) {
@@ -32,7 +32,7 @@ export function WorkflowCanvasNodeToolbar({
   );
 
   return (
-    <div className='nodrag hidden shrink-0 items-center group-hover/header:flex'>
+    <div className='flex shrink-0 items-center'>
       {!hasAnnotation && (
         <Tooltip>
           <TooltipTrigger
