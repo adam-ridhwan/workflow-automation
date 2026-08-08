@@ -28,6 +28,7 @@ export async function WorkflowTitle({
   } catch {
     notFound();
   }
+
   if (workflow === null) {
     notFound();
   }

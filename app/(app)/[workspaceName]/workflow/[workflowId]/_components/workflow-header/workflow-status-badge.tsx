@@ -8,6 +8,7 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/components/ui/toast';
 import { api } from '@/convex/_generated/api';
 import { cn } from '@/lib/cn';
@@ -24,7 +25,11 @@ export function WorkflowStatusBadge() {
   const workflow = useQuery(api.workflows.get, { workspaceName, workflowId });
   const setPublished = useMutation(api.workflows.setPublished);
 
-  if (workflow === undefined || workflow === null) {
+  if (workflow === undefined) {
+    return <Skeleton className='h-4 w-40' />;
+  }
+
+  if (workflow === null) {
     return null;
   }
 
@@ -66,7 +71,8 @@ export function WorkflowStatusBadge() {
             className={cn(
               'cursor-pointer gap-1.5 rounded-full',
               isPublished
-                ? 'bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/25 dark:text-emerald-400'
+                ? `bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/25
+                  dark:text-emerald-400`
                 : 'bg-muted text-muted-foreground hover:bg-muted-foreground/15'
             )}
           />

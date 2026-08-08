@@ -1,5 +1,8 @@
 'use client';
 
+import { useWorkspaceParams } from '@/app/(app)/[workspaceName]/_hooks/use-workspace-params';
+import { api } from '@/convex/_generated/api';
+import { useQuery } from 'convex/react';
 import { CheckIcon, Loader2Icon, TriangleAlertIcon } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 
@@ -10,6 +13,13 @@ import { useCanvasStore } from '../../_store/canvas-store';
 export function SaveIndicator() {
   const pathname = usePathname();
   const saveStatus = useCanvasStore((s) => s.saveStatus);
+
+  const { workspaceName, workflowId } = useWorkspaceParams();
+  const workflow = useQuery(api.workflows.get, { workspaceName, workflowId });
+
+  if (workflow === undefined || workflow === null) {
+    return null;
+  }
 
   if (!pathname.endsWith('/canvas')) {
     return null;
