@@ -16,7 +16,6 @@ import { ConvexError } from 'convex/values';
 import {
   CopyIcon,
   EllipsisVerticalIcon,
-  GlobeIcon,
   PencilIcon,
   Trash2Icon,
 } from 'lucide-react';
@@ -32,35 +31,11 @@ export function WorkflowMoreMenu() {
   const { workspaceName, workflowId } = useWorkspaceParams();
   const workflow = useQuery(api.workflows.get, { workspaceName, workflowId });
   const duplicateWorkflow = useMutation(api.workflows.duplicate);
-  const setPublished = useMutation(api.workflows.setPublished);
   const router = useRouter();
   const [renameOpen, setRenameOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
   const name = workflow?.name ?? '';
-  const isPublished = workflow?.isPublished ?? false;
-
-  async function handleTogglePublish() {
-    try {
-      await setPublished({
-        workspaceName,
-        workflowId,
-        isPublished: !isPublished,
-      });
-      toast.add({
-        type: 'success',
-        title: isPublished ? 'Workflow unpublished.' : 'Workflow published.',
-      });
-    } catch (error) {
-      toast.add({
-        type: 'error',
-        title:
-          error instanceof ConvexError && typeof error.data === 'string'
-            ? error.data
-            : 'Could not update the workflow. Please try again.',
-      });
-    }
-  }
 
   async function handleDuplicate() {
     try {
@@ -95,16 +70,6 @@ export function WorkflowMoreMenu() {
         </DropdownMenuTrigger>
 
         <DropdownMenuContent align='end' className='w-32'>
-          <DropdownMenuItem
-            disabled={workflow === undefined}
-            onClick={handleTogglePublish}
-          >
-            <GlobeIcon className='size-3' />
-            {isPublished ? 'Unpublish' : 'Publish'}
-          </DropdownMenuItem>
-
-          <DropdownMenuSeparator />
-
           <DropdownMenuItem
             onClick={() => {
               setRenameOpen(true);

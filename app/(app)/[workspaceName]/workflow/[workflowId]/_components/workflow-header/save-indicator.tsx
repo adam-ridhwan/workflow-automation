@@ -17,7 +17,9 @@ export function SaveIndicator() {
 
   if (saveStatus === 'saving') {
     return (
-      <span className='text-muted-foreground flex items-center gap-1.5 text-xs'>
+      <span
+        className='text-muted-foreground flex items-center gap-1.5 p-2 text-xs'
+      >
         <Loader2Icon className='size-3.5 animate-spin' />
         Saving…
       </span>
@@ -26,7 +28,7 @@ export function SaveIndicator() {
 
   if (saveStatus === 'error') {
     return (
-      <span className='text-destructive flex items-center gap-1.5 text-xs'>
+      <span className='text-destructive flex items-center gap-1.5 p-2 text-xs'>
         <TriangleAlertIcon className='size-3.5' />
         Not saved
       </span>
@@ -34,7 +36,9 @@ export function SaveIndicator() {
   }
 
   return (
-    <span className='text-muted-foreground flex items-center gap-1.5 text-xs'>
+    <span
+      className='text-muted-foreground flex items-center gap-1.5 p-2 text-xs'
+    >
       <CheckIcon className='size-3.5' />
       Saved
     </span>
