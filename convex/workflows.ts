@@ -200,6 +200,82 @@ export const rename = mutation({
   },
 });
 
+/** Publish or unpublish a workflow. */
+export const setPublished = mutation({
+  args: {
+    workspaceName: v.string(),
+    workflowId: v.id('workflows'),
+    isPublished: v.boolean(),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const workflow = await getMemberWorkflow(
+      ctx,
+      args.workspaceName,
+      args.workflowId
+    );
+
+    if (workflow.isPublished === args.isPublished) {
+      return null;
+    }
+    await ctx.db.patch(workflow._id, {
+      isPublished: args.isPublished,
+      updatedAt: Date.now(),
+    });
+    return null;
+  },
+});
+
+/** Copies a workflow (and its canvas) into a new unpublished workflow owned by
+ * the current member, with a non-colliding "<name> copy" name. Returns the new
+ * workflow id. */
+export const duplicate = mutation({
+  args: {
+    workspaceName: v.string(),
+    workflowId: v.id('workflows'),
+  },
+  returns: v.id('workflows'),
+  handler: async (ctx, args) => {
+    const workspace = await getWorkspaceByNameOrThrow(ctx, args.workspaceName);
+    const membership = await requireMember(ctx, workspace._id);
+
+    const source = await ctx.db.get(args.workflowId);
+    if (source === null || source.workspaceId !== workspace._id) {
+      throw new ConvexError('Workflow not found.');
+    }
+
+    // Find a free name: "<name> copy", then "<name> copy 2", 3, … .
+    const base = `${source.name} copy`;
+    let name = base;
+    let suffix = 2;
+    while (
+      (await ctx.db
+        .query('workflows')
+        .withIndex('workspaceName', (q) =>
+          q.eq('workspaceId', workspace._id).eq('name', name)
+        )
+        .first()) !== null
+    ) {
+      name = `${base} ${suffix}`;
+      suffix += 1;
+    }
+
+    return await ctx.db.insert('workflows', {
+      workspaceId: workspace._id,
+      name,
+      description: source.description,
+      isPublished: false,
+      folderId: source.folderId,
+      ownerId: membership.userId,
+      canvas: source.canvas,
+      runCount: 0,
+      successCount: 0,
+      failCount: 0,
+      updatedAt: Date.now(),
+    });
+  },
+});
+
 /** Move a workflow into a folder, or to the workspace root when `folderId`
  * is omitted. */
 export const move = mutation({
