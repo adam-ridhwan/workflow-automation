@@ -1,6 +1,6 @@
 'use client';
 
-import { Label } from '@/components/ui/label';
+import { Field, FieldLabel } from '@/components/ui/field';
 import { getArgumentValue } from '@/lib/node-specs';
 
 import { BooleanField } from './boolean/default/boolean-field';
@@ -86,14 +86,17 @@ export function NodeArgumentsField({
 
   return (
     <>
-      <div className='flex flex-col gap-1 px-3 py-1.5'>
-        <Label htmlFor={fieldId} className='text-muted-foreground text-xs'>
+      <Field className='gap-1 px-3 py-1.5'>
+        <FieldLabel
+          htmlFor={fieldId}
+          className='text-muted-foreground gap-0.5 text-xs'
+        >
           {formatLabel(argument.name)}
           {argument.is_required && <span className='text-destructive'>*</span>}
-        </Label>
+        </FieldLabel>
 
         {renderControl()}
-      </div>
+      </Field>
 
       {childArgument && (
         <NodeArgumentsField
