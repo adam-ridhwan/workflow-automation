@@ -16,17 +16,17 @@ const STATUS_META: Record<
   running: {
     label: 'Running',
     icon: Loader2Icon,
-    className: 'text-muted-foreground',
+    className: 'bg-[#D8E3F7] text-blue-600 dark:text-blue-400',
   },
   success: {
     label: 'Success',
     icon: CircleCheckIcon,
-    className: 'text-emerald-600 dark:text-emerald-400',
+    className: 'bg-[#D6ECE2] text-emerald-600 dark:text-emerald-400',
   },
   error: {
     label: 'Error',
     icon: CircleXIcon,
-    className: 'text-destructive',
+    className: 'bg-[#F7D9D9] text-red-600 dark:text-red-400',
   },
 };
 
@@ -34,7 +34,7 @@ type WorkflowCanvasNodeStatusProps = {
   nodeId: string;
 };
 
-/** Live status badge floating on the node's top-right corner. */
+/** Live status badge floating just below the node. */
 export function WorkflowCanvasNodeStatus({
   nodeId,
 }: WorkflowCanvasNodeStatusProps) {
@@ -48,13 +48,12 @@ export function WorkflowCanvasNodeStatus({
   return (
     <Badge
       variant='secondary'
-      className='menu-inverted bg-popover text-popover-foreground
-        ring-foreground/10 absolute top-2 right-2 z-10 text-[11px] shadow-md
-        ring-1 backdrop-blur-xl'
+      className={cn(
+        'absolute top-full left-1/2 z-10 mt-2 -translate-x-1/2 text-[11px]',
+        meta.className
+      )}
     >
-      <meta.icon
-        className={cn(meta.className, status === 'running' && 'animate-spin')}
-      />
+      <meta.icon className={cn(status === 'running' && 'animate-spin')} />
       {meta.label}
     </Badge>
   );
