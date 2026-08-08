@@ -12,12 +12,15 @@ import {
 } from '@/components/ui/dialog';
 import { Field, FieldDescription, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
 import { api } from '@/convex/_generated/api';
+import { WORKFLOW_TEMPLATES } from '@/lib/workflow-templates';
 import { useMutation } from 'convex/react';
 import { ConvexError } from 'convex/values';
 import { useRouter } from 'next/navigation';
 
 import { useWorkspaceParams } from '../../_hooks/use-workspace-params';
+import { revalidateWorkflows } from '../_lib/revalidate-workflows';
 
 import type { Folder } from '@/convex/folders';
 
@@ -34,16 +37,49 @@ export function NewWorkflowDialog({
 }: NewWorkflowDialogProps) {
   const { workspaceName } = useWorkspaceParams();
   const createWorkflow = useMutation(api.workflows.create);
+  const createFromTemplate = useMutation(api.workflows.createFromTemplate);
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [creatingTemplateId, setCreatingTemplateId] = useState<string | null>(
+    null
+  );
+
+  const busy = submitting || creatingTemplateId !== null;
 
   function handleOpenChange(nextOpen: boolean) {
     if (!nextOpen) {
       setError(null);
       setSubmitting(false);
+      setCreatingTemplateId(null);
     }
     onOpenChange(nextOpen);
+  }
+
+  async function handleUseTemplate(templateId: string) {
+    setError(null);
+    setCreatingTemplateId(templateId);
+    try {
+      const workflowId = await createFromTemplate({
+        workspaceName,
+        templateId,
+        folderId,
+      });
+      // Revalidate the list server-side so it's fresh when the user comes back,
+      // then jump straight into the new workflow's canvas.
+      await revalidateWorkflows(workspaceName, folderId);
+      handleOpenChange(false);
+      router.push(
+        `/${encodeURIComponent(workspaceName)}/workflow/${workflowId}/canvas`
+      );
+    } catch (err) {
+      setError(
+        err instanceof ConvexError && typeof err.data === 'string'
+          ? err.data
+          : 'Could not create workflow from template. Please try again.'
+      );
+      setCreatingTemplateId(null);
+    }
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -81,9 +117,47 @@ export function NewWorkflowDialog({
         <DialogHeader>
           <DialogTitle>New workflow</DialogTitle>
           <DialogDescription>
-            Workflows start unpublished until you publish them.
+            Start from a template, or create a blank workflow.
           </DialogDescription>
         </DialogHeader>
+
+        <div className='flex flex-col gap-2'>
+          <div
+            className='text-muted-foreground text-xs font-medium tracking-wide
+              uppercase'
+          >
+            Templates
+          </div>
+          <div className='grid max-h-56 gap-2 overflow-y-auto'>
+            {WORKFLOW_TEMPLATES.map((template) => (
+              <Button
+                key={template.id}
+                type='button'
+                variant='outline'
+                disabled={busy}
+                onClick={() => {
+                  handleUseTemplate(template.id);
+                }}
+                className='h-auto w-full flex-col items-start gap-0.5 px-3 py-2
+                  text-left whitespace-normal'
+              >
+                <span className='text-[13px] font-medium'>{template.name}</span>
+                <span className='text-muted-foreground text-xs font-normal'>
+                  {creatingTemplateId === template.id
+                    ? 'Creating…'
+                    : template.description}
+                </span>
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        <div className='text-muted-foreground flex items-center gap-3 text-xs'>
+          <Separator className='flex-1' />
+          or start blank
+          <Separator className='flex-1' />
+        </div>
+
         <form onSubmit={handleSubmit} className='flex flex-col gap-5'>
           <Field>
             <FieldLabel htmlFor='workflow-name'>Name</FieldLabel>
@@ -118,7 +192,7 @@ export function NewWorkflowDialog({
             >
               Cancel
             </Button>
-            <Button type='submit' disabled={submitting}>
+            <Button type='submit' disabled={busy}>
               {submitting ? 'Creating…' : 'Create workflow'}
             </Button>
           </DialogFooter>

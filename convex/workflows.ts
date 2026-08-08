@@ -1,5 +1,6 @@
 import { ConvexError, Infer, v } from 'convex/values';
 
+import { WORKFLOW_TEMPLATES } from '../lib/workflow-templates';
 import { internalMutation, mutation, query } from './_generated/server';
 import { workflowCanvasValidator } from './canvas';
 import {
@@ -52,6 +53,29 @@ async function getMemberWorkflow(
     throw new ConvexError('Workflow not found.');
   }
   return workflow;
+}
+
+/** A workflow name in the workspace that isn't taken: `base`, then "base 2",
+ * "base 3", … . Used when the name is generated rather than user-supplied. */
+async function nextAvailableWorkflowName(
+  ctx: MutationCtx,
+  workspaceId: Id<'workspaces'>,
+  base: string
+) {
+  let name = base;
+  let suffix = 2;
+  while (
+    (await ctx.db
+      .query('workflows')
+      .withIndex('workspaceName', (q) =>
+        q.eq('workspaceId', workspaceId).eq('name', name)
+      )
+      .first()) !== null
+  ) {
+    name = `${base} ${suffix}`;
+    suffix += 1;
+  }
+  return name;
 }
 
 export const get = query({
@@ -266,21 +290,11 @@ export const duplicate = mutation({
       throw new ConvexError('Workflow not found.');
     }
 
-    // Find a free name: "<name> copy", then "<name> copy 2", 3, … .
-    const base = `${source.name} copy`;
-    let name = base;
-    let suffix = 2;
-    while (
-      (await ctx.db
-        .query('workflows')
-        .withIndex('workspaceName', (q) =>
-          q.eq('workspaceId', workspace._id).eq('name', name)
-        )
-        .first()) !== null
-    ) {
-      name = `${base} ${suffix}`;
-      suffix += 1;
-    }
+    const name = await nextAvailableWorkflowName(
+      ctx,
+      workspace._id,
+      `${source.name} copy`
+    );
 
     return await ctx.db.insert('workflows', {
       workspaceId: workspace._id,
@@ -290,6 +304,55 @@ export const duplicate = mutation({
       folderId: source.folderId,
       ownerId: membership.userId,
       canvas: source.canvas,
+      runCount: 0,
+      successCount: 0,
+      failCount: 0,
+      updatedAt: Date.now(),
+    });
+  },
+});
+
+/** Creates a new unpublished workflow from a built-in template. Returns the
+ * new workflow id. */
+export const createFromTemplate = mutation({
+  args: {
+    workspaceName: v.string(),
+    templateId: v.string(),
+    folderId: v.optional(v.id('folders')),
+  },
+  returns: v.id('workflows'),
+  handler: async (ctx, args) => {
+    const workspace = await getWorkspaceByNameOrThrow(ctx, args.workspaceName);
+    const membership = await requireMember(ctx, workspace._id);
+
+    if (args.folderId !== undefined) {
+      const folder = await ctx.db.get(args.folderId);
+      if (folder === null || folder.workspaceId !== workspace._id) {
+        throw new ConvexError('Folder not found.');
+      }
+    }
+
+    const template = WORKFLOW_TEMPLATES.find(
+      (candidate) => candidate.id === args.templateId
+    );
+    if (template === undefined) {
+      throw new ConvexError('Template not found.');
+    }
+
+    const name = await nextAvailableWorkflowName(
+      ctx,
+      workspace._id,
+      template.name
+    );
+
+    return await ctx.db.insert('workflows', {
+      workspaceId: workspace._id,
+      name,
+      description: template.description,
+      isPublished: false,
+      folderId: args.folderId,
+      ownerId: membership.userId,
+      canvas: template.canvas,
       runCount: 0,
       successCount: 0,
       failCount: 0,
