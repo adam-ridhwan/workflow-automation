@@ -54,6 +54,10 @@ export function WorkflowCanvas({ canvas }: WorkflowCanvasProps) {
   );
 
   const run = useWorkflowRun();
+  // Only fit on load when the workflow already has nodes. On an empty canvas
+  // React Flow would keep the fit pending and then fire it when the first node
+  // is dropped, yanking the viewport — so leave it off there.
+  const fitViewOnLoad = Object.keys(canvas.nodes).length > 0;
   const nodes = useCanvasStore((s) => s.nodes);
   const edges = useCanvasStore((s) => s.edges);
   const onNodesChange = useCanvasStore((s) => s.onNodesChange);
@@ -147,7 +151,7 @@ export function WorkflowCanvas({ canvas }: WorkflowCanvasProps) {
               onNodeDragStop={onNodeDragStop}
               onInit={onInit}
               selectNodesOnDrag={false}
-              fitView
+              fitView={fitViewOnLoad}
               fitViewOptions={{ maxZoom: 1 }}
               snapToGrid
               snapGrid={[12, 12]}
