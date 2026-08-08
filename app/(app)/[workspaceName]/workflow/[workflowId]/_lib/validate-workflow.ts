@@ -27,16 +27,19 @@ function getArgumentProblem(argument: NodeArgument, value: unknown) {
         return 'must be a number.';
       }
       return undefined;
+
     case 'BOOLEAN':
       if (typeof value !== 'boolean') {
         return 'must be true or false.';
       }
       return undefined;
+
     case 'MAP':
       if (typeof value !== 'object' || Array.isArray(value)) {
         return 'must be a map of values.';
       }
       return undefined;
+
     case 'TEXT':
     default:
       if (typeof value !== 'string') {

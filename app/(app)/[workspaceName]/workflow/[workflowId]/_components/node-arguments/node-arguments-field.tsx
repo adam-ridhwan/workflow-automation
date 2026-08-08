@@ -30,10 +30,12 @@ export function NodeArgumentsField({
 }: NodeArgumentsFieldProps) {
   const fieldId = `arg-${nodeId}-${argument.name}`;
 
+  const value = getArgumentValue(data, argument.name);
+
   // Sub-argument that depends on this argument's current value (e.g. `model`
   // under the selected `provider`).
   const childArgument = argument.have_sub_arguments
-    ? argument.children[String(getArgumentValue(data, argument.name) ?? '')]
+    ? argument.children[String(value ?? '')]
     : undefined;
 
   function renderControl() {
