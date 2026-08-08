@@ -91,6 +91,10 @@ export default defineSchema({
     runCount: v.number(),
     successCount: v.number(),
     failCount: v.number(),
+    lastRunAt: v.optional(v.number()),
+    lastRunStatus: v.optional(
+      v.union(v.literal('success'), v.literal('error'), v.literal('stopped'))
+    ),
     updatedAt: v.number(),
   })
     .index('workspaceId', ['workspaceId'])

@@ -93,7 +93,7 @@ export const execute = internalAction({
       );
       await ctx.runMutation(internal.workflows.recordRun, {
         workflowId: args.workflowId,
-        success: true,
+        status: 'success',
       });
       await ctx.runMutation(internal.runHistory.finish, {
         runHistoryId: args.runHistoryId,
@@ -104,7 +104,7 @@ export const execute = internalAction({
       const stopped = error instanceof StopError;
       await ctx.runMutation(internal.workflows.recordRun, {
         workflowId: args.workflowId,
-        success: false,
+        status: stopped ? 'stopped' : 'error',
       });
       await ctx.runMutation(internal.runHistory.finish, {
         runHistoryId: args.runHistoryId,
@@ -176,7 +176,7 @@ export const run = action({
       );
       await ctx.runMutation(internal.workflows.recordRun, {
         workflowId: args.workflowId,
-        success: true,
+        status: 'success',
       });
       await ctx.runMutation(internal.runHistory.finish, {
         runHistoryId,
@@ -191,7 +191,7 @@ export const run = action({
       const stopped = error instanceof StopError;
       await ctx.runMutation(internal.workflows.recordRun, {
         workflowId: args.workflowId,
-        success: false,
+        status: stopped ? 'stopped' : 'error',
       });
       await ctx.runMutation(internal.runHistory.finish, {
         runHistoryId,

@@ -26,6 +26,10 @@ const workflowValidator = v.object({
   runCount: v.number(),
   successCount: v.number(),
   failCount: v.number(),
+  lastRunAt: v.optional(v.number()),
+  lastRunStatus: v.optional(
+    v.union(v.literal('success'), v.literal('error'), v.literal('stopped'))
+  ),
   updatedAt: v.number(),
 });
 
@@ -265,9 +269,18 @@ export const remove = mutation({
   },
 });
 
-/** Bumps the run counters after a backend workflow run. */
+/** Records a finished backend run: bumps the counters and stamps when/how the
+ * workflow last ran. A stopped run counts as a run but not a failure. Does not
+ * touch `updatedAt` — that tracks edits, not runs. */
 export const recordRun = internalMutation({
-  args: { workflowId: v.id('workflows'), success: v.boolean() },
+  args: {
+    workflowId: v.id('workflows'),
+    status: v.union(
+      v.literal('success'),
+      v.literal('error'),
+      v.literal('stopped')
+    ),
+  },
   returns: v.null(),
   handler: async (ctx, args) => {
     const workflow = await ctx.db.get(args.workflowId);
@@ -276,9 +289,10 @@ export const recordRun = internalMutation({
     }
     await ctx.db.patch(args.workflowId, {
       runCount: workflow.runCount + 1,
-      successCount: workflow.successCount + (args.success ? 1 : 0),
-      failCount: workflow.failCount + (args.success ? 0 : 1),
-      updatedAt: Date.now(),
+      successCount: workflow.successCount + (args.status === 'success' ? 1 : 0),
+      failCount: workflow.failCount + (args.status === 'error' ? 1 : 0),
+      lastRunAt: Date.now(),
+      lastRunStatus: args.status,
     });
     return null;
   },

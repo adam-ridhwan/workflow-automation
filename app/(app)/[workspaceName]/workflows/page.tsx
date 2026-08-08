@@ -53,12 +53,10 @@ export default async function WorkflowsPage({
   const isFiltered = Boolean(state || q);
 
   return (
-    <>
-      <WorkflowsTable
-        workflows={sievedWorkflows}
-        folders={sievedFolders}
-        isFiltered={isFiltered}
-      />
-    </>
+    <WorkflowsTable
+      workflows={sievedWorkflows}
+      folders={sievedFolders}
+      isFiltered={isFiltered}
+    />
   );
 }
