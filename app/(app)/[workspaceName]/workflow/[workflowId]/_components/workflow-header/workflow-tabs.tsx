@@ -1,6 +1,6 @@
 'use client';
 
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { usePathname, useRouter } from 'next/navigation';
 
 import { useWorkspaceParams } from '../../../../_hooks/use-workspace-params';
@@ -15,20 +15,18 @@ export function WorkflowTabs() {
   const view = pathname.includes('/run-history') ? 'run-history' : 'canvas';
 
   return (
-    <ToggleGroup
-      variant='outline'
-      size='sm'
-      spacing={0}
-      value={[view]}
-      onValueChange={(groupValue) => {
-        const next = groupValue[0];
-        if (next !== undefined && next !== view) {
-          router.push(`${base}/${next}`);
+    <Tabs
+      value={view}
+      onValueChange={(value) => {
+        if (value !== view) {
+          router.push(`${base}/${value}`);
         }
       }}
     >
-      <ToggleGroupItem value='canvas'>Canvas</ToggleGroupItem>
-      <ToggleGroupItem value='run-history'>Runs</ToggleGroupItem>
-    </ToggleGroup>
+      <TabsList>
+        <TabsTrigger value='canvas'>Canvas</TabsTrigger>
+        <TabsTrigger value='run-history'>Runs</TabsTrigger>
+      </TabsList>
+    </Tabs>
   );
 }
