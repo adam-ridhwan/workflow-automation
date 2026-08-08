@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { toast } from '@/components/ui/toast';
 import { api } from '@/convex/_generated/api';
-import { useMutation, useQuery } from 'convex/react';
+import { useMutation } from 'convex/react';
 import { ConvexError } from 'convex/values';
 import {
   CopyIcon,
@@ -25,17 +25,18 @@ import { useWorkspaceParams } from '../../../../_hooks/use-workspace-params';
 import { RenameWorkflowDialog } from './rename-workflow-dialog';
 import { WorkflowDeleteDialog } from './workflow-delete-dialog';
 
+type WorkflowMoreMenuProps = {
+  name: string;
+};
+
 /** The "more actions" (⋯) header menu: rename, duplicate, or delete the
  * current workflow. */
-export function WorkflowMoreMenu() {
+export function WorkflowMoreMenu({ name }: WorkflowMoreMenuProps) {
   const { workspaceName, workflowId } = useWorkspaceParams();
-  const workflow = useQuery(api.workflows.get, { workspaceName, workflowId });
   const duplicateWorkflow = useMutation(api.workflows.duplicate);
   const router = useRouter();
   const [renameOpen, setRenameOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
-
-  const name = workflow?.name ?? '';
 
   async function handleDuplicate() {
     try {

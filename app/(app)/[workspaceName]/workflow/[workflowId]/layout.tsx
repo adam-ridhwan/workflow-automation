@@ -4,11 +4,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeftIcon } from 'lucide-react';
 import Link from 'next/link';
 
-import { RunWorkflowButton } from './_components/workflow-header/run-workflow-button';
-import { SaveIndicator } from './_components/workflow-header/save-indicator';
-import { UndoRedoButtons } from './_components/workflow-header/undo-redo-buttons';
-import { WorkflowMoreMenu } from './_components/workflow-header/workflow-more-menu';
-import { WorkflowStatusBadge } from './_components/workflow-header/workflow-status-badge';
+import { WorkflowHeaderActions } from './_components/workflow-header/workflow-header-actions';
 import { WorkflowTabs } from './_components/workflow-header/workflow-tabs';
 import { WorkflowTitle } from './_components/workflow-header/workflow-title';
 
@@ -58,13 +54,7 @@ export default async function WorkflowLayout({
 
         <WorkflowTabs />
 
-        <div className='ml-auto flex items-center gap-2'>
-          <SaveIndicator />
-          <WorkflowStatusBadge />
-          <UndoRedoButtons />
-          <RunWorkflowButton />
-          <WorkflowMoreMenu />
-        </div>
+        <WorkflowHeaderActions />
       </div>
 
       {children}

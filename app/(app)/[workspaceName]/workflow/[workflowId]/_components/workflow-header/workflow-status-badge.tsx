@@ -8,32 +8,24 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/components/ui/toast';
 import { api } from '@/convex/_generated/api';
 import { cn } from '@/lib/cn';
-import { useMutation, useQuery } from 'convex/react';
+import { useMutation } from 'convex/react';
 import { ConvexError } from 'convex/values';
 import { ChevronDownIcon } from 'lucide-react';
 
 import { useWorkspaceParams } from '../../../../_hooks/use-workspace-params';
 
+type WorkflowStatusBadgeProps = {
+  isPublished: boolean;
+};
+
 /** Publish-status pill in the workflow header. Clicking it opens a menu to
- * publish or unpublish; reactive, so it reflects the change immediately. */
-export function WorkflowStatusBadge() {
+ * publish or unpublish. State comes from the header's shared query. */
+export function WorkflowStatusBadge({ isPublished }: WorkflowStatusBadgeProps) {
   const { workspaceName, workflowId } = useWorkspaceParams();
-  const workflow = useQuery(api.workflows.get, { workspaceName, workflowId });
   const setPublished = useMutation(api.workflows.setPublished);
-
-  if (workflow === undefined) {
-    return <Skeleton className='h-4 w-40' />;
-  }
-
-  if (workflow === null) {
-    return null;
-  }
-
-  const isPublished = workflow.isPublished;
 
   async function handleSelect(nextPublished: boolean) {
     if (nextPublished === isPublished) {
