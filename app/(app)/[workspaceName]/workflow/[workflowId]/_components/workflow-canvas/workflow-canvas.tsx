@@ -9,6 +9,7 @@ import {
 } from '@dnd-kit/core';
 import { Background, BackgroundVariant, ReactFlow } from '@xyflow/react';
 
+import { useAutoVersion } from '../../_hooks/use-auto-version';
 import { useWorkflowRun } from '../../_hooks/use-workflow-run';
 import { WORKFLOW_EDGE, WORKFLOW_NODE } from '../../_lib/normalize';
 import { NODE_DIMENSIONS } from '../../_lib/organize-canvas-layout';
@@ -53,6 +54,8 @@ export function WorkflowCanvas({ canvas }: WorkflowCanvasProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } })
   );
+
+  useAutoVersion();
 
   const run = useWorkflowRun();
   // Only fit on load when the workflow already has nodes. On an empty canvas

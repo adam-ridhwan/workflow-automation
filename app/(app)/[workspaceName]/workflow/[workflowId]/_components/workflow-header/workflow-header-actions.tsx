@@ -10,6 +10,7 @@ import { SaveIndicator } from './save-indicator';
 import { UndoRedoButtons } from './undo-redo-buttons';
 import { WorkflowMoreMenu } from './workflow-more-menu';
 import { WorkflowStatusBadge } from './workflow-status-badge';
+import { WorkflowVersionsMenu } from './workflow-versions-menu';
 
 /** The header's right-side action group. Subscribes to the workflow once and
  * hands it to the controls that need it, so the status badge and more-menu
@@ -35,6 +36,7 @@ export function WorkflowHeaderActions() {
         isOwner={workflow.isOwner}
       />
       <UndoRedoButtons />
+      <WorkflowVersionsMenu />
       <RunWorkflowButton />
       <WorkflowMoreMenu name={workflow?.name ?? ''} />
     </div>

@@ -11,6 +11,7 @@ import {
   requireUserId,
 } from './workspaces';
 
+import type { WorkflowCanvasData } from './canvas';
 import type { Id } from './_generated/dataModel';
 import type { MutationCtx } from './_generated/server';
 
@@ -406,6 +407,37 @@ export const move = mutation({
 });
 
 /** Replace a workflow's canvas, e.g. after nodes move or connect. */
+/** How many versions to keep per workflow. */
+const MAX_VERSIONS = 30;
+
+type VersionKind = 'auto' | 'manual' | 'restored';
+
+/** Append a canvas snapshot, pruning the oldest beyond MAX_VERSIONS. */
+async function insertWorkflowVersion(
+  ctx: MutationCtx,
+  workflowId: Id<'workflows'>,
+  canvas: WorkflowCanvasData,
+  userId: Id<'users'>,
+  kind: VersionKind,
+  name?: string
+) {
+  await ctx.db.insert('workflowVersions', {
+    workflowId,
+    canvas,
+    createdBy: userId,
+    kind,
+    name,
+  });
+  const versions = await ctx.db
+    .query('workflowVersions')
+    .withIndex('workflow', (q) => q.eq('workflowId', workflowId))
+    .order('desc')
+    .collect();
+  for (const old of versions.slice(MAX_VERSIONS)) {
+    await ctx.db.delete(old._id);
+  }
+}
+
 export const updateCanvas = mutation({
   args: {
     workspaceName: v.string(),
@@ -424,6 +456,171 @@ export const updateCanvas = mutation({
       updatedAt: Date.now(),
     });
     return null;
+  },
+});
+
+/** Save a version snapshot. With a `name` it's a manual, user-named version;
+ * without one it's a timed auto-save that's skipped when nothing has changed
+ * since the latest version. */
+export const saveVersion = mutation({
+  args: {
+    workspaceName: v.string(),
+    workflowId: v.id('workflows'),
+    name: v.optional(v.string()),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const workflow = await getMemberWorkflow(
+      ctx,
+      args.workspaceName,
+      args.workflowId
+    );
+    const userId = await requireUserId(ctx);
+
+    const name = args.name?.trim();
+    if (name) {
+      await insertWorkflowVersion(
+        ctx,
+        workflow._id,
+        workflow.canvas,
+        userId,
+        'manual',
+        name
+      );
+      return null;
+    }
+
+    // Auto-save: skip when the canvas is unchanged from the latest version.
+    const latest = await ctx.db
+      .query('workflowVersions')
+      .withIndex('workflow', (q) => q.eq('workflowId', workflow._id))
+      .order('desc')
+      .first();
+    if (
+      latest !== null &&
+      JSON.stringify(latest.canvas) === JSON.stringify(workflow.canvas)
+    ) {
+      return null;
+    }
+    await insertWorkflowVersion(
+      ctx,
+      workflow._id,
+      workflow.canvas,
+      userId,
+      'auto'
+    );
+    return null;
+  },
+});
+
+const workflowVersionValidator = v.object({
+  _id: v.id('workflowVersions'),
+  _creationTime: v.number(),
+  kind: v.union(v.literal('auto'), v.literal('manual'), v.literal('restored')),
+  name: v.union(v.null(), v.string()),
+  createdByName: v.string(),
+  createdByImageUrl: v.union(v.null(), v.string()),
+});
+
+/** The saved versions of a workflow's canvas, newest first. */
+export const listWorkflowVersions = query({
+  args: { workspaceName: v.string(), workflowId: v.id('workflows') },
+  returns: v.array(workflowVersionValidator),
+  handler: async (ctx, args) => {
+    const workspace = await getMemberWorkspaceByName(ctx, args.workspaceName);
+    if (workspace === null) {
+      return [];
+    }
+    const workflow = await ctx.db.get(args.workflowId);
+    if (workflow === null || workflow.workspaceId !== workspace._id) {
+      return [];
+    }
+    const rows = await ctx.db
+      .query('workflowVersions')
+      .withIndex('workflow', (q) => q.eq('workflowId', args.workflowId))
+      .order('desc')
+      .take(MAX_VERSIONS);
+    const cache = new Map<
+      Id<'users'>,
+      { name: string; imageUrl: string | null }
+    >();
+    const result: Infer<typeof workflowVersionValidator>[] = [];
+    for (const row of rows) {
+      let creator = cache.get(row.createdBy);
+      if (creator === undefined) {
+        const user = await ctx.db.get(row.createdBy);
+        creator = {
+          name: user?.name ?? 'Unknown',
+          imageUrl: await resolveUserImageUrl(ctx, user),
+        };
+        cache.set(row.createdBy, creator);
+      }
+      result.push({
+        _id: row._id,
+        _creationTime: row._creationTime,
+        kind: row.kind ?? 'auto',
+        name: row.name ?? null,
+        createdByName: creator.name,
+        createdByImageUrl: creator.imageUrl,
+      });
+    }
+    return result;
+  },
+});
+
+/** Restore a saved version. Snapshots the current canvas first (so the restore
+ * is recoverable), applies the version, and records a "restored" marker.
+ * Returns the restored canvas. */
+export const restoreVersion = mutation({
+  args: {
+    workspaceName: v.string(),
+    versionId: v.id('workflowVersions'),
+  },
+  returns: workflowCanvasValidator,
+  handler: async (ctx, args) => {
+    const workspace = await getWorkspaceByNameOrThrow(ctx, args.workspaceName);
+    const membership = await requireMember(ctx, workspace._id);
+
+    const version = await ctx.db.get(args.versionId);
+    if (version === null) {
+      throw new ConvexError('Version not found.');
+    }
+    const workflow = await ctx.db.get(version.workflowId);
+    if (workflow === null || workflow.workspaceId !== workspace._id) {
+      throw new ConvexError('Version not found.');
+    }
+
+    // Preserve the current state (unless it's already the latest version).
+    const latest = await ctx.db
+      .query('workflowVersions')
+      .withIndex('workflow', (q) => q.eq('workflowId', workflow._id))
+      .order('desc')
+      .first();
+    if (
+      latest === null ||
+      JSON.stringify(latest.canvas) !== JSON.stringify(workflow.canvas)
+    ) {
+      await insertWorkflowVersion(
+        ctx,
+        workflow._id,
+        workflow.canvas,
+        membership.userId,
+        'auto'
+      );
+    }
+
+    await ctx.db.patch(workflow._id, {
+      canvas: version.canvas,
+      updatedAt: Date.now(),
+    });
+    await insertWorkflowVersion(
+      ctx,
+      workflow._id,
+      version.canvas,
+      membership.userId,
+      'restored'
+    );
+    return version.canvas;
   },
 });
 

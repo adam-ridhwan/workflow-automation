@@ -48,6 +48,24 @@ export default defineSchema({
     .index('parent', ['workspaceId', 'parentId'])
     .index('parentName', ['workspaceId', 'parentId', 'name']),
 
+  /** Point-in-time snapshots of a workflow's canvas so a past version can be
+   * restored. Captured on a timed auto-save, on a manual named save, or when a
+   * version is restored. */
+  workflowVersions: defineTable({
+    workflowId: v.id('workflows'),
+    canvas: workflowCanvasValidator,
+    createdBy: v.id('users'),
+    kind: v.optional(
+      v.union(
+        v.literal('auto'),
+        v.literal('manual'),
+        v.literal('restored')
+      )
+    ),
+    /** Set only for manual saves. */
+    name: v.optional(v.string()),
+  }).index('workflow', ['workflowId']),
+
   /** Latest run per workflow: per-node statuses and outputs, updated live
    * by the runWorkflow action and streamed to clients via subscriptions. */
   runs: defineTable({
