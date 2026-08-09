@@ -54,7 +54,7 @@ export function WorkflowStatusBadge({
       });
       toast.add({
         type: 'success',
-        title: nextPublished ? 'Workflow published.' : 'Workflow unpublished.',
+        title: nextPublished ? 'Workflow is live.' : 'Workflow unpublished.',
       });
     } catch (error) {
       toast.add({
