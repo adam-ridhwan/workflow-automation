@@ -1,19 +1,12 @@
 'use client';
 
 import { Badge } from '@/components/ui/badge';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { Switch } from '@/components/ui/switch';
 import { toast } from '@/components/ui/toast';
 import { api } from '@/convex/_generated/api';
 import { cn } from '@/lib/cn';
 import { useMutation } from 'convex/react';
 import { ConvexError } from 'convex/values';
-import { ChevronDownIcon } from 'lucide-react';
 
 import { useWorkspaceParams } from '../../../../_hooks/use-workspace-params';
 
@@ -22,9 +15,9 @@ type WorkflowStatusBadgeProps = {
   isOwner: boolean;
 };
 
-/** Publish-status pill in the workflow header. Owners get a dropdown to publish
- * or unpublish; everyone else sees a read-only badge. State comes from the
- * header's shared query. */
+/** Publish-status control in the workflow header. Owners get a switch to
+ * publish or unpublish; everyone else sees a read-only badge. State comes from
+ * the header's shared query. */
 export function WorkflowStatusBadge({
   isPublished,
   isOwner,
@@ -75,43 +68,28 @@ export function WorkflowStatusBadge({
   }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
-        render={
-          <Badge
-            variant='secondary'
-            render={<button type='button' />}
-            aria-label='Publish status'
-            className={cn(
-              'cursor-pointer gap-1.5 rounded-full',
-              colorClassName,
-              isPublished
-                ? 'hover:bg-emerald-500/25'
-                : 'hover:bg-muted-foreground/15'
-            )}
-          />
-        }
+    <label
+      className='border-input flex cursor-pointer items-center gap-2 rounded-lg
+        border px-2.5 py-1 text-sm select-none'
+    >
+      <Switch
+        size='sm'
+        checked={isPublished}
+        onCheckedChange={(checked) => {
+          handleSelect(checked);
+        }}
+        aria-label='Publish workflow'
+      />
+      <span
+        className={cn(
+          'font-medium',
+          isPublished
+            ? 'text-emerald-600 dark:text-emerald-400'
+            : 'text-muted-foreground'
+        )}
       >
-        <span className='size-1.25 rounded-full bg-current' />
-        {isPublished ? 'Published' : 'Unpublished'}
-        <ChevronDownIcon className='size-3 opacity-60' />
-      </DropdownMenuTrigger>
-
-      <DropdownMenuContent align='end' className='w-36'>
-        <DropdownMenuRadioGroup
-          value={isPublished ? 'published' : 'unpublished'}
-          onValueChange={(value) => {
-            handleSelect(value === 'published');
-          }}
-        >
-          <DropdownMenuRadioItem value='published'>
-            Published
-          </DropdownMenuRadioItem>
-          <DropdownMenuRadioItem value='unpublished'>
-            Unpublished
-          </DropdownMenuRadioItem>
-        </DropdownMenuRadioGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
+        Live
+      </span>
+    </label>
   );
 }
