@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
+import { OverviewRunsChart } from './_components/overview-runs-chart';
 import { OverviewStatCard } from './_components/overview-stat-card';
 
 type WorkspacePageProps = {
@@ -42,11 +43,18 @@ export default async function WorkspacePage({ params }: WorkspacePageProps) {
   const workspaceSlug = encodeURIComponent(decodedWorkspaceName);
 
   const token = await convexAuthNextjsToken();
-  const overview = await fetchQuery(
-    api.overview.get,
-    { workspaceName: decodedWorkspaceName },
-    { token }
-  );
+  const [overview, runsSeries] = await Promise.all([
+    fetchQuery(
+      api.overview.get,
+      { workspaceName: decodedWorkspaceName },
+      { token }
+    ),
+    fetchQuery(
+      api.overview.runsSeries,
+      { workspaceName: decodedWorkspaceName },
+      { token }
+    ),
+  ]);
 
   if (overview === null) {
     return null;
@@ -89,6 +97,15 @@ export default async function WorkspacePage({ params }: WorkspacePageProps) {
           icon={<FileIcon />}
         />
       </div>
+
+      <Card className='from-card to-muted bg-gradient-to-b'>
+        <CardHeader>
+          <CardTitle className='text-sm'>Runs · last 14 days</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <OverviewRunsChart data={runsSeries} />
+        </CardContent>
+      </Card>
 
       <Card className='from-card to-muted bg-gradient-to-b'>
         <CardHeader>

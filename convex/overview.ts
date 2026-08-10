@@ -38,6 +38,11 @@ const overviewValidator = v.object({
 });
 
 const RECENT_RUNS = 6;
+const DAY_MS = 24 * 60 * 60 * 1000;
+const SERIES_DAYS = 14;
+// Cap per-workflow scan; a workflow with more runs than this in the window is
+// vanishingly unlikely and would only undercount the busiest days slightly.
+const MAX_RUNS_PER_WORKFLOW = 500;
 
 /** Aggregate stats for the workspace dashboard: workflow/run/file counts, the
  * success rate, member count, and the latest runs. Null when the signed-in user
@@ -137,5 +142,66 @@ export const get = query({
       members: memberRows.length,
       recentRuns: recent.slice(0, RECENT_RUNS),
     };
+  },
+});
+
+/** Daily run counts (success vs failed) for the last `SERIES_DAYS` days, oldest
+ * first — the workspace's runs-over-time chart. Empty array when the signed-in
+ * user isn't a member. */
+export const runsSeries = query({
+  args: { workspaceName: v.string() },
+  returns: v.array(
+    v.object({
+      t: v.number(),
+      success: v.number(),
+      failed: v.number(),
+    })
+  ),
+  handler: async (ctx, args) => {
+    const workspace = await getMemberWorkspaceByName(ctx, args.workspaceName);
+    if (workspace === null) {
+      return [];
+    }
+    const userId = await requireUserId(ctx);
+
+    // Bucket by UTC day; the first bucket starts SERIES_DAYS-1 days before today.
+    const todayStart = Math.floor(Date.now() / DAY_MS) * DAY_MS;
+    const start = todayStart - (SERIES_DAYS - 1) * DAY_MS;
+    const buckets = Array.from({ length: SERIES_DAYS }, (_, index) => ({
+      t: start + index * DAY_MS,
+      success: 0,
+      failed: 0,
+    }));
+
+    const workflows = await ctx.db
+      .query('workflows')
+      .withIndex('workspaceId', (q) => q.eq('workspaceId', workspace._id))
+      .collect();
+    for (const workflow of workflows) {
+      if (!workflow.isPublished && workflow.ownerId !== userId) {
+        continue;
+      }
+      const runs = await ctx.db
+        .query('runHistory')
+        .withIndex('workflow', (q) => q.eq('workflowId', workflow._id))
+        .order('desc')
+        .take(MAX_RUNS_PER_WORKFLOW);
+      for (const run of runs) {
+        // Newest first, so once a run predates the window the rest do too.
+        if (run.startedAt < start) {
+          break;
+        }
+        const index = Math.floor((run.startedAt - start) / DAY_MS);
+        if (index < 0 || index >= SERIES_DAYS) {
+          continue;
+        }
+        if (run.status === 'success') {
+          buckets[index].success += 1;
+        } else if (run.status === 'error') {
+          buckets[index].failed += 1;
+        }
+      }
+    }
+    return buckets;
   },
 });
