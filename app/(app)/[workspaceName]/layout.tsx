@@ -12,12 +12,14 @@ import { WorkspaceDndProvider } from './_components/workspace-dnd-provider';
 type WorkspaceLayoutProps = Readonly<{
   children: React.ReactNode;
   breadcrumb: React.ReactNode;
+  headerActions: React.ReactNode;
   params: Promise<{ workspaceName: string }>;
 }>;
 
 export default async function WorkspaceLayout({
   children,
   breadcrumb,
+  headerActions,
   params,
 }: WorkspaceLayoutProps) {
   const { workspaceName } = await params;
@@ -44,6 +46,7 @@ export default async function WorkspaceLayout({
             <SiteHeader
               workspaceName={decodedWorkspaceName}
               breadcrumb={breadcrumb}
+              headerActions={headerActions}
             />
             {children}
           </WorkspaceDndProvider>

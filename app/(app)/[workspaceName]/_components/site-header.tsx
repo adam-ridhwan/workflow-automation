@@ -11,11 +11,15 @@ type SiteHeaderProps = {
   workspaceName: string;
   /** Server-rendered folder/workflow trail from the @breadcrumb slot. */
   breadcrumb?: React.ReactNode;
+  /** Route-specific header actions (e.g. the workflow live toggle + more-menu)
+   * from the @headerActions slot; sits left of the collaborators menu. */
+  headerActions?: React.ReactNode;
 };
 
 export async function SiteHeader({
   workspaceName,
   breadcrumb,
+  headerActions,
 }: SiteHeaderProps) {
   const token = await convexAuthNextjsToken();
   const members = await fetchQuery(
@@ -47,7 +51,10 @@ export async function SiteHeader({
         )}
       </div>
 
-      <CollaboratorsMenu members={members} />
+      <div className='flex shrink-0 items-center gap-1'>
+        {headerActions}
+        <CollaboratorsMenu members={members} />
+      </div>
     </header>
   );
 }
