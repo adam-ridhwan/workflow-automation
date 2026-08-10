@@ -19,6 +19,10 @@ export interface NodeArgument {
   name: string;
   /** Present when have_options is true. */
   options?: string[];
+  /** When set, the field's options come from a live source rather than the
+   * static `options` list — e.g. `'files'` renders a picker of the workspace's
+   * uploaded files and stores the selected file's id. */
+  select_source?: 'files';
   /** Present when have_sub_arguments is true: [flagValue, requiredArgNames][]. */
   sub_argument_requirements?: Array<[boolean, string[]]>;
 }
@@ -101,14 +105,14 @@ export const NODE_SPECS = {
         {
           argument_type: 'TEXT',
           children: {},
-          default_value: 'name,score\nAda,90\nAlan,77',
           have_options: false,
           have_sub_arguments: false,
           is_deprecated: false,
           is_hidden: false,
           is_list: false,
           is_required: false,
-          name: 'content',
+          name: 'file',
+          select_source: 'files',
         },
       ],
       node_info: {
@@ -223,7 +227,7 @@ export const NODE_SPECS = {
         {
           argument_type: 'TEXT',
           children: {},
-          default_value: 'Reply with one word.\n{{input}}',
+          default_value: 'Reply with one word.\n{{text_input}}',
           have_options: false,
           have_sub_arguments: false,
           is_deprecated: false,

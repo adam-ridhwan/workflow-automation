@@ -5,6 +5,7 @@ import { getArgumentValue } from '@/lib/node-specs';
 
 import { BooleanField } from './boolean/default/boolean-field';
 import { NumberField } from './number/default/number-field';
+import { FileSelectField } from './select/custom/file-select-field';
 import { SelectField } from './select/default/select-field';
 import { TextField } from './text/default/text-field';
 
@@ -39,6 +40,17 @@ export function NodeArgumentsField({
     : undefined;
 
   function renderControl() {
+    if (argument.select_source === 'files') {
+      return (
+        <FileSelectField
+          fieldId={fieldId}
+          nodeId={nodeId}
+          data={data}
+          argument={argument}
+        />
+      );
+    }
+
     if (argument.have_options && argument.options) {
       return (
         <SelectField

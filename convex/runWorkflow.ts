@@ -9,7 +9,42 @@ import { action, internalAction } from './_generated/server';
 import { workflowCanvasValidator } from './canvas';
 
 import type { Id } from './_generated/dataModel';
+import type { ActionCtx } from './_generated/server';
 import type { WorkflowCanvasData, WorkflowNodeData } from './canvas';
+
+// A FILE_INPUT node emits its file's text; cap it so a huge upload can't blow
+// up a run's memory or a downstream model's context.
+const MAX_FILE_CHARS = 200_000;
+
+/** Builds the reader passed to `executeCanvas` for FILE_INPUT nodes: resolves a
+ * selected file id (scoped to the workflow's workspace) to its stored text.
+ * Returns '' for a missing/foreign/not-ready file or a malformed id. */
+function makeFileReader(
+  ctx: ActionCtx,
+  workflowId: Id<'workflows'>
+): (fileId: string) => Promise<string> {
+  return async (fileId) => {
+    try {
+      const ref = await ctx.runQuery(internal.files.contentForRun, {
+        workflowId,
+        fileId: fileId as Id<'files'>,
+      });
+      if (ref === null) {
+        return '';
+      }
+      const blob = await ctx.storage.get(ref.storageId);
+      if (blob === null) {
+        return '';
+      }
+      const text = await blob.text();
+      return text.length > MAX_FILE_CHARS
+        ? text.slice(0, MAX_FILE_CHARS)
+        : text;
+    } catch {
+      return '';
+    }
+  };
+}
 
 /** Returns a copy of the canvas with every node id replaced by a fresh one
  * (edges, parents, and children remapped to match), plus the old→new id map. */
@@ -89,7 +124,8 @@ export const execute = internalAction({
       const outputs = await executeCanvas(
         args.canvas,
         setNodeStatus,
-        checkStop
+        checkStop,
+        makeFileReader(ctx, args.workflowId)
       );
       await ctx.runMutation(internal.workflows.recordRun, {
         workflowId: args.workflowId,
@@ -172,7 +208,8 @@ export const run = action({
       const outputs = await executeCanvas(
         workflow.canvas,
         setNodeStatus,
-        checkStop
+        checkStop,
+        makeFileReader(ctx, args.workflowId)
       );
       await ctx.runMutation(internal.workflows.recordRun, {
         workflowId: args.workflowId,
@@ -232,7 +269,8 @@ async function executeCanvas(
     status: 'running' | 'success' | 'error',
     output?: string
   ) => Promise<null>,
-  checkStop: () => Promise<boolean>
+  checkStop: () => Promise<boolean>,
+  readFileContent: (fileId: string) => Promise<string>
 ) {
   const nodes = Object.values(canvas.nodes);
   const edges = canvas.edges;
@@ -292,9 +330,17 @@ async function executeCanvas(
           output = String(getArgumentValue(node, 'text_input') ?? '');
           break;
 
-        case 'FILE_INPUT':
-          output = String(getArgumentValue(node, 'content') ?? '');
+        case 'FILE_INPUT': {
+          const fileId = getArgumentValue(node, 'file');
+          if (fileId !== undefined && fileId !== null && fileId !== '') {
+            output = await readFileContent(String(fileId));
+            console.log(output);
+          } else {
+            // Legacy workflows stored inline content instead of a file id.
+            output = String(getArgumentValue(node, 'content') ?? '');
+          }
           break;
+        }
 
         case 'WEBHOOK':
           output = String(getArgumentValue(node, 'payload') ?? '');
@@ -336,14 +382,28 @@ async function runLlmNode(node: WorkflowNodeData, input: string) {
 
   const template = String(getArgumentValue(node, 'prompt') ?? '');
   const system = String(getArgumentValue(node, 'system') ?? '');
+
+  // Inject the upstream input where the prompt asks for it. `{{text_input}}` is
+  // canonical, but `{{input}}`/`{{file}}` are accepted so an intuitive guess
+  // works too. With no placeholder at all, append the input rather than
+  // silently dropping it (otherwise a prompt like "Explain this file" never
+  // sees the file).
+  const placeholder = /\{\{\s*(?:text_input|input|file)\s*\}\}/g;
+  let content: string;
+  if (placeholder.test(template)) {
+    content = template.replace(placeholder, input);
+  } else if (input) {
+    content = template ? `${template}\n\n${input}` : input;
+  } else {
+    content = template;
+  }
+
   const client = new Anthropic({ apiKey });
   const message = await client.messages.create({
     model: String(getArgumentValue(node, 'model') ?? 'claude-sonnet-5'),
     max_tokens: Number(getArgumentValue(node, 'max_tokens')) || 1024,
     system: system || undefined,
-    messages: [
-      { role: 'user', content: template.replaceAll('{{text_input}}', input) },
-    ],
+    messages: [{ role: 'user', content }],
   });
 
   return message.content

@@ -161,6 +161,27 @@ export const list = query({
   },
 });
 
+export const contentForRun = internalQuery({
+  args: { workflowId: v.id('workflows'), fileId: v.id('files') },
+  returns: v.union(v.null(), v.object({ storageId: v.id('_storage') })),
+  handler: async (ctx, args) => {
+    const workflow = await ctx.db.get(args.workflowId);
+    if (workflow === null) {
+      return null;
+    }
+    const file = await ctx.db.get(args.fileId);
+    if (
+      file === null ||
+      file.workspaceId !== workflow.workspaceId ||
+      file.status !== 'indexed' ||
+      !file.storageId
+    ) {
+      return null;
+    }
+    return { storageId: file.storageId };
+  },
+});
+
 /** A short-lived URL the client POSTs raw bytes to (a whole file, or one chunk
  * of a large file); the response yields the `storageId` of the stored blob. */
 export const generateUploadUrl = mutation({
