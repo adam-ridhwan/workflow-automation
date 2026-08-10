@@ -13,6 +13,7 @@ import type * as canvas from "../canvas.js";
 import type * as files from "../files.js";
 import type * as folders from "../folders.js";
 import type * as http from "../http.js";
+import type * as overview from "../overview.js";
 import type * as runHistory from "../runHistory.js";
 import type * as runWorkflow from "../runWorkflow.js";
 import type * as runs from "../runs.js";
@@ -32,6 +33,7 @@ declare const fullApi: ApiFromModules<{
   files: typeof files;
   folders: typeof folders;
   http: typeof http;
+  overview: typeof overview;
   runHistory: typeof runHistory;
   runWorkflow: typeof runWorkflow;
   runs: typeof runs;
