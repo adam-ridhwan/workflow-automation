@@ -21,27 +21,48 @@ type FileRowProps = {
   onDelete: () => void;
 };
 
-const STATUS_STYLES: Record<FileStatus, { label: string; className: string }> =
-  {
-    indexed: {
-      label: 'Indexed',
-      className: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400',
-    },
-    processing: {
-      label: 'Processing',
-      className: 'bg-amber-500/15 text-amber-600 dark:text-amber-400',
-    },
-    failed: {
-      label: 'Failed',
-      className: 'bg-destructive/15 text-destructive',
-    },
-  };
+const STATUS_STYLES: Record<
+  FileStatus,
+  { label: string; badgeClassName: string; barClassName: string }
+> = {
+  uploading: {
+    label: 'Uploading',
+    badgeClassName: 'bg-sky-500/15 text-sky-600 dark:text-sky-400',
+    barClassName: 'bg-sky-500 dark:bg-sky-400',
+  },
+  assembling: {
+    label: 'Assembling',
+    badgeClassName: 'bg-violet-500/15 text-violet-600 dark:text-violet-400',
+    barClassName: 'bg-violet-500 dark:bg-violet-400',
+  },
+  processing: {
+    label: 'Processing',
+    badgeClassName: 'bg-amber-500/15 text-amber-600 dark:text-amber-400',
+    barClassName: 'bg-amber-500 dark:bg-amber-400',
+  },
+  indexed: {
+    label: 'Indexed',
+    badgeClassName: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400',
+    barClassName: '',
+  },
+  failed: {
+    label: 'Failed',
+    badgeClassName: 'bg-destructive/15 text-destructive',
+    barClassName: '',
+  },
+};
 
 export function FileRow({ file, onDelete }: FileRowProps) {
   const { workspaceName } = useWorkspaceParams();
   const renameFile = useMutation(api.files.rename);
 
   const status = STATUS_STYLES[file.status];
+  const isAssembling = file.status === 'assembling';
+  // The upload transfer and the indexing pass both show a live bar; assembling
+  // is a brief server step with no client-visible percentage.
+  const inProgress =
+    file.status === 'uploading' || isAssembling || file.status === 'processing';
+  const barWidth = isAssembling ? 100 : file.progress;
 
   return (
     <ResourceRowShell
@@ -76,31 +97,37 @@ export function FileRow({ file, onDelete }: FileRowProps) {
       cells={
         <>
           <TableCell className='px-5'>
-            {file.status === 'processing' ? (
+            {inProgress ? (
               <span className='flex max-w-36 flex-col gap-1.5'>
                 <Badge
                   variant='secondary'
-                  className={cn('gap-1.5 rounded-full', status.className)}
+                  className={cn('gap-1.5 rounded-full', status.badgeClassName)}
                 >
                   <span
                     className='size-1.25 animate-pulse rounded-full bg-current'
                   />
-                  Processing {file.progress}%
+                  {isAssembling
+                    ? 'Assembling…'
+                    : `${status.label} ${file.progress}%`}
                 </Badge>
                 <span
                   className='bg-muted h-1 w-full overflow-hidden rounded-full'
                 >
                   <span
-                    className='block h-full rounded-full bg-amber-500
-                      transition-[width] duration-300 dark:bg-amber-400'
-                    style={{ width: `${file.progress}%` }}
+                    className={cn(
+                      `block h-full rounded-full transition-[width]
+                        duration-300`,
+                      status.barClassName,
+                      isAssembling && 'animate-pulse'
+                    )}
+                    style={{ width: `${barWidth}%` }}
                   />
                 </span>
               </span>
             ) : (
               <Badge
                 variant='secondary'
-                className={cn('gap-1.5 rounded-full', status.className)}
+                className={cn('gap-1.5 rounded-full', status.badgeClassName)}
               >
                 <span className='size-1.25 rounded-full bg-current' />
                 {status.label}

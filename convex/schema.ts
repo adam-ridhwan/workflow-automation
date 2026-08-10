@@ -125,15 +125,23 @@ export default defineSchema({
     workspaceId: v.id('workspaces'),
     name: v.string(),
     folderId: v.optional(v.id('folders')),
-    storageId: v.id('_storage'),
+    // Absent until the upload finishes (chunked uploads assemble it late).
+    storageId: v.optional(v.id('_storage')),
     size: v.number(),
     contentType: v.string(),
     status: v.union(
+      // Transfer + reassembly phases, before the file blob exists.
+      v.literal('uploading'),
+      v.literal('assembling'),
+      // Post-upload indexing pipeline.
       v.literal('processing'),
       v.literal('indexed'),
       v.literal('failed')
     ),
     progress: v.optional(v.number()),
+    // Temporary per-chunk blobs for an in-progress chunked upload; cleared
+    // once reassembled.
+    chunks: v.optional(v.array(v.id('_storage'))),
     uploadedBy: v.id('users'),
     updatedAt: v.number(),
   })

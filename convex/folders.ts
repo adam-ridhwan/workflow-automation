@@ -346,7 +346,14 @@ export const remove = mutation({
           )
           .collect();
         for (const file of files) {
-          await ctx.storage.delete(file.storageId);
+          // `storageId` is absent for an in-progress upload; `chunks` holds any
+          // not-yet-assembled chunk blobs.
+          if (file.storageId) {
+            await ctx.storage.delete(file.storageId);
+          }
+          for (const chunkId of file.chunks ?? []) {
+            await ctx.storage.delete(chunkId);
+          }
           await ctx.db.delete(file._id);
         }
       } else {

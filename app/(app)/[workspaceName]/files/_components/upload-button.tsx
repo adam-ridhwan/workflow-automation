@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/toast';
 import { api } from '@/convex/_generated/api';
@@ -14,6 +14,14 @@ import type { Id } from '@/convex/_generated/dataModel';
 import type { Folder } from '@/convex/folders';
 import type { ComponentProps } from 'react';
 
+// Files larger than this are uploaded in chunks of this size; smaller files go
+// up in a single request. Convex upload URLs take one blob per request, so
+// chunks are stored as temporary blobs and reassembled server-side.
+const CHUNK_SIZE = 5 * 1024 * 1024;
+const CHUNK_RETRIES = 3;
+// Throttle transfer-progress writes so a fast upload doesn't flood the backend.
+const PROGRESS_INTERVAL_MS = 250;
+
 type UploadButtonProps = {
   /** Upload destination; omit to upload to the workspace root. */
   folderId?: Folder['_id'];
@@ -23,12 +31,12 @@ type UploadButtonProps = {
   children?: React.ReactNode;
 };
 
-/** POST one file's bytes to a Convex upload URL, reporting transfer progress.
- * Uses XHR because fetch can't observe upload progress. Resolves to the
- * `storageId` for the stored blob. */
+/** POSTs a blob (a whole file or one chunk) to a Convex upload URL, reporting
+ * transfer progress. Uses XHR because fetch can't observe upload progress.
+ * Resolves to the `storageId` of the stored blob. */
 function uploadWithProgress(
   url: string,
-  file: File,
+  blob: Blob,
   contentType: string,
   onProgress: (loadedBytes: number) => void
 ) {
@@ -49,15 +57,27 @@ function uploadWithProgress(
       }
     };
     xhr.onerror = () => reject(new Error('Upload failed.'));
-    xhr.send(file);
+    xhr.send(blob);
   });
 }
 
-/** Uploads one or more files with a live transfer percentage: fetches a
- * per-file upload URL, streams the bytes to Convex storage (tracking progress),
- * then records each as a `files` row. The reactive files list picks up the new
- * rows and their indexing progress automatically. Shared by the files header
- * and the empty state. */
+async function withRetry<T>(fn: () => Promise<T>, attempts: number) {
+  let lastError: unknown;
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError;
+}
+
+/** Uploads one or more files, showing each file's progress inline in the list.
+ * A row is created up front (`uploading`), transfer progress streams to it, and
+ * files over `CHUNK_SIZE` are split into chunks — each uploaded (and retried) on
+ * its own request, then reassembled server-side. Shared by the files header and
+ * the empty state. */
 export function UploadButton({
   folderId,
   variant,
@@ -67,48 +87,80 @@ export function UploadButton({
 }: UploadButtonProps) {
   const { workspaceName } = useWorkspaceParams();
   const generateUploadUrl = useMutation(api.files.generateUploadUrl);
-  const createFile = useMutation(api.files.create);
+  const startUpload = useMutation(api.files.startUpload);
+  const setUploadProgress = useMutation(api.files.setUploadProgress);
+  const addChunk = useMutation(api.files.addChunk);
+  const finishUpload = useMutation(api.files.finishUpload);
+  const cancelUpload = useMutation(api.files.cancelUpload);
   const inputRef = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
-  const [percent, setPercent] = useState(0);
+
+  async function uploadOne(file: File) {
+    const contentType = file.type || 'application/octet-stream';
+    const fileId = await startUpload({
+      workspaceName,
+      name: file.name,
+      size: file.size,
+      contentType,
+      folderId,
+    });
+
+    try {
+      // Report absolute transferred bytes as a percentage, throttled.
+      let lastSent = 0;
+      const report = (loadedTotal: number) => {
+        const now = Date.now();
+        const progress = Math.round((loadedTotal / (file.size || 1)) * 100);
+        if (now - lastSent >= PROGRESS_INTERVAL_MS || progress >= 100) {
+          lastSent = now;
+          setUploadProgress({ workspaceName, fileId, progress });
+        }
+      };
+
+      if (file.size <= CHUNK_SIZE) {
+        const uploadUrl = await generateUploadUrl({ workspaceName });
+        const { storageId } = await withRetry(
+          () => uploadWithProgress(uploadUrl, file, contentType, report),
+          CHUNK_RETRIES
+        );
+        await finishUpload({ workspaceName, fileId, storageId });
+        return;
+      }
+
+      // Chunked: upload each slice as its own blob and record it in order; the
+      // server stitches them together once every chunk has landed.
+      let uploadedBytes = 0;
+      for (let start = 0; start < file.size; start += CHUNK_SIZE) {
+        const chunk = file.slice(start, start + CHUNK_SIZE);
+        const chunkBase = uploadedBytes;
+        const uploadUrl = await generateUploadUrl({ workspaceName });
+        const { storageId } = await withRetry(
+          () =>
+            uploadWithProgress(
+              uploadUrl,
+              chunk,
+              'application/octet-stream',
+              (loaded) => report(chunkBase + loaded)
+            ),
+          CHUNK_RETRIES
+        );
+        await addChunk({ workspaceName, fileId, storageId });
+        uploadedBytes += chunk.size;
+        report(uploadedBytes);
+      }
+      await finishUpload({ workspaceName, fileId });
+    } catch (err) {
+      // Drop the stuck `uploading` row (and its chunk blobs).
+      await cancelUpload({ workspaceName, fileId }).catch(() => {});
+      throw err;
+    }
+  }
 
   async function uploadFiles(fileList: FileList) {
     const files = Array.from(fileList);
-    const totalBytes = files.reduce((sum, file) => sum + file.size, 0) || 1;
-    let bytesBefore = 0;
-
-    setUploading(true);
-    setPercent(0);
     try {
       for (const file of files) {
-        const contentType = file.type || 'application/octet-stream';
-        const uploadUrl = await generateUploadUrl({ workspaceName });
-        const { storageId } = await uploadWithProgress(
-          uploadUrl,
-          file,
-          contentType,
-          (loaded) => {
-            setPercent(Math.round(((bytesBefore + loaded) / totalBytes) * 100));
-          }
-        );
-        bytesBefore += file.size;
-        setPercent(Math.round((bytesBefore / totalBytes) * 100));
-        await createFile({
-          workspaceName,
-          name: file.name,
-          storageId,
-          size: file.size,
-          contentType,
-          folderId,
-        });
+        await uploadOne(file);
       }
-      toast.add({
-        type: 'success',
-        title:
-          files.length === 1
-            ? 'File uploaded.'
-            : `${files.length} files uploaded.`,
-      });
     } catch (err) {
       toast.add({
         type: 'error',
@@ -120,8 +172,6 @@ export function UploadButton({
               : 'Could not upload. Please try again.',
       });
     } finally {
-      setUploading(false);
-      setPercent(0);
       if (inputRef.current) {
         inputRef.current.value = '';
       }
@@ -146,13 +196,12 @@ export function UploadButton({
         variant={variant}
         size={size}
         className={className}
-        disabled={uploading}
         onClick={() => {
           inputRef.current?.click();
         }}
       >
         <UploadIcon />
-        {uploading ? `Uploading ${percent}%` : (children ?? 'Upload')}
+        {children ?? 'Upload'}
       </Button>
     </>
   );
