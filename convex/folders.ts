@@ -11,11 +11,20 @@ import {
 import type { Doc, Id } from './_generated/dataModel';
 import type { MutationCtx } from './_generated/server';
 
+/** Which tree a folder belongs to — workflows and files are organized
+ * separately. */
+export const folderKindValidator = v.union(
+  v.literal('workflow'),
+  v.literal('file')
+);
+export type FolderKind = Infer<typeof folderKindValidator>;
+
 const folderValidator = v.object({
   _id: v.id('folders'),
   _creationTime: v.number(),
   workspaceId: v.id('workspaces'),
   name: v.string(),
+  kind: folderKindValidator,
   parentId: v.optional(v.id('folders')),
   createdBy: v.id('users'),
   createdByName: v.string(),
@@ -98,10 +107,11 @@ export const path = query({
 });
 
 /** Folders inside a folder, or the workspace's root folders when `parentId`
- * is omitted. */
+ * is omitted. Scoped to one tree (`workflow` or `file`). */
 export const list = query({
   args: {
     workspaceName: v.string(),
+    kind: folderKindValidator,
     parentId: v.optional(v.id('folders')),
   },
   returns: v.array(folderValidator),
@@ -113,7 +123,10 @@ export const list = query({
     const rows = await ctx.db
       .query('folders')
       .withIndex('parent', (q) =>
-        q.eq('workspaceId', workspace._id).eq('parentId', args.parentId)
+        q
+          .eq('workspaceId', workspace._id)
+          .eq('kind', args.kind)
+          .eq('parentId', args.parentId)
       )
       .collect();
     const creatorCache = new Map<
@@ -146,6 +159,7 @@ export const list = query({
 export const create = mutation({
   args: {
     workspaceName: v.string(),
+    kind: folderKindValidator,
     name: v.string(),
     parentId: v.optional(v.id('folders')),
   },
@@ -156,7 +170,11 @@ export const create = mutation({
 
     if (args.parentId !== undefined) {
       const parent = await ctx.db.get(args.parentId);
-      if (parent === null || parent.workspaceId !== workspace._id) {
+      if (
+        parent === null ||
+        parent.workspaceId !== workspace._id ||
+        parent.kind !== args.kind
+      ) {
         throw new ConvexError('Parent folder not found.');
       }
     }
@@ -170,6 +188,7 @@ export const create = mutation({
       .withIndex('parentName', (q) =>
         q
           .eq('workspaceId', workspace._id)
+          .eq('kind', args.kind)
           .eq('parentId', args.parentId)
           .eq('name', name)
       )
@@ -180,6 +199,7 @@ export const create = mutation({
 
     return await ctx.db.insert('folders', {
       workspaceId: workspace._id,
+      kind: args.kind,
       name,
       parentId: args.parentId,
       createdBy: membership.userId,
@@ -213,6 +233,7 @@ export const rename = mutation({
       .withIndex('parentName', (q) =>
         q
           .eq('workspaceId', folder.workspaceId)
+          .eq('kind', folder.kind)
           .eq('parentId', folder.parentId)
           .eq('name', name)
       )
@@ -249,7 +270,11 @@ export const move = mutation({
         throw new ConvexError('A folder cannot be moved into itself.');
       }
       const parent = await ctx.db.get(args.parentId);
-      if (parent === null || parent.workspaceId !== folder.workspaceId) {
+      if (
+        parent === null ||
+        parent.workspaceId !== folder.workspaceId ||
+        parent.kind !== folder.kind
+      ) {
         throw new ConvexError('Destination folder not found.');
       }
       // Walk up from the destination; finding the folder on the way to the
@@ -271,6 +296,7 @@ export const move = mutation({
       .withIndex('parentName', (q) =>
         q
           .eq('workspaceId', folder.workspaceId)
+          .eq('kind', folder.kind ?? 'workflow')
           .eq('parentId', args.parentId)
           .eq('name', folder.name)
       )
@@ -294,28 +320,45 @@ export const remove = mutation({
       args.folderId
     );
 
-    // Delete the folder, all of its descendant folders, and the workflows
-    // inside them.
+    // Delete the folder, all of its descendant folders, and the entities
+    // (workflows or files) inside them.
+    const kind = folder.kind;
     const stack: Id<'folders'>[] = [folder._id];
     while (stack.length > 0) {
       const current = stack.pop()!;
       const children = await ctx.db
         .query('folders')
         .withIndex('parent', (q) =>
-          q.eq('workspaceId', folder.workspaceId).eq('parentId', current)
+          q
+            .eq('workspaceId', folder.workspaceId)
+            .eq('kind', folder.kind)
+            .eq('parentId', current)
         )
         .collect();
       for (const child of children) {
         stack.push(child._id);
       }
-      const workflows = await ctx.db
-        .query('workflows')
-        .withIndex('folder', (q) =>
-          q.eq('workspaceId', folder.workspaceId).eq('folderId', current)
-        )
-        .collect();
-      for (const workflow of workflows) {
-        await ctx.db.delete(workflow._id);
+      if (kind === 'file') {
+        const files = await ctx.db
+          .query('files')
+          .withIndex('folder', (q) =>
+            q.eq('workspaceId', folder.workspaceId).eq('folderId', current)
+          )
+          .collect();
+        for (const file of files) {
+          await ctx.storage.delete(file.storageId);
+          await ctx.db.delete(file._id);
+        }
+      } else {
+        const workflows = await ctx.db
+          .query('workflows')
+          .withIndex('folder', (q) =>
+            q.eq('workspaceId', folder.workspaceId).eq('folderId', current)
+          )
+          .collect();
+        for (const workflow of workflows) {
+          await ctx.db.delete(workflow._id);
+        }
       }
       await ctx.db.delete(current);
     }

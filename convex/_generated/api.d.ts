@@ -10,6 +10,7 @@
 
 import type * as auth from "../auth.js";
 import type * as canvas from "../canvas.js";
+import type * as files from "../files.js";
 import type * as folders from "../folders.js";
 import type * as http from "../http.js";
 import type * as runHistory from "../runHistory.js";
@@ -28,6 +29,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   canvas: typeof canvas;
+  files: typeof files;
   folders: typeof folders;
   http: typeof http;
   runHistory: typeof runHistory;

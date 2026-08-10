@@ -14,5 +14,7 @@ export default async function RunHistoryDetailBreadcrumbPage({
   params,
 }: RunHistoryDetailBreadcrumbPageProps) {
   const { workspaceName, workflowId } = await params;
-  return <WorkflowTrail workspaceName={workspaceName} workflowId={workflowId} />;
+  return (
+    <WorkflowTrail workspaceName={workspaceName} workflowId={workflowId} />
+  );
 }

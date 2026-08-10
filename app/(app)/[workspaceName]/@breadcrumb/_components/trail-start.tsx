@@ -11,9 +11,14 @@ import { useWorkspaceParams } from '../../_hooks/use-workspace-params';
 
 import type { DropTargetData } from '../../_components/workspace-dnd-provider';
 
+type TrailStartProps = {
+  /** Which section's root the home link returns to. */
+  section?: 'workflows' | 'files';
+};
+
 /** Leading separator + home link, rendered only when a trail exists. Also a
  * drop target for moving items back to the workspace root. */
-export function TrailStart() {
+export function TrailStart({ section = 'workflows' }: TrailStartProps) {
   const { workspaceName } = useWorkspaceParams();
   const { setNodeRef, isOver } = useDroppable({
     id: 'trail-home',
@@ -40,8 +45,8 @@ export function TrailStart() {
         )}
         render={
           <Link
-            href={`/${encodeURIComponent(workspaceName)}/workflows`}
-            aria-label='Back to workflows'
+            href={`/${encodeURIComponent(workspaceName)}/${section}`}
+            aria-label={`Back to ${section}`}
           />
         }
       >

@@ -14,17 +14,19 @@ import {
 } from '@dnd-kit/core';
 import { useMutation } from 'convex/react';
 import { ConvexError } from 'convex/values';
-import { FolderIcon, WorkflowIcon } from 'lucide-react';
+import { FileIcon, FolderIcon, WorkflowIcon } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 
 import { useWorkspaceParams } from '../_hooks/use-workspace-params';
 
+import type { File } from '@/convex/files';
 import type { Folder } from '@/convex/folders';
 import type { Workflow } from '@/convex/workflows';
 import type { DragEndEvent, DragStartEvent, Modifier } from '@dnd-kit/core';
 
 export type DragData =
   | { kind: 'workflow'; id: Workflow['_id']; name: string }
+  | { kind: 'file'; id: File['_id']; name: string }
   | { kind: 'folder'; id: Folder['_id']; name: string };
 
 /** Attached to droppables; `folderId` undefined means the workspace root. */
@@ -63,6 +65,7 @@ export function WorkspaceDndProvider({ children }: WorkspaceDndProviderProps) {
   // moved from, so Undo knows where to put them back.
   const params = useParams<{ folderId?: Folder['_id'] }>();
   const moveWorkflow = useMutation(api.workflows.move);
+  const moveFile = useMutation(api.files.move);
   const moveFolder = useMutation(api.folders.move);
   const [dragItem, setDragItem] = useState<DragData | null>(null);
   // Dropping releases the pointer over a row, which fires a click that would
@@ -81,6 +84,8 @@ export function WorkspaceDndProvider({ children }: WorkspaceDndProviderProps) {
   async function moveItem(item: DragData, folderId: Folder['_id'] | undefined) {
     if (item.kind === 'workflow') {
       await moveWorkflow({ workspaceName, workflowId: item.id, folderId });
+    } else if (item.kind === 'file') {
+      await moveFile({ workspaceName, fileId: item.id, folderId });
     } else {
       await moveFolder({
         workspaceName,
@@ -180,6 +185,8 @@ export function WorkspaceDndProvider({ children }: WorkspaceDndProviderProps) {
                     className='text-muted-foreground size-3.5 shrink-0
                       fill-current'
                   />
+                ) : dragItem.kind === 'file' ? (
+                  <FileIcon className='text-muted-foreground size-3.5 shrink-0' />
                 ) : (
                   <WorkflowIcon
                     className='text-muted-foreground size-3.5 shrink-0'

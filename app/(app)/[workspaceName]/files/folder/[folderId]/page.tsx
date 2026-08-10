@@ -1,28 +1,20 @@
 import { api } from '@/convex/_generated/api';
 import { convexAuthNextjsToken } from '@convex-dev/auth/nextjs/server';
-import { fetchQuery } from 'convex/nextjs';
+import { fetchQuery, preloadQuery } from 'convex/nextjs';
 import { notFound } from 'next/navigation';
 
-import { WorkflowsTable } from '../../_components/workflows-table';
-import { sieveWorkflows } from '../../_lib/sieve-workflows';
-import { sieveFolders } from '../../../_lib/sieve-resources';
+import { FilesView } from '../../_components/files-view';
 
-import type { WorkflowsSearchParams } from '../../_lib/sieve-workflows';
 import type { Id } from '@/convex/_generated/dataModel';
 import type { Folder } from '@/convex/folders';
 
 type FolderPageProps = {
   params: Promise<{ workspaceName: string; folderId: Id<'folders'> }>;
-  searchParams: Promise<WorkflowsSearchParams>;
 };
 
-export default async function FolderPage({
-  params,
-  searchParams,
-}: FolderPageProps) {
+export default async function FilesFolderPage({ params }: FolderPageProps) {
   const { workspaceName, folderId } = await params;
   const decodedWorkspaceName = decodeURIComponent(workspaceName);
-  const { state, sort, order, q } = await searchParams;
 
   const token = await convexAuthNextjsToken();
   let folder: Folder | null = null;
@@ -36,34 +28,32 @@ export default async function FolderPage({
     // A malformed id fails argument validation; treat it as not found.
     notFound();
   }
-  if (folder === null) {
+  if (folder === null || folder.kind !== 'file') {
     notFound();
   }
 
-  const [workflows, subfolders] = await Promise.all([
-    fetchQuery(
-      api.workflows.list,
+  const [preloadedFiles, preloadedFolders] = await Promise.all([
+    preloadQuery(
+      api.files.list,
       { workspaceName: decodedWorkspaceName, folderId: folder._id },
       { token }
     ),
-    fetchQuery(
+    preloadQuery(
       api.folders.list,
       {
         workspaceName: decodedWorkspaceName,
-        kind: 'workflow',
+        kind: 'file',
         parentId: folder._id,
       },
       { token }
     ),
   ]);
-  const sievedWorkflows = sieveWorkflows(workflows, { state, sort, order, q });
-  const sievedFolders = sieveFolders(subfolders, { state, q });
 
   return (
-    <WorkflowsTable
-      workflows={sievedWorkflows}
-      folders={sievedFolders}
-      isFiltered={Boolean(state || q)}
+    <FilesView
+      preloadedFiles={preloadedFiles}
+      preloadedFolders={preloadedFolders}
+      isRoot={false}
     />
   );
 }

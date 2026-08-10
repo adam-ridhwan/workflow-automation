@@ -111,9 +111,7 @@ export function NavUser({ user }: NavUserProps) {
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem
-                render={
-                  <Link href={`/${workspaceSlug}/settings/account`} />
-                }
+                render={<Link href={`/${workspaceSlug}/settings/account`} />}
               >
                 <BadgeCheckIcon />
                 Account

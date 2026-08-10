@@ -1,0 +1,134 @@
+'use client';
+
+import { Badge } from '@/components/ui/badge';
+import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import { TableCell } from '@/components/ui/table';
+import { UserAvatar } from '@/components/user-avatar';
+import { api } from '@/convex/_generated/api';
+import { cn } from '@/lib/cn';
+import { formatBytes } from '@/lib/format-bytes';
+import { formatTime } from '@/lib/format-time';
+import { useMutation } from 'convex/react';
+import { DownloadIcon, FileIcon } from 'lucide-react';
+
+import { ResourceRowShell } from '../../_components/resource-row-shell';
+import { useWorkspaceParams } from '../../_hooks/use-workspace-params';
+
+import type { File, FileStatus } from '@/convex/files';
+
+type FileRowProps = {
+  file: File;
+  onDelete: () => void;
+};
+
+const STATUS_STYLES: Record<FileStatus, { label: string; className: string }> =
+  {
+    indexed: {
+      label: 'Indexed',
+      className: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400',
+    },
+    processing: {
+      label: 'Processing',
+      className: 'bg-amber-500/15 text-amber-600 dark:text-amber-400',
+    },
+    failed: {
+      label: 'Failed',
+      className: 'bg-destructive/15 text-destructive',
+    },
+  };
+
+export function FileRow({ file, onDelete }: FileRowProps) {
+  const { workspaceName } = useWorkspaceParams();
+  const renameFile = useMutation(api.files.rename);
+
+  const status = STATUS_STYLES[file.status];
+
+  return (
+    <ResourceRowShell
+      drag={{ kind: 'file', id: file._id, name: file.name }}
+      href={file.url ?? undefined}
+      hrefExternal
+      icon={<FileIcon className='text-muted-foreground size-4 shrink-0' />}
+      name={file.name}
+      subtitle={formatBytes(file.size)}
+      onRename={(name) => renameFile({ workspaceName, fileId: file._id, name })}
+      renameLabel='Rename file'
+      renameErrorFallback='Could not rename file. Please try again.'
+      deleteLabel='Delete file'
+      onDelete={onDelete}
+      extraMenuItems={
+        file.url && (
+          <DropdownMenuItem
+            render={
+              <a
+                href={file.url}
+                download={file.name}
+                target='_blank'
+                rel='noreferrer'
+              />
+            }
+          >
+            <DownloadIcon />
+            Download
+          </DropdownMenuItem>
+        )
+      }
+      cells={
+        <>
+          <TableCell className='px-5'>
+            {file.status === 'processing' ? (
+              <span className='flex max-w-36 flex-col gap-1.5'>
+                <Badge
+                  variant='secondary'
+                  className={cn('gap-1.5 rounded-full', status.className)}
+                >
+                  <span
+                    className='size-1.25 animate-pulse rounded-full bg-current'
+                  />
+                  Processing {file.progress}%
+                </Badge>
+                <span
+                  className='bg-muted h-1 w-full overflow-hidden rounded-full'
+                >
+                  <span
+                    className='block h-full rounded-full bg-amber-500
+                      transition-[width] duration-300 dark:bg-amber-400'
+                    style={{ width: `${file.progress}%` }}
+                  />
+                </span>
+              </span>
+            ) : (
+              <Badge
+                variant='secondary'
+                className={cn('gap-1.5 rounded-full', status.className)}
+              >
+                <span className='size-1.25 rounded-full bg-current' />
+                {status.label}
+              </Badge>
+            )}
+          </TableCell>
+
+          <TableCell className='text-muted-foreground px-5 text-xs'>
+            {formatTime(file._creationTime)}
+          </TableCell>
+
+          <TableCell className='px-5'>
+            <span className='flex min-w-0 items-center gap-2'>
+              <UserAvatar
+                user={{
+                  name: file.uploadedByName,
+                  email: file.uploadedByEmail,
+                  avatar: file.uploadedByImageUrl ?? undefined,
+                }}
+                size='sm'
+                className='relative'
+                fallbackClassName='text-[10px] font-semibold'
+              />
+              <span className='truncate text-xs'>{file.uploadedByName}</span>
+            </span>
+          </TableCell>
+        </>
+      }
+    />
+  );
+}

@@ -2,21 +2,14 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
-import {
-  ArrowUpDownIcon,
-  ListFilterIcon,
-  SearchIcon,
-  UploadIcon,
-} from 'lucide-react';
+import { FolderPlusIcon } from 'lucide-react';
+import { useParams } from 'next/navigation';
+
+import { NewFolderDialog } from '../../_components/new-folder-dialog';
+import { ResourceListToolbar } from '../../_components/resource-list-toolbar';
+import { UploadButton } from './upload-button';
+
+import type { Folder } from '@/convex/folders';
 
 const FILTERS = [
   { value: 'all', label: 'All files' },
@@ -27,95 +20,46 @@ const FILTERS = [
 
 const SORTS = [
   { value: 'recent', label: 'Most recent', short: 'Recent' },
-  { value: 'name', label: 'Name (A–Z)', short: 'Name' },
+  { value: 'name', label: 'Name', short: 'Name' },
   { value: 'status', label: 'Status', short: 'Status' },
 ];
 
 export function FilesHeader() {
-  const [filter, setFilter] = useState('all');
-  const [sort, setSort] = useState('recent');
-
-  const filterActive = filter !== 'all';
-  const sortLabel = SORTS.find((s) => s.value === sort)?.short ?? 'Recent';
+  const params = useParams<{ folderId?: Folder['_id'] }>();
+  // Present on /files/folder/[folderId] routes; uploads and new folders are
+  // scoped to the folder being viewed.
+  const folderId = params.folderId;
+  const [showNewFolderDialog, setShowNewFolderDialog] = useState(false);
 
   return (
-    <div
-      className='bg-background flex h-13 shrink-0 items-center justify-between
-        gap-3 border-b px-5'
-    >
-      <div className='flex min-w-0 items-center gap-2'>
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={<Button variant='outline' size='sm' className='h-8' />}
+    <ResourceListToolbar
+      searchPlaceholder='Search files'
+      filterGroupLabel='Status'
+      filters={FILTERS}
+      sorts={SORTS}
+      trailing={
+        <>
+          <Button
+            variant='outline'
+            size='sm'
+            className='h-8'
+            onClick={() => {
+              setShowNewFolderDialog(true);
+            }}
           >
-            <ListFilterIcon />
-            Filter
-            {filterActive && (
-              <span
-                className='bg-primary text-primary-foreground inline-flex h-4.25
-                  items-center rounded-full px-1.5 text-[10.5px] font-semibold'
-              >
-                1
-              </span>
-            )}
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align='start' className='w-46'>
-            <DropdownMenuRadioGroup value={filter} onValueChange={setFilter}>
-              <DropdownMenuLabel
-                className='text-muted-foreground text-[11.5px] font-normal'
-              >
-                Status
-              </DropdownMenuLabel>
-              {FILTERS.map((option) => (
-                <DropdownMenuRadioItem key={option.value} value={option.value}>
-                  {option.label}
-                </DropdownMenuRadioItem>
-              ))}
-            </DropdownMenuRadioGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            <FolderPlusIcon />
+            New folder
+          </Button>
+          <UploadButton folderId={folderId} />
 
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={<Button variant='outline' size='sm' className='h-8' />}
-          >
-            <ArrowUpDownIcon />
-            {sortLabel}
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align='start' className='w-46'>
-            <DropdownMenuRadioGroup value={sort} onValueChange={setSort}>
-              <DropdownMenuLabel
-                className='text-muted-foreground text-[11.5px] font-normal'
-              >
-                Sort by
-              </DropdownMenuLabel>
-              {SORTS.map((option) => (
-                <DropdownMenuRadioItem key={option.value} value={option.value}>
-                  {option.label}
-                </DropdownMenuRadioItem>
-              ))}
-            </DropdownMenuRadioGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-
-      <div className='flex shrink-0 items-center gap-2'>
-        <div className='relative'>
-          <SearchIcon
-            className='text-muted-foreground pointer-events-none absolute
-              top-1/2 left-2.5 size-3.5 -translate-y-1/2'
+          <NewFolderDialog
+            kind='file'
+            parentId={folderId}
+            open={showNewFolderDialog}
+            onOpenChange={setShowNewFolderDialog}
           />
-          <Input
-            type='search'
-            placeholder='Search files'
-            className='h-8 w-54 pl-8 text-[13px]'
-          />
-        </div>
-        <Button size='sm' className='h-8'>
-          <UploadIcon />
-          Upload
-        </Button>
-      </div>
-    </div>
+        </>
+      }
+    />
   );
 }

@@ -2,6 +2,7 @@ import { api } from '@/convex/_generated/api';
 import { convexAuthNextjsToken } from '@convex-dev/auth/nextjs/server';
 import { fetchQuery } from 'convex/nextjs';
 
+import { sieveFolders } from '../_lib/sieve-resources';
 import { WorkflowsEmpty } from './_components/workflows-empty';
 import { WorkflowsTable } from './_components/workflows-table';
 import { sieveWorkflows } from './_lib/sieve-workflows';
@@ -30,7 +31,7 @@ export default async function WorkflowsPage({
     ),
     fetchQuery(
       api.folders.list,
-      { workspaceName: decodedWorkspaceName },
+      { workspaceName: decodedWorkspaceName, kind: 'workflow' },
       { token }
     ),
   ]);
@@ -40,16 +41,7 @@ export default async function WorkflowsPage({
   }
 
   const sievedWorkflows = sieveWorkflows(workflows, { state, sort, order, q });
-  // Folders have no publish state; hide them when filtering by state, and
-  // match the search against their names.
-  const needle = q?.toLowerCase();
-  const sievedFolders = state
-    ? []
-    : folders
-        .filter(
-          (folder) => !needle || folder.name.toLowerCase().includes(needle)
-        )
-        .sort((a, b) => a.name.localeCompare(b.name));
+  const sievedFolders = sieveFolders(folders, { state, q });
   const isFiltered = Boolean(state || q);
 
   return (

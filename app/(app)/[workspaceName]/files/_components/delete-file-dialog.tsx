@@ -15,31 +15,31 @@ import { api } from '@/convex/_generated/api';
 import { useMutation } from 'convex/react';
 import { useRouter } from 'next/navigation';
 
-import { useWorkspaceParams } from '../_hooks/use-workspace-params';
+import { useWorkspaceParams } from '../../_hooks/use-workspace-params';
 
-import type { Folder } from '@/convex/folders';
+import type { File } from '@/convex/files';
 
-type DeleteFolderDialogProps = {
-  folder: Folder | null;
+type DeleteFileDialogProps = {
+  file: File | null;
   onOpenChange: (open: boolean) => void;
 };
 
-export function DeleteFolderDialog({
-  folder,
+export function DeleteFileDialog({
+  file,
   onOpenChange,
-}: DeleteFolderDialogProps) {
+}: DeleteFileDialogProps) {
   const { workspaceName } = useWorkspaceParams();
-  const removeFolder = useMutation(api.folders.remove);
+  const removeFile = useMutation(api.files.remove);
   const router = useRouter();
   const [deleting, setDeleting] = useState(false);
 
   async function handleDelete() {
-    if (!folder) {
+    if (!file) {
       return;
     }
     setDeleting(true);
     try {
-      await removeFolder({ workspaceName, folderId: folder._id });
+      await removeFile({ workspaceName, fileId: file._id });
       onOpenChange(false);
       router.refresh();
     } finally {
@@ -48,14 +48,12 @@ export function DeleteFolderDialog({
   }
 
   return (
-    <AlertDialog open={folder !== null} onOpenChange={onOpenChange}>
+    <AlertDialog open={file !== null} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete {folder?.name}?</AlertDialogTitle>
+          <AlertDialogTitle>Delete {file?.name}?</AlertDialogTitle>
           <AlertDialogDescription>
-            This permanently deletes the folder and everything inside it,
-            including its {folder?.kind === 'file' ? 'files' : 'workflows'} and
-            subfolders. This action cannot be undone.
+            This permanently deletes the file. This action cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -65,7 +63,7 @@ export function DeleteFolderDialog({
             disabled={deleting}
             className='bg-destructive hover:bg-destructive/90 text-white'
           >
-            {deleting ? 'Deleting…' : 'Delete folder'}
+            {deleting ? 'Deleting…' : 'Delete file'}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

@@ -1,15 +1,15 @@
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
 
-type WorkflowsTableSkeletonProps = {
+type ResourceTableSkeletonProps = {
   rows?: number;
 };
 
-// A real table with the same colgroup as WorkflowsTable, so skeleton cells
-// line up exactly with the persistent column header and the loaded rows.
-export function WorkflowsTableSkeleton({
+/** Loading placeholder for the workflows and files tables. Mirrors the real
+ * table's fixed column layout so cells line up with the persistent header. */
+export function ResourceTableSkeleton({
   rows = 4,
-}: WorkflowsTableSkeletonProps) {
+}: ResourceTableSkeletonProps) {
   return (
     <Table className='table-fixed'>
       <colgroup>

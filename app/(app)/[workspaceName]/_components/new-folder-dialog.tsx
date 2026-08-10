@@ -19,15 +19,17 @@ import { useRouter } from 'next/navigation';
 
 import { useWorkspaceParams } from '../_hooks/use-workspace-params';
 
-import type { Folder } from '@/convex/folders';
+import type { Folder, FolderKind } from '@/convex/folders';
 
 type NewFolderDialogProps = {
+  kind: FolderKind;
   parentId?: Folder['_id'];
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };
 
 export function NewFolderDialog({
+  kind,
   parentId,
   open,
   onOpenChange,
@@ -55,7 +57,7 @@ export function NewFolderDialog({
 
     setSubmitting(true);
     try {
-      await createFolder({ workspaceName, name, parentId });
+      await createFolder({ workspaceName, kind, name, parentId });
       handleOpenChange(false);
       // The folders table is fetched server-side; refresh to pick it up.
       router.refresh();

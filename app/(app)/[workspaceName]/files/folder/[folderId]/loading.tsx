@@ -1,5 +1,5 @@
 import { ResourceTableSkeleton } from '../../../_components/resource-table-skeleton';
 
-export default function FolderLoading() {
+export default function FilesFolderLoading() {
   return <ResourceTableSkeleton />;
 }

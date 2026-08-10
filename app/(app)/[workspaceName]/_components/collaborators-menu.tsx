@@ -105,7 +105,10 @@ export function CollaboratorsMenu({ members }: CollaboratorsMenuProps) {
                     <span className='flex min-w-0 items-center gap-2'>
                       <Avatar>
                         {member.imageUrl && (
-                          <AvatarImage src={member.imageUrl} alt={member.name} />
+                          <AvatarImage
+                            src={member.imageUrl}
+                            alt={member.name}
+                          />
                         )}
                         <AvatarFallback className='text-md font-semibold'>
                           {getInitials(member.name)}

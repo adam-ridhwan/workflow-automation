@@ -1,9 +1,9 @@
 import { Table } from '@/components/ui/table';
 
 import { ResourceTableHeader } from '../_components/resource-table-header';
-import { WorkflowsHeader } from './_components/workflows-header';
+import { FilesHeader } from './_components/files-header';
 
-type WorkflowsListLayoutProps = Readonly<{
+type FilesListLayoutProps = Readonly<{
   children: React.ReactNode;
 }>;
 
@@ -11,14 +11,14 @@ type WorkflowsListLayoutProps = Readonly<{
 // instead of re-rendering with each page and its loading state. It is a
 // separate header-only table; the body table mirrors its column widths with
 // a colgroup, and table-fixed keeps the two aligned.
-export default function WorkflowsListLayout({
-  children,
-}: WorkflowsListLayoutProps) {
+export default function FilesListLayout({ children }: FilesListLayoutProps) {
   return (
     <>
-      <WorkflowsHeader />
+      <FilesHeader />
       <Table className='table-fixed'>
-        <ResourceTableHeader labels={['Name', 'Status', 'Created', 'Owner']} />
+        <ResourceTableHeader
+          labels={['Name', 'Status', 'Uploaded', 'Uploaded by']}
+        />
       </Table>
       {children}
     </>

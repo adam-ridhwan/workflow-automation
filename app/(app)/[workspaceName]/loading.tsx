@@ -1,6 +1,6 @@
 import { Skeleton } from '@/components/ui/skeleton';
 
-import { WorkflowsTableSkeleton } from './workflows/_components/workflows-table-skeleton';
+import { ResourceTableSkeleton } from './_components/resource-table-skeleton';
 
 export default function WorkspaceLoading() {
   return (
@@ -23,7 +23,7 @@ export default function WorkspaceLoading() {
       <div className='bg-sidebar flex h-9 shrink-0 items-center border-b px-5'>
         <Skeleton className='h-3 w-24' />
       </div>
-      <WorkflowsTableSkeleton rows={4} />
+      <ResourceTableSkeleton rows={4} />
     </div>
   );
 }

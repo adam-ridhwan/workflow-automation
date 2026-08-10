@@ -38,15 +38,18 @@ export default defineSchema({
     .index('userId', ['userId'])
     .index('workspaceUser', ['workspaceId', 'userId']),
 
+  /** Folders organize either workflows or files; `kind` keeps the two into
+   * separate trees so a workflow folder and a file folder never mix. */
   folders: defineTable({
     workspaceId: v.id('workspaces'),
     name: v.string(),
+    kind: v.union(v.literal('workflow'), v.literal('file')),
     parentId: v.optional(v.id('folders')),
     createdBy: v.id('users'),
   })
     .index('workspaceId', ['workspaceId'])
-    .index('parent', ['workspaceId', 'parentId'])
-    .index('parentName', ['workspaceId', 'parentId', 'name']),
+    .index('parent', ['workspaceId', 'kind', 'parentId'])
+    .index('parentName', ['workspaceId', 'kind', 'parentId', 'name']),
 
   /** Point-in-time snapshots of a workflow's canvas so a past version can be
    * restored. Captured on a timed auto-save, on a manual named save, or when a
@@ -56,11 +59,7 @@ export default defineSchema({
     canvas: workflowCanvasValidator,
     createdBy: v.id('users'),
     kind: v.optional(
-      v.union(
-        v.literal('auto'),
-        v.literal('manual'),
-        v.literal('restored')
-      )
+      v.union(v.literal('auto'), v.literal('manual'), v.literal('restored'))
     ),
     /** Set only for manual saves. */
     name: v.optional(v.string()),
@@ -116,6 +115,26 @@ export default defineSchema({
     lastRunStatus: v.optional(
       v.union(v.literal('success'), v.literal('error'), v.literal('stopped'))
     ),
+    updatedAt: v.number(),
+  })
+    .index('workspaceId', ['workspaceId'])
+    .index('workspaceName', ['workspaceId', 'name'])
+    .index('folder', ['workspaceId', 'folderId']),
+
+  files: defineTable({
+    workspaceId: v.id('workspaces'),
+    name: v.string(),
+    folderId: v.optional(v.id('folders')),
+    storageId: v.id('_storage'),
+    size: v.number(),
+    contentType: v.string(),
+    status: v.union(
+      v.literal('processing'),
+      v.literal('indexed'),
+      v.literal('failed')
+    ),
+    progress: v.optional(v.number()),
+    uploadedBy: v.id('users'),
     updatedAt: v.number(),
   })
     .index('workspaceId', ['workspaceId'])

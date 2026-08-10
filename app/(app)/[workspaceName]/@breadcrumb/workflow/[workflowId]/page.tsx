@@ -10,5 +10,7 @@ export default async function WorkflowBreadcrumbPage({
   params,
 }: WorkflowBreadcrumbPageProps) {
   const { workspaceName, workflowId } = await params;
-  return <WorkflowTrail workspaceName={workspaceName} workflowId={workflowId} />;
+  return (
+    <WorkflowTrail workspaceName={workspaceName} workflowId={workflowId} />
+  );
 }
