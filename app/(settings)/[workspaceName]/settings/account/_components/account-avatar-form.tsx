@@ -23,9 +23,9 @@ export function AccountAvatarForm({ name, imageUrl }: AccountAvatarFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    event.target.value = '';
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
     if (!file) {
       return;
     }

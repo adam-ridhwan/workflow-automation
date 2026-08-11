@@ -43,8 +43,8 @@ export function PromptField({
       id={fieldId}
       disabled={isRunning || readOnly}
       value={field.value}
-      onChange={(event) => {
-        field.onChange(event.target.value);
+      onChange={(e) => {
+        field.onChange(e.target.value);
       }}
       onFocus={field.onFocus}
       onBlur={() => {

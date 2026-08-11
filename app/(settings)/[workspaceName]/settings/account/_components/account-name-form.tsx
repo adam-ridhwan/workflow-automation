@@ -20,8 +20,8 @@ export function AccountNameForm({ name }: AccountNameFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
     setError(null);
 
     const nextName = value.trim();
@@ -53,8 +53,8 @@ export function AccountNameForm({ name }: AccountNameFormProps) {
           name='name'
           type='text'
           value={value}
-          onChange={(event) => {
-            setValue(event.target.value);
+          onChange={(e) => {
+            setValue(e.target.value);
           }}
           aria-invalid={error ? true : undefined}
           className='max-w-sm'

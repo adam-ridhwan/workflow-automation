@@ -67,19 +67,19 @@ export function WorkflowCanvasNodeAnnotation({
           autoFocus={annotation.text === ''}
           disabled={isRunning}
           readOnly={readOnly}
-          onChange={(event) => {
+          onChange={(e) => {
             setNodeAnnotation(nodeId, {
               ...annotation,
-              text: event.target.value,
+              text: e.target.value,
             });
           }}
-          onBlur={(event) => {
+          onBlur={(e) => {
             // Keep the note while focus moves into the formatting bar.
-            const wrapper = event.currentTarget.closest('.group\\/annotation');
+            const wrapper = e.currentTarget.closest('.group\\/annotation');
             const staysInside =
-              event.relatedTarget instanceof Node &&
-              wrapper?.contains(event.relatedTarget);
-            if (event.target.value.trim() === '' && !staysInside) {
+              e.relatedTarget instanceof Node &&
+              wrapper?.contains(e.relatedTarget);
+            if (e.target.value.trim() === '' && !staysInside) {
               setNodeAnnotation(nodeId, undefined);
             }
             saveWorkflow({ workspaceName, workflowId });

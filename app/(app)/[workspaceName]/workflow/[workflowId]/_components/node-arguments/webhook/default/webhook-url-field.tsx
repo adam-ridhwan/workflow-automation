@@ -99,8 +99,8 @@ export function WebhookUrlField({ data }: WebhookUrlFieldProps) {
         <Input
           readOnly
           value={webhookUrl}
-          onFocus={(event) => {
-            event.currentTarget.select();
+          onFocus={(e) => {
+            e.currentTarget.select();
           }}
           className='h-7 text-[12px]'
         />

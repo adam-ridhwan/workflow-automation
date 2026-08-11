@@ -32,11 +32,11 @@ export function CreateWorkspaceForm() {
 
   const firstWorkspace = workspaces?.[0];
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
     setError(null);
 
-    const formData = new FormData(event.currentTarget);
+    const formData = new FormData(e.currentTarget);
     const name = slugify(String(formData.get('workspace') ?? ''));
 
     if (!validateWorkspaceName(name)) {

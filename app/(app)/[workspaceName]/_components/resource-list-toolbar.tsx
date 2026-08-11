@@ -209,8 +209,8 @@ export function ResourceListToolbar({
             type='search'
             placeholder={searchPlaceholder}
             defaultValue={initialQuery}
-            onChange={(event) => {
-              const value = event.target.value.trim();
+            onChange={(e) => {
+              const value = e.target.value.trim();
               if (searchDebounce.current) {
                 clearTimeout(searchDebounce.current);
               }

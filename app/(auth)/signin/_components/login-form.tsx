@@ -33,12 +33,12 @@ export function LoginForm({
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
     setError(null);
     setSubmitting(true);
 
-    const formData = new FormData(event.currentTarget);
+    const formData = new FormData(e.currentTarget);
     formData.set('flow', 'signIn');
 
     try {

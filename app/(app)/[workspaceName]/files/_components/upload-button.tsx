@@ -44,9 +44,9 @@ function uploadWithProgress(
     const xhr = new XMLHttpRequest();
     xhr.open('POST', url);
     xhr.setRequestHeader('Content-Type', contentType);
-    xhr.upload.onprogress = (event) => {
-      if (event.lengthComputable) {
-        onProgress(event.loaded);
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) {
+        onProgress(e.loaded);
       }
     };
     xhr.onload = () => {
@@ -183,8 +183,8 @@ export function UploadButton({
         type='file'
         multiple
         className='hidden'
-        onChange={(event) => {
-          const { files } = event.target;
+        onChange={(e) => {
+          const { files } = e.target;
           if (files && files.length > 0) {
             uploadFiles(files);
           }

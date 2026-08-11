@@ -48,8 +48,8 @@ export function RenameWorkflowDialog({
     }
   }
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
     const trimmed = name.trim();
     if (trimmed.length === 0) {
       setError('Workflow name is required.');
@@ -86,8 +86,8 @@ export function RenameWorkflowDialog({
               name='name'
               type='text'
               value={name}
-              onChange={(event) => {
-                setName(event.target.value);
+              onChange={(e) => {
+                setName(e.target.value);
               }}
               aria-invalid={error ? true : undefined}
               autoFocus

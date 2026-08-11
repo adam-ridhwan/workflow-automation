@@ -67,11 +67,13 @@ export default function CreateWorkflowPage() {
       openCanvas(workflowId);
     } catch (error) {
       fail(error, 'Could not create workflow from template. Please try again.');
+    } finally {
+      setBusy(false);
     }
   }
 
-  async function createBlank(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function createBlank(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
     const trimmed = name.trim();
     if (!trimmed || busy) {
       return;
@@ -88,6 +90,8 @@ export default function CreateWorkflowPage() {
       openCanvas(workflowId);
     } catch (error) {
       fail(error, 'Could not create workflow. Please try again.');
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -150,8 +154,8 @@ export default function CreateWorkflowPage() {
           <form onSubmit={createBlank} className='flex items-center gap-2'>
             <Input
               value={name}
-              onChange={(event) => {
-                setName(event.target.value);
+              onChange={(e) => {
+                setName(e.target.value);
               }}
               placeholder='Workflow name'
               aria-label='Workflow name'
@@ -160,8 +164,8 @@ export default function CreateWorkflowPage() {
             />
             <Input
               value={description}
-              onChange={(event) => {
-                setDescription(event.target.value);
+              onChange={(e) => {
+                setDescription(e.target.value);
               }}
               placeholder='Description (optional)'
               aria-label='Workflow description'

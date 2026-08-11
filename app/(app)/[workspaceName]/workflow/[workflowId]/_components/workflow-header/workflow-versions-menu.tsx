@@ -174,13 +174,13 @@ export function WorkflowVersionsMenu() {
         <div className='flex items-center gap-2 p-2'>
           <Input
             value={name}
-            onChange={(event) => {
-              setName(event.target.value);
+            onChange={(e) => {
+              setName(e.target.value);
             }}
-            onKeyDown={(event) => {
-              event.stopPropagation();
-              if (event.key === 'Enter') {
-                event.preventDefault();
+            onKeyDown={(e) => {
+              e.stopPropagation();
+              if (e.key === 'Enter') {
+                e.preventDefault();
                 handleSaveNamed();
               }
             }}

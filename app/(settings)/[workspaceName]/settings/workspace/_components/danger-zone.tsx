@@ -98,8 +98,8 @@ export function DangerZone({ workspaceName, isAdmin }: DangerZoneProps) {
                 type='text'
                 autoComplete='off'
                 value={confirmText}
-                onChange={(event) => {
-                  setConfirmText(event.target.value);
+                onChange={(e) => {
+                  setConfirmText(e.target.value);
                 }}
               />
             </Field>

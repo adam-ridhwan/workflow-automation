@@ -92,8 +92,8 @@ export function WorkspaceDndProvider({ children }: WorkspaceDndProviderProps) {
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
   );
 
-  function handleDragStart(event: DragStartEvent) {
-    setDragItem((event.active.data.current as DragData | undefined) ?? null);
+  function handleDragStart(e: DragStartEvent) {
+    setDragItem((e.active.data.current as DragData | undefined) ?? null);
   }
 
   async function moveItem(item: DragData, folderId: Folder['_id'] | undefined) {
@@ -117,15 +117,15 @@ export function WorkspaceDndProvider({ children }: WorkspaceDndProviderProps) {
       : `Could not move ${item.name}. Please try again.`;
   }
 
-  async function handleDragEnd(event: DragEndEvent) {
+  async function handleDragEnd(e: DragEndEvent) {
     setDragItem(null);
     justDroppedRef.current = true;
     setTimeout(() => {
       justDroppedRef.current = false;
     }, 0);
 
-    const item = event.active.data.current as DragData | undefined;
-    const target = event.over?.data.current as DropTargetData | undefined;
+    const item = e.active.data.current as DragData | undefined;
+    const target = e.over?.data.current as DropTargetData | undefined;
     if (item === undefined || target === undefined) {
       return;
     }
@@ -171,10 +171,10 @@ export function WorkspaceDndProvider({ children }: WorkspaceDndProviderProps) {
     >
       <div
         style={{ display: 'contents' }}
-        onClickCapture={(event) => {
+        onClickCapture={(e) => {
           if (justDroppedRef.current) {
-            event.preventDefault();
-            event.stopPropagation();
+            e.preventDefault();
+            e.stopPropagation();
           }
         }}
       >

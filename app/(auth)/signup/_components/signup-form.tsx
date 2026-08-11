@@ -32,12 +32,12 @@ export function SignupForm({
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
     setError(null);
     setPasswordError(null);
 
-    const formData = new FormData(event.currentTarget);
+    const formData = new FormData(e.currentTarget);
     const password = String(formData.get('password') ?? '');
     const confirmPassword = String(formData.get('confirm-password') ?? '');
 

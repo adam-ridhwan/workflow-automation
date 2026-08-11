@@ -48,11 +48,11 @@ export function NewFolderDialog({
     onOpenChange(nextOpen);
   }
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
     setError(null);
 
-    const formData = new FormData(event.currentTarget);
+    const formData = new FormData(e.currentTarget);
     const name = String(formData.get('name') ?? '').trim();
 
     setSubmitting(true);

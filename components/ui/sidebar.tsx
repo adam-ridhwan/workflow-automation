@@ -96,12 +96,12 @@ function SidebarProvider({
 
   // Adds a keyboard shortcut to toggle the sidebar.
   React.useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
+    const handleKeyDown = (e: KeyboardEvent) => {
       if (
-        event.key === SIDEBAR_KEYBOARD_SHORTCUT &&
-        (event.metaKey || event.ctrlKey)
+        e.key === SIDEBAR_KEYBOARD_SHORTCUT &&
+        (e.metaKey || e.ctrlKey)
       ) {
-        event.preventDefault();
+        e.preventDefault();
         toggleSidebar();
       }
     };
@@ -282,8 +282,8 @@ function SidebarTrigger({
       variant='ghost'
       size='icon'
       className={cn(className)}
-      onClick={(event) => {
-        onClick?.(event);
+      onClick={(e) => {
+        onClick?.(e);
         toggleSidebar();
       }}
       {...props}

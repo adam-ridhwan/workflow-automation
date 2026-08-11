@@ -44,14 +44,14 @@ export function NumberField({
       type='number'
       disabled={isRunning || readOnly}
       value={field.value}
-      onChange={(event) => {
-        field.onChange(event.target.value);
+      onChange={(e) => {
+        field.onChange(e.target.value);
       }}
       onFocus={field.onFocus}
-      onBlur={(event) => {
+      onBlur={(e) => {
         field.onBlur();
-        const parsed = Number(event.target.value);
-        if (event.target.value !== '' && !Number.isNaN(parsed)) {
+        const parsed = Number(e.target.value);
+        if (e.target.value !== '' && !Number.isNaN(parsed)) {
           setNodeArgument(nodeId, argument.name, parsed);
         }
         saveWorkflow({ workspaceName, workflowId });

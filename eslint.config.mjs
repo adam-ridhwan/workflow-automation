@@ -19,6 +19,9 @@ const eslintConfig = defineConfig([
       ],
       // Nested ternaries are hard to read — use if/else or a lookup instead.
       'no-nested-ternary': 'error',
+      // Name event-handler params `e`, never `event` (avoids shadowing the
+      // deprecated global `event` and keeps handlers terse).
+      'id-denylist': ['error', 'event'],
     },
   },
   // Override default ignores of eslint-config-next.

@@ -150,18 +150,18 @@ export function ResourceRowShell({
                   defaultValue={name}
                   aria-invalid={renameError ? true : undefined}
                   className='h-7 max-w-xs text-[13px]'
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter') {
-                      event.preventDefault();
-                      submitRename(event.currentTarget.value);
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      submitRename(e.currentTarget.value);
                     }
-                    if (event.key === 'Escape') {
-                      event.currentTarget.value = name;
+                    if (e.key === 'Escape') {
+                      e.currentTarget.value = name;
                       stopRenaming();
                     }
                   }}
-                  onBlur={(event) => {
-                    submitRename(event.currentTarget.value);
+                  onBlur={(e) => {
+                    submitRename(e.currentTarget.value);
                   }}
                 />
                 {renameError && (

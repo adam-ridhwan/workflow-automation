@@ -110,15 +110,15 @@ export function WorkflowCanvas({ canvas }: WorkflowCanvasProps) {
     []
   );
 
-  function handleDragStart(event: DragStartEvent) {
-    setDragItem((event.active.data.current as PaletteDragData | null) ?? null);
+  function handleDragStart(e: DragStartEvent) {
+    setDragItem((e.active.data.current as PaletteDragData | null) ?? null);
   }
 
-  function handleDragEnd(event: DragEndEvent) {
+  function handleDragEnd(e: DragEndEvent) {
     setDragItem(null);
 
-    const payload = event.active.data.current as PaletteDragData | undefined;
-    const activator = event.activatorEvent;
+    const payload = e.active.data.current as PaletteDragData | undefined;
+    const activator = e.activatorEvent;
     const instance = reactFlowInstance.current;
     const bounds = wrapperRef.current?.getBoundingClientRect();
     if (!payload || !(activator instanceof PointerEvent) || !instance) {
@@ -126,8 +126,8 @@ export function WorkflowCanvas({ canvas }: WorkflowCanvasProps) {
     }
 
     // Final pointer position: where the drag started plus how far it moved.
-    const x = activator.clientX + event.delta.x;
-    const y = activator.clientY + event.delta.y;
+    const x = activator.clientX + e.delta.x;
+    const y = activator.clientY + e.delta.y;
 
     // Only drops on the canvas count — not outside it, not on the palette.
     if (
