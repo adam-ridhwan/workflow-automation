@@ -278,7 +278,13 @@ export const runChainSequence = internalAction({
 });
 
 export const run = action({
-  args: { workspaceName: v.string(), workflowId: v.id('workflows') },
+  args: {
+    workspaceName: v.string(),
+    workflowId: v.id('workflows'),
+    /** Injected into WEBHOOK nodes — set by the "send test event" button so a
+     * manual run can simulate an inbound webhook payload. */
+    webhookPayload: v.optional(v.string()),
+  },
   returns: v.id('runHistory'),
   handler: async (ctx, args): Promise<Id<'runHistory'>> => {
     const workflow = await ctx.runQuery(api.workflows.get, {
@@ -339,7 +345,7 @@ export const run = action({
         setNodeStatus,
         checkStop,
         makeFileReader(ctx, args.workflowId),
-        undefined
+        args.webhookPayload
       );
       await ctx.runMutation(internal.workflows.recordRun, {
         workflowId: args.workflowId,

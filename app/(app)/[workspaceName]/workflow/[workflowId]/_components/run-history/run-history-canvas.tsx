@@ -88,7 +88,7 @@ export function RunHistoryCanvas({ run }: RunHistoryCanvasProps) {
             fitView
             proOptions={{ hideAttribution: true }}
           >
-            <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
+            <Background variant={BackgroundVariant.Dots} gap={50} size={1.5} />
           </ReactFlow>
           <NodePanel node={selectedNode} />
         </div>

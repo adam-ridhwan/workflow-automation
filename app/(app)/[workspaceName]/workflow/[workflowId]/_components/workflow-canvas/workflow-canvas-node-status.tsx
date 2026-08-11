@@ -11,23 +11,11 @@ import type { LucideIcon } from 'lucide-react';
 
 const STATUS_META: Record<
   NodeStatus,
-  { label: string; icon: LucideIcon; className: string }
+  { label: string; icon: LucideIcon; variant: 'running' | 'success' | 'error' }
 > = {
-  running: {
-    label: 'Running',
-    icon: Loader2Icon,
-    className: 'bg-[#D8E3F7] text-blue-600 dark:text-blue-400',
-  },
-  success: {
-    label: 'Success',
-    icon: CircleCheckIcon,
-    className: 'bg-[#D6ECE2] text-emerald-600 dark:text-emerald-400',
-  },
-  error: {
-    label: 'Error',
-    icon: CircleXIcon,
-    className: 'bg-[#F7D9D9] text-red-600 dark:text-red-400',
-  },
+  running: { label: 'Running', icon: Loader2Icon, variant: 'running' },
+  success: { label: 'Success', icon: CircleCheckIcon, variant: 'success' },
+  error: { label: 'Error', icon: CircleXIcon, variant: 'error' },
 };
 
 type WorkflowCanvasNodeStatusProps = {
@@ -47,11 +35,9 @@ export function WorkflowCanvasNodeStatus({
   const meta = STATUS_META[status];
   return (
     <Badge
-      variant='secondary'
-      className={cn(
-        'absolute top-full left-1/2 z-10 mt-2 -translate-x-1/2 text-[11px]',
-        meta.className
-      )}
+      variant={meta.variant}
+      className='absolute top-full left-1/2 z-10 mt-2 -translate-x-1/2
+        text-[11px]'
     >
       <meta.icon className={cn(status === 'running' && 'animate-spin')} />
       {meta.label}

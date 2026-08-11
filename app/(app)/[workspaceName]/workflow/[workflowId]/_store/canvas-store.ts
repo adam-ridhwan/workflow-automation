@@ -53,7 +53,9 @@ interface CanvasState {
   redo: (target: SaveTarget) => void;
   runWorkflow: (
     target: SaveTarget,
-    fromRunHistoryId?: Id<'runHistory'>
+    fromRunHistoryId?: Id<'runHistory'>,
+    /** Injected into WEBHOOK nodes, for the "send test event" action. */
+    webhookPayload?: string
   ) => Promise<Id<'runHistory'> | undefined>;
   stopWorkflow: (target: SaveTarget) => Promise<void>;
   /** Reflects the live run doc's phase into the store, so the run button and
@@ -145,7 +147,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
     get().saveWorkflow(target);
     isRestoring = false;
   },
-  runWorkflow: async (target, fromRunHistoryId) => {
+  runWorkflow: async (target, fromRunHistoryId, webhookPayload) => {
     if (get().runPhase !== 'idle') {
       return undefined;
     }
@@ -163,6 +165,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
       const runHistoryId = await convex.action(api.runWorkflow.run, {
         workspaceName: target.workspaceName,
         workflowId: target.workflowId,
+        webhookPayload,
       });
       // A stopped run returns normally too — don't claim success.
       if (get().isStopping) {

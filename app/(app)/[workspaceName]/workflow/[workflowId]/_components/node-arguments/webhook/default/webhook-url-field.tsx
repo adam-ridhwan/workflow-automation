@@ -10,6 +10,7 @@ import { getArgumentValue } from '@/lib/node-specs';
 import { useMutation, useQuery } from 'convex/react';
 import { CheckIcon, CopyIcon, RefreshCwIcon, ZapIcon } from 'lucide-react';
 
+import { useCanvasStore } from '../../../../_store/canvas-store';
 import { useWorkspaceParams } from '../../../../../../_hooks/use-workspace-params';
 import { useCanvasMode } from '../../../workflow-canvas/canvas-mode-context';
 
@@ -28,12 +29,12 @@ export function WebhookUrlField({ data }: WebhookUrlFieldProps) {
   const url = useQuery(api.workflows.webhookUrl, { workspaceName, workflowId });
   const ensureWebhook = useMutation(api.workflows.ensureWebhook);
   const regenerateWebhook = useMutation(api.workflows.regenerateWebhook);
-  const sendTestEvent = useMutation(api.workflows.sendTestEvent);
+  const runWorkflow = useCanvasStore((s) => s.runWorkflow);
+  const runPhase = useCanvasStore((s) => s.runPhase);
   const { readOnly } = useCanvasMode();
   const [copied, setCopied] = useState(false);
   const [copiedCurl, setCopiedCurl] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [sending, setSending] = useState(false);
 
   if (url === undefined) {
     return <Skeleton className='h-7 w-full rounded-md' />;
@@ -81,25 +82,15 @@ export function WebhookUrlField({ data }: WebhookUrlFieldProps) {
     }
   }
 
-  async function sendTest() {
-    setSending(true);
-    try {
-      // Fire a run with this node's sample payload — the same path an inbound
-      // POST takes, minus the HTTP round-trip.
-      await sendTestEvent({
-        workspaceName,
-        workflowId,
-        payload: String(getArgumentValue(data, 'payload') ?? ''),
-      });
-      toast.add({
-        type: 'success',
-        title: 'Test event sent — see the Runs tab.',
-      });
-    } catch {
-      toast.add({ type: 'error', title: 'Could not send the test event.' });
-    } finally {
-      setSending(false);
-    }
+  function sendTest() {
+    // Run the canvas like a normal workflow run — live node badges and all —
+    // injecting this node's sample payload into WEBHOOK nodes, so it behaves
+    // exactly as an inbound webhook would.
+    runWorkflow(
+      { workspaceName, workflowId },
+      undefined,
+      String(getArgumentValue(data, 'payload') ?? '')
+    );
   }
 
   return (
@@ -135,13 +126,13 @@ export function WebhookUrlField({ data }: WebhookUrlFieldProps) {
         type='button'
         size='sm'
         className='h-7 w-full gap-1.5 text-[13px]'
-        disabled={readOnly || sending}
+        disabled={readOnly || runPhase !== 'idle'}
         onClick={() => {
           sendTest();
         }}
       >
         <ZapIcon className='size-3.5' />
-        {sending ? 'Sending…' : 'Send test event'}
+        {runPhase !== 'idle' ? 'Running…' : 'Send test event'}
       </Button>
 
       <div className='flex items-center justify-between'>

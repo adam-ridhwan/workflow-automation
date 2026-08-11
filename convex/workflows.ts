@@ -1,7 +1,6 @@
 import { ConvexError, Infer, v } from 'convex/values';
 
 import { WORKFLOW_TEMPLATES } from '../lib/workflow-templates';
-import { internal } from './_generated/api';
 import {
   internalMutation,
   internalQuery,
@@ -696,39 +695,6 @@ export const regenerateWebhook = mutation({
     const token = crypto.randomUUID();
     await ctx.db.patch(workflow._id, { webhookToken: token });
     return webhookUrlFor(token);
-  },
-});
-
-/** Triggers a run from the editor with a given payload — the one-click "send
- * test event" that mimics an inbound webhook without leaving the app. Returns
- * the new run's id. */
-export const sendTestEvent = mutation({
-  args: {
-    workspaceName: v.string(),
-    workflowId: v.id('workflows'),
-    payload: v.string(),
-  },
-  returns: v.id('runHistory'),
-  handler: async (ctx, args) => {
-    const workflow = await getMemberWorkflow(
-      ctx,
-      args.workspaceName,
-      args.workflowId
-    );
-    const runHistoryId = await ctx.db.insert('runHistory', {
-      workflowId: workflow._id,
-      canvas: workflow.canvas,
-      status: 'running',
-      nodeOutputs: {},
-      startedAt: Date.now(),
-    });
-    await ctx.scheduler.runAfter(0, internal.runWorkflow.execute, {
-      workflowId: workflow._id,
-      runHistoryId,
-      canvas: workflow.canvas,
-      webhookPayload: args.payload,
-    });
-    return runHistoryId;
   },
 });
 
