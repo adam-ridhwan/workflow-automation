@@ -56,6 +56,10 @@ export function WorkflowChainMenu({
   const chain = chainWorkflowIds.filter((id) => nameById.has(id));
   const chainSet = new Set(chain);
   const available = (options ?? []).filter((o) => !chainSet.has(o._id));
+  // Count for the button badge: the persisted length until names load, then the
+  // real (deleted-filtered) count.
+  const chainCount =
+    options === undefined ? chainWorkflowIds.length : chain.length;
 
   async function save(next: Id<'workflows'>[]) {
     try {
@@ -127,10 +131,21 @@ export function WorkflowChainMenu({
                   variant='ghost'
                   size='icon'
                   aria-label='Workflow chain'
+                  className='relative'
                 />
               }
             >
               <BlendIcon className='size-4' />
+              {chainCount > 0 && (
+                <span
+                  className='bg-primary text-primary-foreground pointer-events-none
+                    absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center
+                    justify-center rounded-full px-1 text-[10px] leading-none
+                    font-medium tabular-nums'
+                >
+                  {chainCount}
+                </span>
+              )}
             </DropdownMenuTrigger>
           }
         />

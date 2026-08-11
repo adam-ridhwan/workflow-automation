@@ -35,18 +35,15 @@ http.route({
     const payload =
       body.length > MAX_PAYLOAD_CHARS ? body.slice(0, MAX_PAYLOAD_CHARS) : body;
 
-    const runHistoryId = await ctx.runMutation(internal.runHistory.create, {
+    // Run the canvas live (animated badges) like a normal run — no run-history
+    // entry, so external triggers don't pile up in the Runs tab.
+    await ctx.scheduler.runAfter(0, internal.runWorkflow.executeOnCanvas, {
       workflowId: ref.workflowId,
-      canvas: ref.canvas,
-    });
-    await ctx.scheduler.runAfter(0, internal.runWorkflow.execute, {
-      workflowId: ref.workflowId,
-      runHistoryId,
       canvas: ref.canvas,
       webhookPayload: payload,
     });
 
-    return new Response(JSON.stringify({ runId: runHistoryId }), {
+    return new Response(JSON.stringify({ ok: true }), {
       status: 202,
       headers: { 'Content-Type': 'application/json' },
     });
