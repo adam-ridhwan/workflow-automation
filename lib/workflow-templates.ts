@@ -288,4 +288,52 @@ export const WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
       ],
     },
   },
+  {
+    id: 'action-items',
+    name: 'Extract action items',
+    description: 'Pull a checklist of action items out of notes.',
+    canvas: {
+      version: 1,
+      nodes: {
+        input: {
+          node_id: 'input',
+          node_uid: TEXT_INPUT,
+          name: 'Notes',
+          arguments: {
+            text_input:
+              'Paste meeting notes or a message thread here. Anything with tasks, owners, or follow-ups works well.',
+          },
+          parents: [],
+          children: [],
+          position: { x: 0, y: 0 },
+        },
+        extract: {
+          node_id: 'extract',
+          node_uid: LLM,
+          name: 'Extract',
+          arguments: llmArguments({
+            system: 'You turn messy notes into clear, actionable task lists.',
+            prompt:
+              'Extract the action items from the following notes as a Markdown checklist. One task per line, and include the owner in parentheses when mentioned. If there are none, reply "No action items found."\n\n{{text_input}}',
+          }),
+          parents: [],
+          children: [],
+          position: { x: 340, y: 0 },
+        },
+        output: {
+          node_id: 'output',
+          node_uid: DISPLAY,
+          name: 'Action items',
+          arguments: {},
+          parents: [],
+          children: [],
+          position: { x: 680, y: 0 },
+        },
+      },
+      edges: [
+        { source: 'input', target: 'extract', arguments: {} },
+        { source: 'extract', target: 'output', arguments: {} },
+      ],
+    },
+  },
 ];

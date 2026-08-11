@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Empty,
@@ -11,11 +10,13 @@ import {
   EmptyTitle,
 } from '@/components/ui/empty';
 import { PlusIcon, WorkflowIcon } from 'lucide-react';
+import Link from 'next/link';
 
-import { NewWorkflowDialog } from './new-workflow-dialog';
+import { useWorkspaceParams } from '../../_hooks/use-workspace-params';
 
 export function WorkflowsEmpty() {
-  const [showNewDialog, setShowNewDialog] = useState(false);
+  const { workspaceName } = useWorkspaceParams();
+  const createHref = `/${encodeURIComponent(workspaceName)}/workflow/create`;
 
   return (
     <Empty>
@@ -29,18 +30,11 @@ export function WorkflowsEmpty() {
         </EmptyDescription>
       </EmptyHeader>
       <EmptyContent>
-        <Button
-          size='sm'
-          onClick={() => {
-            setShowNewDialog(true);
-          }}
-        >
+        <Button size='sm' nativeButton={false} render={<Link href={createHref} />}>
           <PlusIcon />
           New workflow
         </Button>
       </EmptyContent>
-
-      <NewWorkflowDialog open={showNewDialog} onOpenChange={setShowNewDialog} />
     </Empty>
   );
 }

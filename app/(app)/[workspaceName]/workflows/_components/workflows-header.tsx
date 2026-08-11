@@ -3,11 +3,12 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { FolderPlusIcon, PlusIcon } from 'lucide-react';
+import Link from 'next/link';
 import { useParams } from 'next/navigation';
 
 import { NewFolderDialog } from '../../_components/new-folder-dialog';
 import { ResourceListToolbar } from '../../_components/resource-list-toolbar';
-import { NewWorkflowDialog } from './new-workflow-dialog';
+import { useWorkspaceParams } from '../../_hooks/use-workspace-params';
 
 import type { Folder } from '@/convex/folders';
 
@@ -24,12 +25,18 @@ const SORTS = [
 ];
 
 export function WorkflowsHeader() {
+  const { workspaceName } = useWorkspaceParams();
   const params = useParams<{ folderId?: Folder['_id'] }>();
   // Present on /workflows/folder/[folderId] routes; creation is scoped to
   // the folder being viewed.
   const folderId = params.folderId;
-  const [showNewDialog, setShowNewDialog] = useState(false);
   const [showNewFolderDialog, setShowNewFolderDialog] = useState(false);
+
+  // Carry the folder scope into the create route so a blank/templated workflow
+  // lands in the folder the user is viewing.
+  const createHref = `/${encodeURIComponent(workspaceName)}/workflow/create${
+    folderId ? `?folderId=${folderId}` : ''
+  }`;
 
   return (
     <ResourceListToolbar
@@ -53,19 +60,13 @@ export function WorkflowsHeader() {
           <Button
             size='sm'
             className='h-8'
-            onClick={() => {
-              setShowNewDialog(true);
-            }}
+            nativeButton={false}
+            render={<Link href={createHref} />}
           >
             <PlusIcon />
             New workflow
           </Button>
 
-          <NewWorkflowDialog
-            folderId={folderId}
-            open={showNewDialog}
-            onOpenChange={setShowNewDialog}
-          />
           <NewFolderDialog
             kind='workflow'
             parentId={folderId}
