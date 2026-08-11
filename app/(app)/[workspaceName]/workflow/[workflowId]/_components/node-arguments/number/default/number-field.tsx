@@ -25,7 +25,7 @@ export function NumberField({
 }: NumberFieldProps) {
   const { workspaceName, workflowId } = useWorkspaceParams();
   const setNodeArgument = useCanvasStore((s) => s.setNodeArgument);
-  const isRunning = useCanvasStore((s) => s.isRunning);
+  const isRunning = useCanvasStore((s) => s.runPhase !== 'idle');
   const { readOnly } = useCanvasMode();
   const saveWorkflow = useCanvasStore((s) => s.saveWorkflow);
 

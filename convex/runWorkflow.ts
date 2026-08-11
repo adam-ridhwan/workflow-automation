@@ -77,6 +77,15 @@ function remapCanvasIds(canvas: WorkflowCanvasData): {
   return { canvas: { ...canvas, nodes, edges }, idMap };
 }
 
+/** The message stored for a finished run: none when the user stopped it,
+ * otherwise the error's message (or a generic fallback). */
+function runErrorMessage(stopped: boolean, error: unknown): string | undefined {
+  if (stopped) {
+    return undefined;
+  }
+  return error instanceof Error ? error.message : 'The run failed.';
+}
+
 /** Re-keys node outputs from the original ids to the snapshot's fresh ids. */
 function remapOutputs(
   outputs: Record<string, string>,
@@ -149,11 +158,7 @@ export const execute = internalAction({
         runHistoryId: args.runHistoryId,
         status: stopped ? 'stopped' : 'error',
         nodeOutputs: {},
-        error: stopped
-          ? undefined
-          : error instanceof Error
-            ? error.message
-            : 'The run failed.',
+        error: runErrorMessage(stopped, error),
       });
     }
     return null;
@@ -226,7 +231,10 @@ export const runChainStep = internalAction({
       nodeOutputs: status === 'success' ? remapOutputs(outputs, idMap) : {},
       error,
     });
-    // Let the finished badges linger a beat, then fade — same as an editor run.
+    // Free the run button now; let the finished badges linger a beat, then fade.
+    await ctx.runMutation(internal.runs.markFinished, {
+      workflowId: args.workflowId,
+    });
     await ctx.scheduler.runAfter(1000, internal.runs.clearStatuses, {
       workflowId: args.workflowId,
     });
@@ -260,6 +268,11 @@ export const runChainSequence = internalAction({
         canvas: step.canvas,
       });
     }
+    // Safety net: clear any step still flagged scheduled (e.g. one skipped
+    // because it was deleted mid-run). Steps that ran already cleared theirs.
+    await ctx.runMutation(internal.runs.clearScheduled, {
+      workflowIds: args.chainWorkflowIds,
+    });
     return null;
   },
 });
@@ -274,6 +287,15 @@ export const run = action({
     });
     if (workflow === null) {
       throw new ConvexError('Workflow not found.');
+    }
+
+    // Queue any chained workflows right away so they read as "Scheduled" (and
+    // can't be run on their own) the moment this run starts.
+    const chain = workflow.chainWorkflowIds ?? [];
+    if (chain.length > 0) {
+      await ctx.runMutation(internal.runs.markScheduled, {
+        workflowIds: chain,
+      });
     }
 
     await ctx.runMutation(internal.runs.start, {
@@ -328,12 +350,14 @@ export const run = action({
         status: 'success',
         nodeOutputs: remapOutputs(outputs, idMap),
       });
+      await ctx.runMutation(internal.runs.markFinished, {
+        workflowId: args.workflowId,
+      });
       await ctx.scheduler.runAfter(1000, internal.runs.clearStatuses, {
         workflowId: args.workflowId,
       });
       // Once this workflow succeeds, run whatever is chained after it — in
       // order, in the background — so a single "Run Workflow" runs the sequence.
-      const chain = workflow.chainWorkflowIds ?? [];
       if (chain.length > 0) {
         await ctx.scheduler.runAfter(0, internal.runWorkflow.runChainSequence, {
           sourceWorkflowId: args.workflowId,
@@ -351,15 +375,20 @@ export const run = action({
         runHistoryId,
         status: stopped ? 'stopped' : 'error',
         nodeOutputs: {},
-        error: stopped
-          ? undefined
-          : error instanceof Error
-            ? error.message
-            : 'The run failed.',
+        error: runErrorMessage(stopped, error),
+      });
+      await ctx.runMutation(internal.runs.markFinished, {
+        workflowId: args.workflowId,
       });
       await ctx.scheduler.runAfter(1000, internal.runs.clearStatuses, {
         workflowId: args.workflowId,
       });
+      // The chain won't run (this workflow didn't succeed), so un-queue it.
+      if (chain.length > 0) {
+        await ctx.runMutation(internal.runs.clearScheduled, {
+          workflowIds: chain,
+        });
+      }
       // A user-requested stop isn't an error — return normally so the client
       // doesn't show a failure toast.
       if (stopped) {

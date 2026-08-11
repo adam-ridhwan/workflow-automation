@@ -25,7 +25,7 @@ export function WorkflowCanvasNodeToolbar({
   const cloneNode = useCanvasStore((s) => s.cloneNode);
   const deleteNode = useCanvasStore((s) => s.deleteNode);
   const setNodeAnnotation = useCanvasStore((s) => s.setNodeAnnotation);
-  const isRunning = useCanvasStore((s) => s.isRunning);
+  const isRunning = useCanvasStore((s) => s.runPhase !== 'idle');
   const hasAnnotation = useCanvasStore(
     (s) =>
       s.nodes.find((node) => node.id === nodeId)?.data.annotation !== undefined

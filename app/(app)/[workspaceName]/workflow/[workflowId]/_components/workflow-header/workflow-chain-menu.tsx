@@ -83,6 +83,39 @@ export function WorkflowChainMenu({
     save(next);
   }
 
+  function renderAddOptions() {
+    if (options === undefined) {
+      return <div className='text-muted-foreground py-1 text-xs'>Loading…</div>;
+    }
+    if (available.length === 0) {
+      return (
+        <div className='text-muted-foreground py-1 text-xs'>
+          {chain.length === 0
+            ? 'No other workflows in this workspace.'
+            : 'Every other workflow is already in the chain.'}
+        </div>
+      );
+    }
+    return (
+      <div className='-mx-1 max-h-48 overflow-y-auto'>
+        {available.map((option) => (
+          <button
+            key={option._id}
+            type='button'
+            onClick={() => {
+              add(option._id);
+            }}
+            className='hover:bg-accent flex w-full items-center gap-1.5 rounded-md
+              px-2 py-1 text-left text-[13px]'
+          >
+            <PlusIcon className='text-muted-foreground size-3.5 shrink-0' />
+            <span className='truncate'>{option.name}</span>
+          </button>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <DropdownMenu>
       <Tooltip>
@@ -179,32 +212,7 @@ export function WorkflowChainMenu({
           <p className='text-muted-foreground mb-1 text-[11px] font-medium'>
             Add workflow
           </p>
-          {options === undefined ? (
-            <div className='text-muted-foreground py-1 text-xs'>Loading…</div>
-          ) : available.length === 0 ? (
-            <div className='text-muted-foreground py-1 text-xs'>
-              {chain.length === 0
-                ? 'No other workflows in this workspace.'
-                : 'Every other workflow is already in the chain.'}
-            </div>
-          ) : (
-            <div className='-mx-1 max-h-48 overflow-y-auto'>
-              {available.map((option) => (
-                <button
-                  key={option._id}
-                  type='button'
-                  onClick={() => {
-                    add(option._id);
-                  }}
-                  className='hover:bg-accent flex w-full items-center gap-1.5
-                    rounded-md px-2 py-1 text-left text-[13px]'
-                >
-                  <PlusIcon className='text-muted-foreground size-3.5 shrink-0' />
-                  <span className='truncate'>{option.name}</span>
-                </button>
-              ))}
-            </div>
-          )}
+          {renderAddOptions()}
         </div>
       </DropdownMenuContent>
     </DropdownMenu>

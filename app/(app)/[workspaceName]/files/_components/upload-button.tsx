@@ -162,15 +162,13 @@ export function UploadButton({
         await uploadOne(file);
       }
     } catch (err) {
-      toast.add({
-        type: 'error',
-        title:
-          err instanceof ConvexError && typeof err.data === 'string'
-            ? err.data
-            : err instanceof Error
-              ? err.message
-              : 'Could not upload. Please try again.',
-      });
+      let title = 'Could not upload. Please try again.';
+      if (err instanceof ConvexError && typeof err.data === 'string') {
+        title = err.data;
+      } else if (err instanceof Error) {
+        title = err.message;
+      }
+      toast.add({ type: 'error', title });
     } finally {
       if (inputRef.current) {
         inputRef.current.value = '';

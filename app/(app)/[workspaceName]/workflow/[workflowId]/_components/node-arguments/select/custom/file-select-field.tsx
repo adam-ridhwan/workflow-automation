@@ -35,7 +35,7 @@ export function FileSelectField({
 }: FileSelectFieldProps) {
   const { workspaceName, workflowId } = useWorkspaceParams();
   const setNodeArgument = useCanvasStore((s) => s.setNodeArgument);
-  const isRunning = useCanvasStore((s) => s.isRunning);
+  const isRunning = useCanvasStore((s) => s.runPhase !== 'idle');
   const saveWorkflow = useCanvasStore((s) => s.saveWorkflow);
   const { readOnly } = useCanvasMode();
 

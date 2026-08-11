@@ -38,7 +38,7 @@ export function WorkflowCanvasNodeAnnotation({
   const { workspaceName, workflowId } = useWorkspaceParams();
   const setNodeAnnotation = useCanvasStore((s) => s.setNodeAnnotation);
   const saveWorkflow = useCanvasStore((s) => s.saveWorkflow);
-  const isRunning = useCanvasStore((s) => s.isRunning);
+  const isRunning = useCanvasStore((s) => s.runPhase !== 'idle');
   const { readOnly } = useCanvasMode();
 
   const annotation = data.annotation;

@@ -22,7 +22,7 @@ export function UndoRedoButtons() {
   const redo = useCanvasStore((s) => s.redo);
   const canUndo = useCanvasStore((s) => s.canUndo);
   const canRedo = useCanvasStore((s) => s.canRedo);
-  const isRunning = useCanvasStore((s) => s.isRunning);
+  const isRunning = useCanvasStore((s) => s.runPhase !== 'idle');
 
   if (!pathname.endsWith('/canvas')) {
     return null;

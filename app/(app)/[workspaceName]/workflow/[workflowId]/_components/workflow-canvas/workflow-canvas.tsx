@@ -58,21 +58,20 @@ export function WorkflowCanvas({ canvas }: WorkflowCanvasProps) {
   useAutoVersion();
 
   const run = useWorkflowRun();
-  // Reflect a run started from elsewhere (e.g. a CALL_WORKFLOW node in another
-  // workflow) into the store, so the run button and argument fields disable
-  // even though this client didn't press Run. A local run owns that state
-  // itself, so don't double-count it here.
-  const setRunningRemotely = useCanvasStore((s) => s.setRunningRemotely);
-  const runningLocally = useCanvasStore((s) => s.runningLocally);
-  const liveRunning = run
-    ? Object.values(run.nodeStatuses).some((status) => status === 'running')
-    : false;
+  // Reflect a run started from elsewhere (a chain step this workflow is part of)
+  // into the store, so the run button and argument fields disable even though
+  // this client didn't press Run: 'scheduled' while queued, 'running' while
+  // executing. The run doc's `phase` holds one stable value for the whole run,
+  // so the button doesn't flicker between per-node status updates.
+  // `setRemotePhase` ignores this while a local run owns the phase.
+  const setRemotePhase = useCanvasStore((s) => s.setRemotePhase);
+  const remotePhase = run?.phase ?? 'idle';
   useEffect(() => {
-    setRunningRemotely(liveRunning && !runningLocally);
+    setRemotePhase(remotePhase);
     return () => {
-      setRunningRemotely(false);
+      setRemotePhase('idle');
     };
-  }, [liveRunning, runningLocally, setRunningRemotely]);
+  }, [remotePhase, setRemotePhase]);
   // Only fit on load when the workflow already has nodes. On an empty canvas
   // React Flow would keep the fit pending and then fire it when the first node
   // is dropped, yanking the viewport — so leave it off there.

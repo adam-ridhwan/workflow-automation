@@ -69,6 +69,11 @@ export default defineSchema({
    * by the runWorkflow action and streamed to clients via subscriptions. */
   runs: defineTable({
     workflowId: v.id('workflows'),
+    /** The run's overall state, held for its whole duration so the run button
+     * doesn't flicker between per-node status updates: 'scheduled' (queued as a
+     * later step of another workflow's chain), 'running' (executing). Absent
+     * means idle. */
+    phase: v.optional(v.union(v.literal('scheduled'), v.literal('running'))),
     nodeStatuses: v.record(
       v.string(),
       v.union(v.literal('running'), v.literal('success'), v.literal('error'))

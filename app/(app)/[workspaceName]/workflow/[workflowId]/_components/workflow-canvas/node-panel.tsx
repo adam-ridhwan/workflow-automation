@@ -37,6 +37,34 @@ export function NodePanel({ node }: NodePanelProps) {
     ) ?? false;
   const output = run?.nodeOutputs[node.id];
 
+  function renderBody(activeNode: Node<WorkflowNodeData>) {
+    if (isDisplay) {
+      return (
+        <div className='px-4 py-3'>
+          {output === undefined || output === '' ? (
+            <span className='text-muted-foreground text-[13px]'>
+              No output yet
+            </span>
+          ) : (
+            <NodeOutputMarkdown output={output} />
+          )}
+        </div>
+      );
+    }
+    if (hasArguments) {
+      return (
+        <div className='py-1'>
+          <NodeArguments nodeId={activeNode.id} data={activeNode.data} />
+        </div>
+      );
+    }
+    return (
+      <p className='text-muted-foreground px-4 py-2 text-[13px]'>
+        This node has no settings.
+      </p>
+    );
+  }
+
   return (
     <div className='absolute top-3 right-3 bottom-3 z-10 flex w-80'>
       <Card className='flex min-h-0 flex-1 flex-col gap-0 overflow-hidden p-0'>
@@ -80,25 +108,7 @@ export function NodePanel({ node }: NodePanelProps) {
         </div>
 
         <div className='nowheel min-h-0 flex-1 overflow-y-auto'>
-          {isDisplay ? (
-            <div className='px-4 py-3'>
-              {output === undefined || output === '' ? (
-                <span className='text-muted-foreground text-[13px]'>
-                  No output yet
-                </span>
-              ) : (
-                <NodeOutputMarkdown output={output} />
-              )}
-            </div>
-          ) : hasArguments ? (
-            <div className='py-1'>
-              <NodeArguments nodeId={node.id} data={node.data} />
-            </div>
-          ) : (
-            <p className='text-muted-foreground px-4 py-2 text-[13px]'>
-              This node has no settings.
-            </p>
-          )}
+          {renderBody(node)}
         </div>
       </Card>
     </div>

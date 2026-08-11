@@ -25,7 +25,7 @@ export function PromptField({
   argument,
 }: PromptFieldProps) {
   const { workspaceName, workflowId } = useWorkspaceParams();
-  const isRunning = useCanvasStore((s) => s.isRunning);
+  const isRunning = useCanvasStore((s) => s.runPhase !== 'idle');
   const { readOnly } = useCanvasMode();
   const saveWorkflow = useCanvasStore((s) => s.saveWorkflow);
 

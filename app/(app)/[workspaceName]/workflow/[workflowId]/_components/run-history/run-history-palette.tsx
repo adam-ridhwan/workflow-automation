@@ -48,6 +48,55 @@ export function RunHistoryPalette({ selectedId }: RunHistoryPaletteProps) {
 
   const base = `/${encodeURIComponent(workspaceName)}/workflow/${workflowId}/run-history`;
 
+  function renderRuns() {
+    if (runs === undefined) {
+      return (
+        <div className='text-muted-foreground px-2 py-1.5 text-[13px]'>
+          Loading…
+        </div>
+      );
+    }
+    if (runs.length === 0) {
+      return (
+        <div className='text-muted-foreground px-2 py-1.5 text-[13px]'>
+          No runs yet.
+        </div>
+      );
+    }
+    return runs.map((run, index) => {
+      const meta = STATUS_META[run.status];
+      const isSelected = run._id === selectedId;
+      // Newest first, so the oldest run in the list is #1.
+      const runNumber = runs.length - index;
+      return (
+        <Link
+          key={run._id}
+          href={`${base}/${run._id}`}
+          className={cn(
+            `hover:bg-accent hover:text-accent-foreground flex shrink-0
+              items-center gap-2 rounded-md px-2 py-1.5 text-[13px] font-medium
+              select-none`,
+            isSelected && 'bg-accent text-accent-foreground'
+          )}
+        >
+          <span className='flex size-4 shrink-0 items-center justify-center'>
+            <meta.icon
+              className={cn(
+                'size-3.5',
+                meta.className,
+                run.status === 'running' && 'animate-spin'
+              )}
+            />
+          </span>
+          <span className='shrink-0'>Run # {runNumber}</span>
+          <span className='text-muted-foreground ml-auto truncate text-[11px]'>
+            {formatTime(run.startedAt)}
+          </span>
+        </Link>
+      );
+    });
+  }
+
   return (
     <div className='absolute top-0 left-0 z-10 flex max-h-full flex-col p-4'>
       <Collapsible
@@ -72,53 +121,7 @@ export function RunHistoryPalette({ selectedId }: RunHistoryPaletteProps) {
         </CollapsibleTrigger>
 
         <CollapsibleContent className='flex min-h-0 flex-col overflow-y-auto'>
-          {runs === undefined ? (
-            <div className='text-muted-foreground px-2 py-1.5 text-[13px]'>
-              Loading…
-            </div>
-          ) : runs.length === 0 ? (
-            <div className='text-muted-foreground px-2 py-1.5 text-[13px]'>
-              No runs yet.
-            </div>
-          ) : (
-            runs.map((run, index) => {
-              const meta = STATUS_META[run.status];
-              const isSelected = run._id === selectedId;
-              // Newest first, so the oldest run in the list is #1.
-              const runNumber = runs.length - index;
-              return (
-                <Link
-                  key={run._id}
-                  href={`${base}/${run._id}`}
-                  className={cn(
-                    `hover:bg-accent hover:text-accent-foreground flex shrink-0
-                      items-center gap-2 rounded-md px-2 py-1.5 text-[13px]
-                      font-medium select-none`,
-                    isSelected && 'bg-accent text-accent-foreground'
-                  )}
-                >
-                  <span
-                    className='flex size-4 shrink-0 items-center justify-center'
-                  >
-                    <meta.icon
-                      className={cn(
-                        'size-3.5',
-                        meta.className,
-                        run.status === 'running' && 'animate-spin'
-                      )}
-                    />
-                  </span>
-                  <span className='shrink-0'>Run # {runNumber}</span>
-                  <span
-                    className='text-muted-foreground ml-auto truncate
-                      text-[11px]'
-                  >
-                    {formatTime(run.startedAt)}
-                  </span>
-                </Link>
-              );
-            })
-          )}
+          {renderRuns()}
         </CollapsibleContent>
       </Collapsible>
     </div>

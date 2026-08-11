@@ -35,6 +35,21 @@ export type DropTargetData = {
   folderName: string;
 };
 
+/** Icon for the drag overlay, by the dragged item's kind. */
+function renderDragIcon(kind: DragData['kind']) {
+  if (kind === 'folder') {
+    return (
+      <FolderIcon
+        className='text-muted-foreground size-3.5 shrink-0 fill-current'
+      />
+    );
+  }
+  if (kind === 'file') {
+    return <FileIcon className='text-muted-foreground size-3.5 shrink-0' />;
+  }
+  return <WorkflowIcon className='text-muted-foreground size-3.5 shrink-0' />;
+}
+
 // Position the drag overlay so its top-left corner rides the cursor.
 export const snapTopLeftToCursor: Modifier = ({
   activatorEvent,
@@ -180,18 +195,7 @@ export function WorkspaceDndProvider({ children }: WorkspaceDndProviderProps) {
                   rounded-md border px-3 py-1.5 text-[13px] font-medium
                   shadow-md'
               >
-                {dragItem.kind === 'folder' ? (
-                  <FolderIcon
-                    className='text-muted-foreground size-3.5 shrink-0
-                      fill-current'
-                  />
-                ) : dragItem.kind === 'file' ? (
-                  <FileIcon className='text-muted-foreground size-3.5 shrink-0' />
-                ) : (
-                  <WorkflowIcon
-                    className='text-muted-foreground size-3.5 shrink-0'
-                  />
-                )}
+                {renderDragIcon(dragItem.kind)}
                 <span className='max-w-56 truncate'>{dragItem.name}</span>
               </div>
             )}

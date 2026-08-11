@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Loader2Icon, PlayIcon, SquareIcon } from 'lucide-react';
+import { ClockIcon, Loader2Icon, PlayIcon, SquareIcon } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 
 import { validateWorkflow } from '../../_lib/validate-workflow';
@@ -24,8 +24,7 @@ export function RunWorkflowButton() {
     : undefined;
   const runWorkflow = useCanvasStore((s) => s.runWorkflow);
   const stopWorkflow = useCanvasStore((s) => s.stopWorkflow);
-  const isRunning = useCanvasStore((s) => s.isRunning);
-  const runningLocally = useCanvasStore((s) => s.runningLocally);
+  const runPhase = useCanvasStore((s) => s.runPhase);
   const isStopping = useCanvasStore((s) => s.isStopping);
   const nodes = useCanvasStore((s) => s.nodes);
   const edges = useCanvasStore((s) => s.edges);
@@ -33,18 +32,24 @@ export function RunWorkflowButton() {
   const errors = useMemo(() => validateWorkflow(nodes, edges), [nodes, edges]);
   const isRerun = runHistoryId !== undefined;
 
-  // A local run can be stopped; a run triggered elsewhere can't be, so it just
-  // shows a disabled "Running…" indicator.
-  if (isRunning && !runningLocally) {
+  // A chain-driven run can't be stopped from here, so it shows a disabled
+  // indicator: "Scheduled" while queued behind an earlier workflow, "Running…"
+  // once it's executing.
+  if (runPhase === 'scheduled' || runPhase === 'running') {
     return (
       <Button disabled className='w-36 gap-1.5'>
-        <Loader2Icon className='size-3.5 animate-spin' />
-        Running…
+        {runPhase === 'scheduled' ? (
+          <ClockIcon className='size-3.5' />
+        ) : (
+          <Loader2Icon className='size-3.5 animate-spin' />
+        )}
+        {runPhase === 'scheduled' ? 'Scheduled' : 'Running…'}
       </Button>
     );
   }
 
-  if (isRunning) {
+  // A run this client started ('local') can be stopped.
+  if (runPhase === 'local') {
     return (
       <Button
         variant='destructive'

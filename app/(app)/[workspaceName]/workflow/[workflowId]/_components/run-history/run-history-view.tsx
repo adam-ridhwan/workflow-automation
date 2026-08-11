@@ -17,28 +17,37 @@ export function RunHistoryView() {
     runHistoryId ? { workspaceName, workflowId, runHistoryId } : 'skip'
   );
 
-  return (
-    <div className='bg-canvas relative flex min-h-0 flex-1'>
-      {runHistoryId === undefined ? (
+  function renderCanvas() {
+    if (runHistoryId === undefined) {
+      return (
         <div
           className='text-muted-foreground flex flex-1 items-center
             justify-center text-sm'
         >
           Select a run to view its canvas.
         </div>
-      ) : run === undefined ? (
-        <div className='flex-1' />
-      ) : run === null ? (
+      );
+    }
+    // Query still loading — hold the space without a message.
+    if (run === undefined) {
+      return <div className='flex-1' />;
+    }
+    if (run === null) {
+      return (
         <div
           className='text-muted-foreground flex flex-1 items-center
             justify-center text-sm'
         >
           Run not found.
         </div>
-      ) : (
-        <RunHistoryCanvas run={run} />
-      )}
+      );
+    }
+    return <RunHistoryCanvas run={run} />;
+  }
 
+  return (
+    <div className='bg-canvas relative flex min-h-0 flex-1'>
+      {renderCanvas()}
       <RunHistoryPalette selectedId={runHistoryId} />
     </div>
   );

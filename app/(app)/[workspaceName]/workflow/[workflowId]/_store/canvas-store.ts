@@ -36,12 +36,13 @@ interface CanvasState {
   nodes: Node<WorkflowNodeData>[];
   edges: Edge<WorkflowEdgeData>[];
   version: number;
-  /** True whenever the workflow is executing — whether this client started the
-   * run or another workflow triggered it. Gates the run button and edits. */
-  isRunning: boolean;
-  /** True only for a run this client started (drives the Stop affordance; a
-   * triggered run can't be stopped from here). */
-  runningLocally: boolean;
+  /** The single source of truth for run/edit gating. Anything other than
+   * 'idle' means the workflow is busy, so edits and the run button lock:
+   * 'local' — this client started the run (the only phase that can be stopped);
+   * 'scheduled' — queued as a later step of another workflow's chain;
+   * 'running' — executing as a chain step (not started from this client);
+   * 'idle' — not running. */
+  runPhase: 'idle' | 'local' | 'scheduled' | 'running';
   isStopping: boolean;
   canUndo: boolean;
   canRedo: boolean;
@@ -55,9 +56,10 @@ interface CanvasState {
     fromRunHistoryId?: Id<'runHistory'>
   ) => Promise<Id<'runHistory'> | undefined>;
   stopWorkflow: (target: SaveTarget) => Promise<void>;
-  /** Reflects the live run doc into the store: true when the workflow is
-   * executing but this client didn't start it (a triggered run). */
-  setRunningRemotely: (running: boolean) => void;
+  /** Reflects the live run doc's phase into the store, so the run button and
+   * edits disable for a run this client didn't start (a chain step). Ignored
+   * while a local run owns the phase. */
+  setRemotePhase: (phase: 'idle' | 'scheduled' | 'running') => void;
   onNodesChange: (changes: NodeChange[]) => void;
   onEdgesChange: (changes: EdgeChange[]) => void;
   onConnect: (connection: Connection, target: SaveTarget) => void;
@@ -108,8 +110,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   nodes: [],
   edges: [],
   version: 1,
-  isRunning: false,
-  runningLocally: false,
+  runPhase: 'idle',
   isStopping: false,
   canUndo: false,
   canRedo: false,
@@ -145,10 +146,10 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
     isRestoring = false;
   },
   runWorkflow: async (target, fromRunHistoryId) => {
-    if (get().isRunning) {
+    if (get().runPhase !== 'idle') {
       return undefined;
     }
-    set({ isRunning: true, runningLocally: true, isStopping: false });
+    set({ runPhase: 'local', isStopping: false });
     try {
       if (fromRunHistoryId !== undefined) {
         // Re-run in the background; returns the new run id immediately so the
@@ -178,13 +179,18 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
       });
       return undefined;
     } finally {
-      // The local run is over. If a triggered run is still executing, the live
-      // run doc will flip `isRunning` back on via setRunningRemotely.
-      set({ runningLocally: false, isRunning: false, isStopping: false });
+      // The local run is over. The canvas effect re-applies any remaining
+      // remote phase from the run doc (which, for a self-run, is 'idle').
+      set({ runPhase: 'idle', isStopping: false });
     }
   },
-  setRunningRemotely: (running) => {
-    set({ isRunning: running || get().runningLocally });
+  setRemotePhase: (phase) => {
+    // A local run owns the phase until it finishes — never let the run doc
+    // override it (that would drop the Stop affordance mid-run).
+    if (get().runPhase === 'local') {
+      return;
+    }
+    set({ runPhase: phase });
   },
   stopWorkflow: async (target) => {
     // Stays true until the run actually finishes (runWorkflow's finally).

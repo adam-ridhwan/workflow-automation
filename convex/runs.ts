@@ -14,6 +14,7 @@ const runValidator = v.object({
   _id: v.id('runs'),
   _creationTime: v.number(),
   workflowId: v.id('workflows'),
+  phase: v.optional(v.union(v.literal('scheduled'), v.literal('running'))),
   nodeStatuses: v.record(v.string(), nodeStatusValidator),
   nodeOutputs: v.record(v.string(), v.string()),
 });
@@ -38,7 +39,9 @@ export const get = query({
   },
 });
 
-/** Resets the workflow's run doc at the start of a run. */
+/** Resets the workflow's run doc at the start of a run and marks it 'running'
+ * for the whole run — so the run button reflects one stable state rather than
+ * flickering as per-node statuses come and go. */
 export const start = internalMutation({
   args: { workflowId: v.id('workflows') },
   returns: v.null(),
@@ -48,13 +51,85 @@ export const start = internalMutation({
       .withIndex('workflow', (q) => q.eq('workflowId', args.workflowId))
       .unique();
     if (existing) {
-      await ctx.db.patch(existing._id, { nodeStatuses: {}, nodeOutputs: {} });
+      await ctx.db.patch(existing._id, {
+        nodeStatuses: {},
+        nodeOutputs: {},
+        phase: 'running',
+      });
     } else {
       await ctx.db.insert('runs', {
         workflowId: args.workflowId,
+        phase: 'running',
         nodeStatuses: {},
         nodeOutputs: {},
       });
+    }
+    return null;
+  },
+});
+
+/** Clears the run's phase back to idle the moment it finishes, so the run
+ * button frees immediately while the per-node badges linger (cleared a beat
+ * later by `clearStatuses`). */
+export const markFinished = internalMutation({
+  args: { workflowId: v.id('workflows') },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query('runs')
+      .withIndex('workflow', (q) => q.eq('workflowId', args.workflowId))
+      .unique();
+    if (existing) {
+      await ctx.db.patch(existing._id, { phase: undefined });
+    }
+    return null;
+  },
+});
+
+/** Marks workflows as queued to run (as later steps of a chain). Skips ids
+ * whose workflow no longer exists so no orphan run docs are created. */
+export const markScheduled = internalMutation({
+  args: { workflowIds: v.array(v.id('workflows')) },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    for (const workflowId of args.workflowIds) {
+      if ((await ctx.db.get(workflowId)) === null) {
+        continue;
+      }
+      const existing = await ctx.db
+        .query('runs')
+        .withIndex('workflow', (q) => q.eq('workflowId', workflowId))
+        .unique();
+      if (existing) {
+        await ctx.db.patch(existing._id, { phase: 'scheduled' });
+      } else {
+        await ctx.db.insert('runs', {
+          workflowId,
+          phase: 'scheduled',
+          nodeStatuses: {},
+          nodeOutputs: {},
+        });
+      }
+    }
+    return null;
+  },
+});
+
+/** Clears the 'scheduled' phase on workflows that are still queued — used when a
+ * chain won't run after all (its parent failed) or as a final safety net. Only
+ * touches still-queued workflows, never one that has since started running. */
+export const clearScheduled = internalMutation({
+  args: { workflowIds: v.array(v.id('workflows')) },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    for (const workflowId of args.workflowIds) {
+      const existing = await ctx.db
+        .query('runs')
+        .withIndex('workflow', (q) => q.eq('workflowId', workflowId))
+        .unique();
+      if (existing && existing.phase === 'scheduled') {
+        await ctx.db.patch(existing._id, { phase: undefined });
+      }
     }
     return null;
   },

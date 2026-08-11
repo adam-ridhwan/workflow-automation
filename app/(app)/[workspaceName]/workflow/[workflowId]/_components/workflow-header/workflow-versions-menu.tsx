@@ -58,7 +58,7 @@ export function WorkflowVersionsMenu() {
   const saveVersion = useMutation(api.workflows.saveVersion);
   const restoreVersion = useMutation(api.workflows.restoreVersion);
   const setCanvas = useCanvasStore((s) => s.setCanvas);
-  const isRunning = useCanvasStore((s) => s.isRunning);
+  const isRunning = useCanvasStore((s) => s.runPhase !== 'idle');
   const [name, setName] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -103,6 +103,49 @@ export function WorkflowVersionsMenu() {
             : 'Could not restore this version. Please try again.',
       });
     }
+  }
+
+  function renderVersions() {
+    if (versions === undefined) {
+      return (
+        <div className='text-muted-foreground px-2 py-1.5 text-xs'>Loading…</div>
+      );
+    }
+    if (versions.length === 0) {
+      return (
+        <div className='text-muted-foreground px-2 py-1.5 text-xs'>
+          No versions yet. They&apos;re captured automatically as you edit.
+        </div>
+      );
+    }
+    return versions.map((version) => (
+      <DropdownMenuItem
+        key={version._id}
+        className='gap-2'
+        onClick={() => {
+          handleRestore(version._id);
+        }}
+      >
+        <Avatar className='size-6'>
+          {version.createdByImageUrl && (
+            <AvatarImage
+              src={version.createdByImageUrl}
+              alt={version.createdByName}
+            />
+          )}
+          <AvatarFallback className='text-[9px] font-semibold'>
+            {getInitials(version.createdByName)}
+          </AvatarFallback>
+        </Avatar>
+        <div className='flex min-w-0 flex-col'>
+          <span className='truncate text-[13px]'>{versionLabel(version)}</span>
+          <span className='text-muted-foreground truncate text-[11px]'>
+            {version.createdByName} &nbsp; · &nbsp;
+            {formatTime(version._creationTime)}
+          </span>
+        </div>
+      </DropdownMenuItem>
+    ));
   }
 
   return (
@@ -155,48 +198,7 @@ export function WorkflowVersionsMenu() {
 
         <DropdownMenuSeparator />
 
-        <div className='max-h-80 overflow-y-auto'>
-          {versions === undefined ? (
-            <div className='text-muted-foreground px-2 py-1.5 text-xs'>
-              Loading…
-            </div>
-          ) : versions.length === 0 ? (
-            <div className='text-muted-foreground px-2 py-1.5 text-xs'>
-              No versions yet. They&apos;re captured automatically as you edit.
-            </div>
-          ) : (
-            versions.map((version) => (
-              <DropdownMenuItem
-                key={version._id}
-                className='gap-2'
-                onClick={() => {
-                  handleRestore(version._id);
-                }}
-              >
-                <Avatar className='size-6'>
-                  {version.createdByImageUrl && (
-                    <AvatarImage
-                      src={version.createdByImageUrl}
-                      alt={version.createdByName}
-                    />
-                  )}
-                  <AvatarFallback className='text-[9px] font-semibold'>
-                    {getInitials(version.createdByName)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className='flex min-w-0 flex-col'>
-                  <span className='truncate text-[13px]'>
-                    {versionLabel(version)}
-                  </span>
-                  <span className='text-muted-foreground truncate text-[11px]'>
-                    {version.createdByName} &nbsp; · &nbsp;
-                    {formatTime(version._creationTime)}
-                  </span>
-                </div>
-              </DropdownMenuItem>
-            ))
-          )}
-        </div>
+        <div className='max-h-80 overflow-y-auto'>{renderVersions()}</div>
       </DropdownMenuContent>
     </DropdownMenu>
   );

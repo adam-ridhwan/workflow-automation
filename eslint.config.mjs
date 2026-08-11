@@ -17,6 +17,8 @@ const eslintConfig = defineConfig([
           varsIgnorePattern: '^_',
         },
       ],
+      // Nested ternaries are hard to read — use if/else or a lookup instead.
+      'no-nested-ternary': 'error',
     },
   },
   // Override default ignores of eslint-config-next.
