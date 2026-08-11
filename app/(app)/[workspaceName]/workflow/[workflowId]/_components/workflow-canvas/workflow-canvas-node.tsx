@@ -8,11 +8,14 @@ import {
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/cn';
 import { findNodeSpec } from '@/lib/node-specs';
-import { Position } from '@xyflow/react';
+import { Position, useNodeConnections } from '@xyflow/react';
 import { CircleIcon, TriangleAlertIcon } from 'lucide-react';
 
 import { NODE_META } from '../../_constants/node-meta';
-import { hasUnresolvedArguments } from '../../_lib/validate-workflow';
+import {
+  hasMissingConnection,
+  hasUnresolvedArguments,
+} from '../../_lib/validate-workflow';
 import { WorkflowCanvasNodeAnnotation } from './workflow-canvas-node-annotation';
 import { WorkflowCanvasNodeStatus } from './workflow-canvas-node-status';
 import { WorkflowCanvasPort } from './workflow-canvas-port';
@@ -31,7 +34,19 @@ export function WorkflowCanvasNode({
   const nodeSpec = findNodeSpec(data.node_uid);
   const hasInPort = (nodeSpec?.node_requirement.max_in_edges ?? 1) > 0;
   const hasOutPort = (nodeSpec?.node_requirement.max_out_edges ?? 1) > 0;
-  const unresolved = hasUnresolvedArguments(data);
+
+  // Live edge counts for this node, so a missing required connection surfaces
+  // as a warning the same way an unresolved argument does.
+  const incoming = useNodeConnections({ handleType: 'target' });
+  const outgoing = useNodeConnections({ handleType: 'source' });
+
+  const warnings: string[] = [];
+  if (hasMissingConnection(data, incoming.length, outgoing.length)) {
+    warnings.push('This node is missing a required connection.');
+  }
+  if (hasUnresolvedArguments(data)) {
+    warnings.push('This node has unresolved argument fields.');
+  }
 
   return (
     <Card
@@ -66,7 +81,7 @@ export function WorkflowCanvasNode({
 
         <div className='flex min-w-0 flex-1 flex-col'>
           <div className='truncate text-[13px] font-medium'>{data.name}</div>
-          {(meta?.description || unresolved) && (
+          {(meta?.description || warnings.length > 0) && (
             <div className='flex items-center gap-1'>
               {meta?.description && (
                 <div
@@ -77,20 +92,24 @@ export function WorkflowCanvasNode({
                 </div>
               )}
 
-              {unresolved && (
+              {warnings.length > 0 && (
                 <Tooltip>
                   <TooltipTrigger
                     render={
                       <span
                         className='flex shrink-0 items-center'
-                        aria-label='Unresolved argument fields'
+                        aria-label='Node warnings'
                       />
                     }
                   >
                     <TriangleAlertIcon className='size-3.5 text-amber-500' />
                   </TooltipTrigger>
                   <TooltipContent>
-                    This node has unresolved argument fields.
+                    <div className='flex flex-col gap-0.5'>
+                      {warnings.map((warning) => (
+                        <span key={warning}>{warning}</span>
+                      ))}
+                    </div>
                   </TooltipContent>
                 </Tooltip>
               )}

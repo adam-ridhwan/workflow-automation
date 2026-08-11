@@ -49,6 +49,24 @@ function getArgumentProblem(argument: NodeArgument, value: unknown) {
   }
 }
 
+/** Whether the node is missing a connection it requires — a mandatory incoming
+ * or outgoing port with no edge attached. Nodes without a spec (e.g. the seeded
+ * start node) never count as missing one. */
+export function hasMissingConnection(
+  data: WorkflowNodeData,
+  inCount: number,
+  outCount: number
+): boolean {
+  const spec = findNodeSpec(data.node_uid);
+  if (!spec) {
+    return false;
+  }
+  const requirement = spec.node_requirement;
+  return (
+    inCount < requirement.min_in_edges || outCount < requirement.min_out_edges
+  );
+}
+
 /** Whether the node has any required argument left empty. */
 export function hasUnresolvedArguments(data: WorkflowNodeData): boolean {
   const spec = findNodeSpec(data.node_uid);
