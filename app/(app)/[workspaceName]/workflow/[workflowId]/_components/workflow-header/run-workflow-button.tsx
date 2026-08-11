@@ -25,12 +25,24 @@ export function RunWorkflowButton() {
   const runWorkflow = useCanvasStore((s) => s.runWorkflow);
   const stopWorkflow = useCanvasStore((s) => s.stopWorkflow);
   const isRunning = useCanvasStore((s) => s.isRunning);
+  const runningLocally = useCanvasStore((s) => s.runningLocally);
   const isStopping = useCanvasStore((s) => s.isStopping);
   const nodes = useCanvasStore((s) => s.nodes);
   const edges = useCanvasStore((s) => s.edges);
 
   const errors = useMemo(() => validateWorkflow(nodes, edges), [nodes, edges]);
   const isRerun = runHistoryId !== undefined;
+
+  // A local run can be stopped; a run triggered elsewhere can't be, so it just
+  // shows a disabled "Running…" indicator.
+  if (isRunning && !runningLocally) {
+    return (
+      <Button disabled className='w-36 gap-1.5'>
+        <Loader2Icon className='size-3.5 animate-spin' />
+        Running…
+      </Button>
+    );
+  }
 
   if (isRunning) {
     return (

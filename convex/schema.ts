@@ -108,6 +108,12 @@ export default defineSchema({
     folderId: v.optional(v.id('folders')),
     ownerId: v.id('users'),
     canvas: workflowCanvasValidator,
+    /** Secret token in the workflow's inbound webhook URL; set when a member
+     * enables the webhook. Unguessable, so the URL itself is the credential. */
+    webhookToken: v.optional(v.string()),
+    /** Ordered ids of workflows to run, one after another, when this workflow's
+     * chain is run. Empty/absent means no chain configured. */
+    chainWorkflowIds: v.optional(v.array(v.id('workflows'))),
     runCount: v.number(),
     successCount: v.number(),
     failCount: v.number(),
@@ -119,7 +125,8 @@ export default defineSchema({
   })
     .index('workspaceId', ['workspaceId'])
     .index('workspaceName', ['workspaceId', 'name'])
-    .index('folder', ['workspaceId', 'folderId']),
+    .index('folder', ['workspaceId', 'folderId'])
+    .index('webhookToken', ['webhookToken']),
 
   files: defineTable({
     workspaceId: v.id('workspaces'),

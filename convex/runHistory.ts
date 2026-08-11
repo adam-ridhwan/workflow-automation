@@ -202,6 +202,31 @@ export const setNodeStatus = internalMutation({
   },
 });
 
+/** Inserts an already-finished run in one shot — used by chain steps, which run
+ * to completion on the live canvas and only then write history. */
+export const record = internalMutation({
+  args: {
+    workflowId: v.id('workflows'),
+    canvas: workflowCanvasValidator,
+    status: runStatusValidator,
+    nodeOutputs: v.record(v.string(), v.string()),
+    error: v.optional(v.string()),
+  },
+  returns: v.id('runHistory'),
+  handler: async (ctx, args) => {
+    const now = Date.now();
+    return await ctx.db.insert('runHistory', {
+      workflowId: args.workflowId,
+      canvas: args.canvas,
+      status: args.status,
+      nodeOutputs: args.nodeOutputs,
+      error: args.error,
+      startedAt: now,
+      finishedAt: now,
+    });
+  },
+});
+
 /** Records the final outcome of a run. */
 export const finish = internalMutation({
   args: {

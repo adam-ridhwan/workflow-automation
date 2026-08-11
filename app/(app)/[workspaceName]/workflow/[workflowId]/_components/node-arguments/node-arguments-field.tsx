@@ -8,6 +8,7 @@ import { NumberField } from './number/default/number-field';
 import { FileSelectField } from './select/custom/file-select-field';
 import { SelectField } from './select/default/select-field';
 import { TextField } from './text/default/text-field';
+import { WebhookUrlField } from './webhook/default/webhook-url-field';
 
 import type { WorkflowNodeData } from '@/convex/canvas';
 import type { NodeArgument } from '@/lib/node-specs';
@@ -40,6 +41,10 @@ export function NodeArgumentsField({
     : undefined;
 
   function renderControl() {
+    if (argument.display === 'webhook_url') {
+      return <WebhookUrlField data={data} />;
+    }
+
     if (argument.select_source === 'files') {
       return (
         <FileSelectField

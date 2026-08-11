@@ -23,6 +23,10 @@ export interface NodeArgument {
    * static `options` list — e.g. `'files'` renders a picker of the workspace's
    * uploaded files and stores the selected file's id. */
   select_source?: 'files';
+  /** Renders a bespoke read-only control instead of an input — e.g.
+   * `'webhook_url'` shows the workflow's inbound webhook URL with copy/enable
+   * actions. Such fields have no stored value. */
+  display?: 'webhook_url';
   /** Present when have_sub_arguments is true: [flagValue, requiredArgNames][]. */
   sub_argument_requirements?: Array<[boolean, string[]]>;
 }
@@ -133,6 +137,18 @@ export const NODE_SPECS = {
     WEBHOOK: {
       in_edge_arguments: [],
       node_arguments: [
+        {
+          argument_type: 'TEXT',
+          children: {},
+          display: 'webhook_url',
+          have_options: false,
+          have_sub_arguments: false,
+          is_deprecated: false,
+          is_hidden: false,
+          is_list: false,
+          is_required: false,
+          name: 'webhook_url',
+        },
         {
           argument_type: 'TEXT',
           children: {},

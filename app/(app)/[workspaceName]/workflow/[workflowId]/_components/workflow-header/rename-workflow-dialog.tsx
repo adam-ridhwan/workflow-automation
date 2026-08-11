@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -36,13 +36,17 @@ export function RenameWorkflowDialog({
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // Reset the field to the latest name whenever the dialog opens.
-  useEffect(() => {
+  // Reset the field to the latest name whenever the dialog opens. Done during
+  // render (tracking the previous `open`) rather than in an effect, which avoids
+  // a cascading re-render.
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
     if (open) {
       setName(currentName);
       setError(null);
     }
-  }, [open, currentName]);
+  }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();

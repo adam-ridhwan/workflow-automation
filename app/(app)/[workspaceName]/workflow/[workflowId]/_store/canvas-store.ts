@@ -36,7 +36,12 @@ interface CanvasState {
   nodes: Node<WorkflowNodeData>[];
   edges: Edge<WorkflowEdgeData>[];
   version: number;
+  /** True whenever the workflow is executing — whether this client started the
+   * run or another workflow triggered it. Gates the run button and edits. */
   isRunning: boolean;
+  /** True only for a run this client started (drives the Stop affordance; a
+   * triggered run can't be stopped from here). */
+  runningLocally: boolean;
   isStopping: boolean;
   canUndo: boolean;
   canRedo: boolean;
@@ -50,6 +55,9 @@ interface CanvasState {
     fromRunHistoryId?: Id<'runHistory'>
   ) => Promise<Id<'runHistory'> | undefined>;
   stopWorkflow: (target: SaveTarget) => Promise<void>;
+  /** Reflects the live run doc into the store: true when the workflow is
+   * executing but this client didn't start it (a triggered run). */
+  setRunningRemotely: (running: boolean) => void;
   onNodesChange: (changes: NodeChange[]) => void;
   onEdgesChange: (changes: EdgeChange[]) => void;
   onConnect: (connection: Connection, target: SaveTarget) => void;
@@ -101,6 +109,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   edges: [],
   version: 1,
   isRunning: false,
+  runningLocally: false,
   isStopping: false,
   canUndo: false,
   canRedo: false,
@@ -139,7 +148,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
     if (get().isRunning) {
       return undefined;
     }
-    set({ isRunning: true, isStopping: false });
+    set({ isRunning: true, runningLocally: true, isStopping: false });
     try {
       if (fromRunHistoryId !== undefined) {
         // Re-run in the background; returns the new run id immediately so the
@@ -169,8 +178,13 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
       });
       return undefined;
     } finally {
-      set({ isRunning: false, isStopping: false });
+      // The local run is over. If a triggered run is still executing, the live
+      // run doc will flip `isRunning` back on via setRunningRemotely.
+      set({ runningLocally: false, isRunning: false, isStopping: false });
     }
+  },
+  setRunningRemotely: (running) => {
+    set({ isRunning: running || get().runningLocally });
   },
   stopWorkflow: async (target) => {
     // Stays true until the run actually finishes (runWorkflow's finally).

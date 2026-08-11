@@ -1,7 +1,13 @@
 import { ConvexError, Infer, v } from 'convex/values';
 
 import { WORKFLOW_TEMPLATES } from '../lib/workflow-templates';
-import { internalMutation, mutation, query } from './_generated/server';
+import { internal } from './_generated/api';
+import {
+  internalMutation,
+  internalQuery,
+  mutation,
+  query,
+} from './_generated/server';
 import { workflowCanvasValidator } from './canvas';
 import { resolveUserImageUrl } from './users';
 import {
@@ -11,9 +17,9 @@ import {
   requireUserId,
 } from './workspaces';
 
-import type { WorkflowCanvasData } from './canvas';
 import type { Id } from './_generated/dataModel';
 import type { MutationCtx } from './_generated/server';
+import type { WorkflowCanvasData } from './canvas';
 
 const workflowValidator = v.object({
   _id: v.id('workflows'),
@@ -31,6 +37,8 @@ const workflowValidator = v.object({
    * or see it while unpublished. */
   isOwner: v.boolean(),
   canvas: workflowCanvasValidator,
+  /** Ordered ids of workflows this one's chain runs, in sequence. */
+  chainWorkflowIds: v.optional(v.array(v.id('workflows'))),
   runCount: v.number(),
   successCount: v.number(),
   failCount: v.number(),
@@ -95,8 +103,11 @@ export const get = query({
       return null;
     }
     const owner = await ctx.db.get(workflow.ownerId);
+    // `webhookToken` is a secret; keep it out of the client shape (exposed only
+    // via the member-gated `webhookUrl` query).
+    const { webhookToken: _webhookToken, ...rest } = workflow;
     return {
-      ...workflow,
+      ...rest,
       ownerName: owner?.name ?? 'Unknown',
       ownerEmail: owner?.email ?? '',
       ownerImageUrl: await resolveUserImageUrl(ctx, owner),
@@ -145,8 +156,9 @@ export const list = query({
         };
         ownerCache.set(row.ownerId, owner);
       }
+      const { webhookToken: _webhookToken, ...rest } = row;
       result.push({
-        ...row,
+        ...rest,
         ownerName: owner.name,
         ownerEmail: owner.email,
         ownerImageUrl: owner.imageUrl,
@@ -621,6 +633,202 @@ export const restoreVersion = mutation({
       'restored'
     );
     return version.canvas;
+  },
+});
+
+/** The public HTTP URL an inbound webhook posts to, built from the token. */
+function webhookUrlFor(token: string) {
+  const base = process.env.CONVEX_SITE_URL ?? '';
+  return `${base}/webhooks/${token}`;
+}
+
+/** The workflow's inbound webhook URL, or null until a member enables it. */
+export const webhookUrl = query({
+  args: { workspaceName: v.string(), workflowId: v.id('workflows') },
+  returns: v.union(v.null(), v.string()),
+  handler: async (ctx, args) => {
+    const workspace = await getMemberWorkspaceByName(ctx, args.workspaceName);
+    if (workspace === null) {
+      return null;
+    }
+    const workflow = await ctx.db.get(args.workflowId);
+    if (
+      workflow === null ||
+      workflow.workspaceId !== workspace._id ||
+      !workflow.webhookToken
+    ) {
+      return null;
+    }
+    return webhookUrlFor(workflow.webhookToken);
+  },
+});
+
+/** Enables the workflow's webhook, minting a token on first use. Idempotent —
+ * returns the (existing or new) URL. */
+export const ensureWebhook = mutation({
+  args: { workspaceName: v.string(), workflowId: v.id('workflows') },
+  returns: v.string(),
+  handler: async (ctx, args) => {
+    const workflow = await getMemberWorkflow(
+      ctx,
+      args.workspaceName,
+      args.workflowId
+    );
+    let token = workflow.webhookToken;
+    if (!token) {
+      token = crypto.randomUUID();
+      await ctx.db.patch(workflow._id, { webhookToken: token });
+    }
+    return webhookUrlFor(token);
+  },
+});
+
+/** Rotates the webhook token, invalidating the old URL. */
+export const regenerateWebhook = mutation({
+  args: { workspaceName: v.string(), workflowId: v.id('workflows') },
+  returns: v.string(),
+  handler: async (ctx, args) => {
+    const workflow = await getMemberWorkflow(
+      ctx,
+      args.workspaceName,
+      args.workflowId
+    );
+    const token = crypto.randomUUID();
+    await ctx.db.patch(workflow._id, { webhookToken: token });
+    return webhookUrlFor(token);
+  },
+});
+
+/** Triggers a run from the editor with a given payload — the one-click "send
+ * test event" that mimics an inbound webhook without leaving the app. Returns
+ * the new run's id. */
+export const sendTestEvent = mutation({
+  args: {
+    workspaceName: v.string(),
+    workflowId: v.id('workflows'),
+    payload: v.string(),
+  },
+  returns: v.id('runHistory'),
+  handler: async (ctx, args) => {
+    const workflow = await getMemberWorkflow(
+      ctx,
+      args.workspaceName,
+      args.workflowId
+    );
+    const runHistoryId = await ctx.db.insert('runHistory', {
+      workflowId: workflow._id,
+      canvas: workflow.canvas,
+      status: 'running',
+      nodeOutputs: {},
+      startedAt: Date.now(),
+    });
+    await ctx.scheduler.runAfter(0, internal.runWorkflow.execute, {
+      workflowId: workflow._id,
+      runHistoryId,
+      canvas: workflow.canvas,
+      webhookPayload: args.payload,
+    });
+    return runHistoryId;
+  },
+});
+
+/** The other workflows in this workspace, for the chain picker — everything
+ * except the current workflow. Just id + name. */
+export const otherWorkflows = query({
+  args: { workspaceName: v.string(), workflowId: v.id('workflows') },
+  returns: v.array(v.object({ _id: v.id('workflows'), name: v.string() })),
+  handler: async (ctx, args) => {
+    const workspace = await getMemberWorkspaceByName(ctx, args.workspaceName);
+    if (workspace === null) {
+      return [];
+    }
+    const rows = await ctx.db
+      .query('workflows')
+      .withIndex('workspaceName', (q) => q.eq('workspaceId', workspace._id))
+      .collect();
+    return rows
+      .filter((row) => row._id !== args.workflowId)
+      .map((row) => ({ _id: row._id, name: row.name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  },
+});
+
+/** Sets the ordered list of workflows this one's chain runs. Every id must be a
+ * workflow in the same workspace (and not this workflow itself). */
+export const setChain = mutation({
+  args: {
+    workspaceName: v.string(),
+    workflowId: v.id('workflows'),
+    chainWorkflowIds: v.array(v.id('workflows')),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const workflow = await getMemberWorkflow(
+      ctx,
+      args.workspaceName,
+      args.workflowId
+    );
+    for (const id of args.chainWorkflowIds) {
+      if (id === args.workflowId) {
+        throw new ConvexError('A workflow cannot be in its own chain.');
+      }
+      const step = await ctx.db.get(id);
+      if (step === null || step.workspaceId !== workflow.workspaceId) {
+        throw new ConvexError('Chain workflow not found in this workspace.');
+      }
+    }
+    await ctx.db.patch(workflow._id, {
+      chainWorkflowIds: args.chainWorkflowIds,
+    });
+    return null;
+  },
+});
+
+/** Internal: resolves a chain step to the canvas the runner should execute.
+ * Scoped to the source workflow's workspace so a chain only runs workflows the
+ * author already has access to. */
+export const chainStepCanvas = internalQuery({
+  args: {
+    sourceWorkflowId: v.id('workflows'),
+    stepWorkflowId: v.id('workflows'),
+  },
+  returns: v.union(
+    v.null(),
+    v.object({ name: v.string(), canvas: workflowCanvasValidator })
+  ),
+  handler: async (ctx, args) => {
+    const source = await ctx.db.get(args.sourceWorkflowId);
+    const step = await ctx.db.get(args.stepWorkflowId);
+    if (source === null || step === null) {
+      return null;
+    }
+    if (source.workspaceId !== step.workspaceId) {
+      return null;
+    }
+    return { name: step.name, canvas: step.canvas };
+  },
+});
+
+/** Internal: resolves a webhook token to the workflow the endpoint should run.
+ * Not member-gated — the token is the credential. */
+export const byWebhookToken = internalQuery({
+  args: { token: v.string() },
+  returns: v.union(
+    v.null(),
+    v.object({
+      workflowId: v.id('workflows'),
+      canvas: workflowCanvasValidator,
+    })
+  ),
+  handler: async (ctx, args) => {
+    const workflow = await ctx.db
+      .query('workflows')
+      .withIndex('webhookToken', (q) => q.eq('webhookToken', args.token))
+      .unique();
+    if (workflow === null) {
+      return null;
+    }
+    return { workflowId: workflow._id, canvas: workflow.canvas };
   },
 });
 

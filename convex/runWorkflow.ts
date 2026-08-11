@@ -100,6 +100,8 @@ export const execute = internalAction({
     workflowId: v.id('workflows'),
     runHistoryId: v.id('runHistory'),
     canvas: workflowCanvasValidator,
+    /** Present when triggered by an inbound webhook; feeds WEBHOOK nodes. */
+    webhookPayload: v.optional(v.string()),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
@@ -125,7 +127,8 @@ export const execute = internalAction({
         args.canvas,
         setNodeStatus,
         checkStop,
-        makeFileReader(ctx, args.workflowId)
+        makeFileReader(ctx, args.workflowId),
+        args.webhookPayload
       );
       await ctx.runMutation(internal.workflows.recordRun, {
         workflowId: args.workflowId,
@@ -151,6 +154,110 @@ export const execute = internalAction({
           : error instanceof Error
             ? error.message
             : 'The run failed.',
+      });
+    }
+    return null;
+  },
+});
+
+/**
+ * Runs one step of a workflow chain to completion. The step lights up its own
+ * canvas live (the `runs` doc) exactly like clicking "Run Workflow", and once it
+ * finishes the run is written to that workflow's history. Returns the step's
+ * final status so the chain runner can surface it. Runs synchronously (via
+ * `ctx.runAction`) so the chain executes strictly in order.
+ */
+export const runChainStep = internalAction({
+  args: {
+    workflowId: v.id('workflows'),
+    canvas: workflowCanvasValidator,
+  },
+  returns: v.union(v.literal('success'), v.literal('error')),
+  handler: async (ctx, args): Promise<'success' | 'error'> => {
+    await ctx.runMutation(internal.runs.start, { workflowId: args.workflowId });
+
+    // The history record uses fresh node ids so its data never collides with the
+    // workflow's live editing canvas (whose badges are keyed by the original
+    // ids). We run on the original canvas and remap outputs for the record.
+    const { canvas: snapshotCanvas, idMap } = remapCanvasIds(args.canvas);
+
+    const setNodeStatus = async (
+      nodeId: string,
+      status: 'running' | 'success' | 'error',
+      output?: string
+    ) => {
+      await ctx.runMutation(internal.runs.setNodeStatus, {
+        workflowId: args.workflowId,
+        nodeId,
+        status,
+        output,
+      });
+      return null;
+    };
+
+    // A chain step has no user "stop" affordance — it runs to completion.
+    const checkStop = async () => false;
+
+    let status: 'success' | 'error' = 'success';
+    let outputs: Record<string, string> = {};
+    let error: string | undefined;
+    try {
+      outputs = await executeCanvas(
+        args.canvas,
+        setNodeStatus,
+        checkStop,
+        makeFileReader(ctx, args.workflowId),
+        undefined
+      );
+    } catch (caught) {
+      status = 'error';
+      error = caught instanceof Error ? caught.message : 'The run failed.';
+    }
+
+    await ctx.runMutation(internal.workflows.recordRun, {
+      workflowId: args.workflowId,
+      status,
+    });
+    // Write history only after the run finishes, as one completed record.
+    await ctx.runMutation(internal.runHistory.record, {
+      workflowId: args.workflowId,
+      canvas: snapshotCanvas,
+      status,
+      nodeOutputs: status === 'success' ? remapOutputs(outputs, idMap) : {},
+      error,
+    });
+    // Let the finished badges linger a beat, then fade — same as an editor run.
+    await ctx.scheduler.runAfter(1000, internal.runs.clearStatuses, {
+      workflowId: args.workflowId,
+    });
+    return status;
+  },
+});
+
+/**
+ * Runs a workflow's chain in the background: each workflow in the list, in
+ * order, to completion before the next starts. Scheduled by `run` once the main
+ * workflow finishes, so pressing "Run Workflow" also runs whatever follows it.
+ */
+export const runChainSequence = internalAction({
+  args: {
+    sourceWorkflowId: v.id('workflows'),
+    chainWorkflowIds: v.array(v.id('workflows')),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    for (const stepId of args.chainWorkflowIds) {
+      const step = await ctx.runQuery(internal.workflows.chainStepCanvas, {
+        sourceWorkflowId: args.sourceWorkflowId,
+        stepWorkflowId: stepId,
+      });
+      // Skip a workflow that was deleted or moved out of the workspace.
+      if (step === null) {
+        continue;
+      }
+      await ctx.runAction(internal.runWorkflow.runChainStep, {
+        workflowId: stepId,
+        canvas: step.canvas,
       });
     }
     return null;
@@ -209,7 +316,8 @@ export const run = action({
         workflow.canvas,
         setNodeStatus,
         checkStop,
-        makeFileReader(ctx, args.workflowId)
+        makeFileReader(ctx, args.workflowId),
+        undefined
       );
       await ctx.runMutation(internal.workflows.recordRun, {
         workflowId: args.workflowId,
@@ -223,6 +331,15 @@ export const run = action({
       await ctx.scheduler.runAfter(1000, internal.runs.clearStatuses, {
         workflowId: args.workflowId,
       });
+      // Once this workflow succeeds, run whatever is chained after it — in
+      // order, in the background — so a single "Run Workflow" runs the sequence.
+      const chain = workflow.chainWorkflowIds ?? [];
+      if (chain.length > 0) {
+        await ctx.scheduler.runAfter(0, internal.runWorkflow.runChainSequence, {
+          sourceWorkflowId: args.workflowId,
+          chainWorkflowIds: chain,
+        });
+      }
       return runHistoryId;
     } catch (error) {
       const stopped = error instanceof StopError;
@@ -270,7 +387,8 @@ async function executeCanvas(
     output?: string
   ) => Promise<null>,
   checkStop: () => Promise<boolean>,
-  readFileContent: (fileId: string) => Promise<string>
+  readFileContent: (fileId: string) => Promise<string>,
+  webhookPayload: string | undefined
 ) {
   const nodes = Object.values(canvas.nodes);
   const edges = canvas.edges;
@@ -343,7 +461,12 @@ async function executeCanvas(
         }
 
         case 'WEBHOOK':
-          output = String(getArgumentValue(node, 'payload') ?? '');
+          // A webhook-triggered run injects the posted body; a manual editor
+          // run falls back to the node's sample payload.
+          output =
+            webhookPayload !== undefined
+              ? webhookPayload
+              : String(getArgumentValue(node, 'payload') ?? '');
           break;
 
         case 'LLM':

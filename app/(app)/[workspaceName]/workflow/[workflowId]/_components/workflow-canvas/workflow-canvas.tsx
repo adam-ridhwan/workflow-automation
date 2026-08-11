@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   DndContext,
   PointerSensor,
@@ -58,6 +58,21 @@ export function WorkflowCanvas({ canvas }: WorkflowCanvasProps) {
   useAutoVersion();
 
   const run = useWorkflowRun();
+  // Reflect a run started from elsewhere (e.g. a CALL_WORKFLOW node in another
+  // workflow) into the store, so the run button and argument fields disable
+  // even though this client didn't press Run. A local run owns that state
+  // itself, so don't double-count it here.
+  const setRunningRemotely = useCanvasStore((s) => s.setRunningRemotely);
+  const runningLocally = useCanvasStore((s) => s.runningLocally);
+  const liveRunning = run
+    ? Object.values(run.nodeStatuses).some((status) => status === 'running')
+    : false;
+  useEffect(() => {
+    setRunningRemotely(liveRunning && !runningLocally);
+    return () => {
+      setRunningRemotely(false);
+    };
+  }, [liveRunning, runningLocally, setRunningRemotely]);
   // Only fit on load when the workflow already has nodes. On an empty canvas
   // React Flow would keep the fit pending and then fire it when the first node
   // is dropped, yanking the viewport — so leave it off there.
