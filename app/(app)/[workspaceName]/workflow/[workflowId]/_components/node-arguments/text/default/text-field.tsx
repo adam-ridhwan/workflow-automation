@@ -6,6 +6,7 @@ import { useArgumentField } from '../../../../_hooks/use-argument-field';
 import { useCanvasStore } from '../../../../_store/canvas-store';
 import { useWorkspaceParams } from '../../../../../../_hooks/use-workspace-params';
 import { useCanvasMode } from '../../../workflow-canvas/canvas-mode-context';
+import { LabelField } from '../custom/label-field';
 import { PromptField } from '../custom/prompt-field';
 
 import type { WorkflowNodeData } from '@/convex/canvas';
@@ -37,6 +38,16 @@ export function TextField({ fieldId, nodeId, data, argument }: TextFieldProps) {
     case 'prompt':
       return (
         <PromptField
+          fieldId={fieldId}
+          nodeId={nodeId}
+          data={data}
+          argument={argument}
+        />
+      );
+
+    case 'label':
+      return (
+        <LabelField
           fieldId={fieldId}
           nodeId={nodeId}
           data={data}

@@ -17,6 +17,9 @@ export interface NodeArgument {
   is_list: boolean;
   is_required: boolean;
   name: string;
+  /** Overrides the field label shown in the UI (which otherwise derives from
+   * `name`). Doesn't change the stored argument key. */
+  label?: string;
   /** Present when have_options is true. */
   options?: string[];
   /** When set, the field's options come from a live source rather than the
@@ -65,6 +68,18 @@ export const NODE_SPECS = {
         {
           argument_type: 'TEXT',
           children: {},
+          default_value: '',
+          have_options: false,
+          have_sub_arguments: false,
+          is_deprecated: false,
+          is_hidden: false,
+          is_list: false,
+          is_required: false,
+          name: 'label',
+        },
+        {
+          argument_type: 'TEXT',
+          children: {},
           default_value: 'Hello, world',
           have_options: false,
           have_sub_arguments: false,
@@ -73,6 +88,7 @@ export const NODE_SPECS = {
           is_list: false,
           is_required: true,
           name: 'text_input',
+          label: 'Value',
         },
       ],
       node_info: {

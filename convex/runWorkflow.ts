@@ -475,6 +475,20 @@ export const run = action({
 /** Thrown by the executor when a stop was requested mid-run. */
 class StopError extends Error {}
 
+/** One upstream node's contribution to another node's input: the text it
+ * produced plus enough identity to tell sources apart (type, uid, instance,
+ * name). Grouped by `nodeType` so a consumer can pull one source at a time. */
+type NodeInput = {
+  nodeId: string;
+  nodeUid: string;
+  nodeType: string;
+  name: string;
+  /** The node's targetable label, if it has one (TEXT_INPUT); '' otherwise. An
+   * LLM prompt can pull this specific input with `{{label}}`. */
+  label: string;
+  output: string;
+};
+
 async function executeCanvas(
   canvas: WorkflowCanvasData,
   setNodeStatus: (
@@ -530,10 +544,32 @@ async function executeCanvas(
       throw new StopError();
     }
 
-    const input = (parents.get(node.node_id) ?? [])
-      .map((parentId) => outputs[parentId])
-      .filter((output) => output !== undefined && output !== '')
-      .join('\n');
+    // Each wired-in node's output as a labeled entry, grouped by node type, so a
+    // consumer (the LLM node) can pull one source at a time — e.g. the
+    // TEXT_INPUT value on its own instead of every parent jammed together.
+    const inputEntries: NodeInput[] = (parents.get(node.node_id) ?? [])
+      .map((parentId) => byId.get(parentId))
+      .filter((parent): parent is WorkflowNodeData => parent !== undefined)
+      .map((parent) => ({
+        nodeId: parent.node_id,
+        nodeUid: parent.node_uid,
+        nodeType:
+          findNodeSpec(parent.node_uid)?.node_info.node_type ?? 'UNKNOWN',
+        name: parent.name,
+        label: String(getArgumentValue(parent, 'label') ?? '').trim(),
+        output: outputs[parent.node_id] ?? '',
+      }))
+      .filter((entry) => entry.output !== '');
+
+    const inputsByType: Record<string, NodeInput[]> = {};
+    for (const entry of inputEntries) {
+      (inputsByType[entry.nodeType] ??= []).push(entry);
+    }
+
+    // Pass-through nodes (output/unknown) emit a plain string, so flatten.
+    const input = inputEntries.map((entry) => entry.output).join('\n');
+
+    console.log('inputsByType', inputsByType);
 
     await setNodeStatus(node.node_id, 'running');
     let output = input;
@@ -566,7 +602,7 @@ async function executeCanvas(
           break;
 
         case 'LLM':
-          output = await runLlmNode(node, input);
+          output = await runLlmNode(node, inputsByType);
           break;
 
         default:
@@ -584,7 +620,10 @@ async function executeCanvas(
   return outputs;
 }
 
-async function runLlmNode(node: WorkflowNodeData, input: string) {
+async function runLlmNode(
+  node: WorkflowNodeData,
+  inputsByType: Record<string, NodeInput[]>
+) {
   const provider = String(getArgumentValue(node, 'provider') ?? 'anthropic');
   if (provider !== 'anthropic') {
     throw new ConvexError(
@@ -602,20 +641,45 @@ async function runLlmNode(node: WorkflowNodeData, input: string) {
   const template = String(getArgumentValue(node, 'prompt') ?? '');
   const system = String(getArgumentValue(node, 'system') ?? '');
 
-  // Inject the upstream input where the prompt asks for it. `{{text_input}}` is
-  // canonical, but `{{input}}`/`{{file}}` are accepted so an intuitive guess
-  // works too. With no placeholder at all, append the input rather than
-  // silently dropping it (otherwise a prompt like "Explain this file" never
-  // sees the file).
-  const placeholder = /\{\{\s*(?:text_input|input|file)\s*\}\}/g;
-  let content: string;
-  if (placeholder.test(template)) {
-    content = template.replace(placeholder, input);
-  } else if (input) {
-    content = template ? `${template}\n\n${input}` : input;
-  } else {
-    content = template;
+  const joinType = (type: string) =>
+    (inputsByType[type] ?? []).map((entry) => entry.output).join('\n');
+  const all = Object.values(inputsByType)
+    .flat()
+    .map((entry) => entry.output)
+    .join('\n');
+
+  // A labeled text input is targeted by name: `{{myLabel}}` → that input's
+  // value. Resolve these first (literal tokens, as inserted by the prompt's
+  // "Insert input" dropdown), then the generic by-type placeholders below.
+  let content = template;
+  let hadLabelToken = false;
+  for (const entry of Object.values(inputsByType).flat()) {
+    if (entry.label === '') {
+      continue;
+    }
+    const token = `{{${entry.label}}}`;
+    if (content.includes(token)) {
+      hadLabelToken = true;
+      content = content.split(token).join(entry.output);
+    }
   }
+
+  // {{text_input}} → all text inputs   {{file}} → all file inputs
+  // {{payload}}/{{webhook}} → all webhooks   {{input}} → every source, joined.
+  const typePlaceholder =
+    /\{\{\s*(?:text_input|file|payload|webhook|input)\s*\}\}/;
+  if (typePlaceholder.test(template)) {
+    content = content
+      .replace(/\{\{\s*text_input\s*\}\}/g, joinType('TEXT_INPUT'))
+      .replace(/\{\{\s*file\s*\}\}/g, joinType('FILE_INPUT'))
+      .replace(/\{\{\s*(?:payload|webhook)\s*\}\}/g, joinType('WEBHOOK'))
+      .replace(/\{\{\s*input\s*\}\}/g, all);
+  } else if (!hadLabelToken && all) {
+    // No placeholder of any kind → append everything rather than dropping it.
+    content = template ? `${template}\n\n${all}` : all;
+  }
+
+  console.log('content', content);
 
   const client = new Anthropic({ apiKey });
   const message = await client.messages.create({

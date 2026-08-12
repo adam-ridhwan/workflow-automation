@@ -149,6 +149,26 @@ export function validateWorkflow(
     }
   }
 
+  // Text input labels must be unique so an LLM prompt can target one by name.
+  const labelCounts = new Map<string, number>();
+  for (const node of nodes) {
+    if (findNodeSpec(node.data.node_uid)?.node_info.node_type !== 'TEXT_INPUT') {
+      continue;
+    }
+    const label = String(getArgumentValue(node.data, 'label') ?? '').trim();
+    if (label === '') {
+      continue;
+    }
+    labelCounts.set(label, (labelCounts.get(label) ?? 0) + 1);
+  }
+  for (const [label, count] of labelCounts) {
+    if (count > 1) {
+      errors.push(
+        `Text input label "${label}" is used ${count} times. Labels must be unique.`
+      );
+    }
+  }
+
   const nodesById = new Map(nodes.map((node) => [node.id, node]));
   for (const edge of edges) {
     const source = nodesById.get(edge.source);

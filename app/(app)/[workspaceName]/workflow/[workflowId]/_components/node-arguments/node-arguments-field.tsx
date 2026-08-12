@@ -108,9 +108,16 @@ export function NodeArgumentsField({
       <Field className='gap-1 px-3 py-1.5'>
         <FieldLabel
           htmlFor={fieldId}
+          id={`${fieldId}-label`}
+          // A native <label htmlFor> focuses labelable controls on click, but
+          // not a contentEditable editor (e.g. the prompt). Focus it manually so
+          // clicking the label opens fields like the chip input.
+          onClick={() => {
+            document.getElementById(fieldId)?.focus();
+          }}
           className='text-muted-foreground gap-0.5 text-xs'
         >
-          {formatLabel(argument.name)}
+          {argument.label ?? formatLabel(argument.name)}
           {argument.is_required && <span className='text-destructive'>*</span>}
         </FieldLabel>
 

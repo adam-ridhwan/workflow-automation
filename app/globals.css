@@ -131,21 +131,21 @@
  * Light theme -> inverted dark glass menu; dark theme -> dark glass menu.
  */
 .menu-inverted {
-  --popover: oklch(0.205 0 0 / 78%);
-  --popover-foreground: oklch(0.985 0 0);
-  --foreground: oklch(0.985 0 0);
-  --background: oklch(0.205 0 0);
-  --accent: oklch(1 0 0 / 12%);
-  --accent-foreground: oklch(0.985 0 0);
-  --secondary: oklch(1 0 0 / 12%);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(1 0 0 / 12%);
-  --muted-foreground: oklch(0.74 0 0);
-  --border: oklch(1 0 0 / 14%);
-  --input: oklch(1 0 0 / 18%);
-  --ring: oklch(0.556 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
+  --popover: oklch(0.205 0.008 60 / 78%);
+  --popover-foreground: oklch(0.985 0.004 70);
+  --foreground: oklch(0.985 0.004 70);
+  --background: oklch(0.205 0.008 60);
+  --accent: oklch(1 0.01 70 / 12%);
+  --accent-foreground: oklch(0.985 0.004 70);
+  --secondary: oklch(1 0.01 70 / 12%);
+  --secondary-foreground: oklch(0.985 0.004 70);
+  --muted: oklch(1 0.01 70 / 12%);
+  --muted-foreground: oklch(0.74 0.008 70);
+  --border: oklch(1 0.01 70 / 14%);
+  --input: oklch(1 0.01 70 / 18%);
+  --ring: oklch(0.556 0.012 70);
+  --primary: oklch(0.922 0.006 70);
+  --primary-foreground: oklch(0.205 0.008 60);
 }
 
 @layer base {
