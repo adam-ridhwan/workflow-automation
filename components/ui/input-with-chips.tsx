@@ -14,18 +14,24 @@ export type ChipOption = {
 /** Matches a `{{label}}` token (no nested braces). */
 const TOKEN_RE = /\{\{\s*([^{}]+?)\s*\}\}/g;
 
+/** Chip styling shared by the inline chips and the dropdown options, so they
+ * always match. Uses `foreground` (not `secondary`) for the fill because the
+ * dropdown sits inside `.menu-inverted`, which remaps `--secondary` — so it
+ * would render a different color there; `--foreground` resolves the same on
+ * both surfaces. */
 const CHIP_CLASS =
-  'mx-0.5 inline-flex select-none items-center rounded bg-primary/10 ' +
-  'px-1 align-baseline font-sans text-[11px] font-medium text-primary';
+  'inline-flex select-none items-center rounded-md bg-foreground/10 px-1.5 ' +
+  'py-0.5 font-sans text-[11px] font-medium text-foreground';
 
-/** Builds a non-editable badge element for a `{{label}}` token. The raw label
- * lives on `data-token` so serialization can round-trip it back to `{{label}}`,
- * independent of what's displayed. */
+/** Builds a non-editable chip element for a `{{label}}` token, styled with the
+ * same `CHIP_CLASS` as the dropdown options (plus a little inline spacing so it
+ * sits in the text flow). The raw label lives on `data-token` so serialization
+ * can round-trip it back to `{{label}}`. */
 function createChip(label: string): HTMLSpanElement {
   const span = document.createElement('span');
   span.contentEditable = 'false';
   span.dataset.token = label;
-  span.className = CHIP_CLASS;
+  span.className = cn(CHIP_CLASS, 'mx-0.5 align-baseline');
   span.textContent = label;
   return span;
 }
@@ -352,14 +358,8 @@ export function InputWithChips({
                 className='hover:bg-accent flex w-full items-center rounded-sm
                   px-2 py-1.5 text-left'
               >
-                {/* Rendered as the same badge it inserts into the input. */}
-                <span
-                  className='bg-primary/10 text-primary inline-flex items-center
-                    rounded px-1.5 py-0.5 font-sans text-[11px] font-medium
-                    select-none'
-                >
-                  {option.label}
-                </span>
+                {/* The same chip it inserts into the input. */}
+                <span className={CHIP_CLASS}>{option.label}</span>
               </button>
             )
           )}
