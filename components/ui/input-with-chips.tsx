@@ -175,6 +175,9 @@ type InputWithChipsProps = {
   onBlur?: () => void;
   /** Tokens offered in the focus-triggered "insert" dropdown. */
   options?: ChipOption[];
+  /** Called with an option's id while it's hovered (and `null` on leave/close),
+   * e.g. to highlight the corresponding node elsewhere. */
+  onOptionHover?: (optionId: string | null) => void;
   /** Heading shown above the dropdown options. */
   menuHeading?: string;
   disabled?: boolean;
@@ -201,6 +204,7 @@ export function InputWithChips({
   onChange,
   onBlur,
   options = [],
+  onOptionHover,
   menuHeading,
   disabled,
   className,
@@ -243,6 +247,14 @@ export function InputWithChips({
 
   const open = focused && options.length > 0 && !dismissed;
   const { mounted, shown } = usePresence(open);
+
+  // Clear any hover highlight once the dropdown is gone (mouseleave may not fire
+  // when the option unmounts on close).
+  useEffect(() => {
+    if (!mounted) {
+      onOptionHover?.(null);
+    }
+  }, [mounted, onOptionHover]);
 
   return (
     <div className='relative'>
@@ -308,11 +320,27 @@ export function InputWithChips({
           }
           onBlur?.();
         }}
+        onMouseOver={(e) => {
+          // Hovering a chip highlights the node it points to: map the chip's
+          // token back to a matching option (its id is the node id).
+          const chip = (e.target as HTMLElement).closest('[data-token]');
+          if (chip instanceof HTMLElement) {
+            const option = options.find(
+              (item) => item.label === chip.dataset.token
+            );
+            onOptionHover?.(option ? option.id : null);
+          } else {
+            onOptionHover?.(null);
+          }
+        }}
+        onMouseLeave={() => {
+          onOptionHover?.(null);
+        }}
         className={cn(
           `border-input focus-visible:border-ring focus-visible:ring-ring/50
           dark:bg-input/30 max-h-48 min-h-20 w-full cursor-text overflow-y-auto
           rounded-md border bg-transparent px-2.5 py-1.5 font-mono text-[13px]
-          break-words whitespace-pre-wrap outline-none focus-visible:ring-3`,
+          wrap-break-word whitespace-pre-wrap outline-none focus-visible:ring-3`,
           disabled && 'cursor-not-allowed opacity-50',
           className
         )}
@@ -344,6 +372,8 @@ export function InputWithChips({
             option.label === '' ? (
               <div
                 key={option.id}
+                onMouseEnter={() => onOptionHover?.(option.id)}
+                onMouseLeave={() => onOptionHover?.(null)}
                 className='text-muted-foreground px-2 py-1 text-[12px]'
               >
                 {option.hint}
@@ -355,6 +385,8 @@ export function InputWithChips({
                 onClick={() => {
                   insertChip(option.label);
                 }}
+                onMouseEnter={() => onOptionHover?.(option.id)}
+                onMouseLeave={() => onOptionHover?.(null)}
                 className='hover:bg-accent flex w-full items-center rounded-sm
                   px-2 py-1.5 text-left'
               >

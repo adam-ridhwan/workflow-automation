@@ -142,7 +142,7 @@ export function WorkspaceSwitcher({ workspaces }: WorkspaceSwitcherProps) {
                   <Settings className='size-3.5' />
                 </div>
 
-                <div className='text-sidebar-primary-foreground font-medium'>
+                <div className='font-medium'>
                   Workspace settings
                 </div>
               </DropdownMenuItem>
@@ -162,7 +162,7 @@ export function WorkspaceSwitcher({ workspaces }: WorkspaceSwitcherProps) {
                   <PlusIcon className='size-4' />
                 </div>
 
-                <div className='text-sidebar-primary-foreground font-medium'>
+                <div className='font-medium'>
                   Add workspace
                 </div>
               </DropdownMenuItem>

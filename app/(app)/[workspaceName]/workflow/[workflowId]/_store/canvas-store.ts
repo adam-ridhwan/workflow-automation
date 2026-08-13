@@ -47,6 +47,9 @@ interface CanvasState {
   canUndo: boolean;
   canRedo: boolean;
   saveStatus: 'saved' | 'saving' | 'error';
+  /** A node to visually highlight on the canvas — e.g. while hovering its chip
+   * in the LLM prompt's "insert input" menu. */
+  highlightedNodeId: string | null;
   helperLineHorizontal: number | undefined;
   helperLineVertical: number | undefined;
   undo: (target: SaveTarget) => void;
@@ -76,6 +79,7 @@ interface CanvasState {
   organizeNodes: (target: SaveTarget) => void;
   setNodeArgument: (nodeId: string, name: string, value: unknown) => void;
   selectNode: (nodeId: string) => void;
+  setHighlightedNodeId: (nodeId: string | null) => void;
   setNodeAnnotation: (
     nodeId: string,
     annotation: WorkflowAnnotation | undefined
@@ -118,6 +122,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   canUndo: false,
   canRedo: false,
   saveStatus: 'saved',
+  highlightedNodeId: null,
   undo: (target) => {
     const snapshot = history.undo();
     if (snapshot === undefined) {
@@ -350,6 +355,9 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
         selected: node.id === nodeId,
       })),
     });
+  },
+  setHighlightedNodeId: (nodeId) => {
+    set({ highlightedNodeId: nodeId });
   },
   setNodeAnnotation: (nodeId, annotation) => {
     set({

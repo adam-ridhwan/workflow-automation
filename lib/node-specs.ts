@@ -74,7 +74,7 @@ export const NODE_SPECS = {
           is_deprecated: false,
           is_hidden: false,
           is_list: false,
-          is_required: false,
+          is_required: true,
           name: 'label',
         },
         {

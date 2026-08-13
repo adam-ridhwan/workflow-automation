@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { InputWithChips } from '@/components/ui/input-with-chips';
 import { findNodeSpec, getArgumentValue } from '@/lib/node-specs';
 
@@ -37,6 +38,14 @@ export function PromptField({
   const { readOnly } = useCanvasMode();
   const setNodeArgument = useCanvasStore((s) => s.setNodeArgument);
   const saveWorkflow = useCanvasStore((s) => s.saveWorkflow);
+  const setHighlightedNodeId = useCanvasStore((s) => s.setHighlightedNodeId);
+
+  // Clear the canvas highlight when leaving this prompt (e.g. switching nodes).
+  useEffect(() => {
+    return () => {
+      setHighlightedNodeId(null);
+    };
+  }, [setHighlightedNodeId]);
 
   const value = data.arguments[argument.name] ?? argument.default_value;
   const stringValue =
@@ -65,6 +74,7 @@ export function PromptField({
       value={stringValue}
       disabled={isRunning || readOnly}
       options={options}
+      onOptionHover={setHighlightedNodeId}
       menuHeading='Insert input'
       onChange={(next) => {
         setNodeArgument(nodeId, argument.name, next);

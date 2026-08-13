@@ -16,6 +16,7 @@ import {
   hasMissingConnection,
   hasUnresolvedArguments,
 } from '../../_lib/validate-workflow';
+import { useCanvasStore } from '../../_store/canvas-store';
 import { WorkflowCanvasNodeAnnotation } from './workflow-canvas-node-annotation';
 import { WorkflowCanvasNodeStatus } from './workflow-canvas-node-status';
 import { WorkflowCanvasPort } from './workflow-canvas-port';
@@ -30,6 +31,9 @@ export function WorkflowCanvasNode({
 }: NodeProps<Node<WorkflowNodeData>>) {
   const meta = NODE_META[data.node_uid];
   const Icon = meta?.icon ?? CircleIcon;
+
+  // Highlighted while its chip is hovered in the LLM prompt's insert menu.
+  const highlighted = useCanvasStore((s) => s.highlightedNodeId === id);
 
   const nodeSpec = findNodeSpec(data.node_uid);
   const hasInPort = (nodeSpec?.node_requirement.max_in_edges ?? 1) > 0;
@@ -53,7 +57,9 @@ export function WorkflowCanvasNode({
       className={cn(
         `group/node relative flex w-64 flex-col gap-0 overflow-visible
         rounded-md p-0`,
-        selected && 'ring-primary'
+        selected && 'ring-primary',
+        highlighted &&
+          'outline-primary outline-2 outline-offset-5 outline-dashed'
       )}
     >
       <WorkflowCanvasNodeAnnotation nodeId={id} data={data} />
