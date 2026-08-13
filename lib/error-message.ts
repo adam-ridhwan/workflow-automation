@@ -11,7 +11,6 @@ export function errorMessage(
   fallback: string = 'Something went wrong'
 ): string {
   if (error instanceof ConvexError && typeof error.data === 'string') {
-    console.error('error.data', error.data);
     return error.data;
   }
   return fallback;
