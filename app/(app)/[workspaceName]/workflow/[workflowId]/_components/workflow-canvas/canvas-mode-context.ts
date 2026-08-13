@@ -7,6 +7,9 @@ import type { NodeStatus } from '@/convex/runHistory';
 export type CanvasRun = {
   nodeStatuses: Record<string, NodeStatus>;
   nodeOutputs: Record<string, string>;
+  /** The run's error message, shown on the failing node's status badge. Only
+   * populated for historical runs. */
+  error?: string;
 };
 
 type CanvasMode = {

@@ -84,8 +84,8 @@ export function RunHistoryPalette({ selectedId }: RunHistoryPaletteProps) {
                 href={`${base}/${run._id}`}
                 className={cn(
                   `hover:bg-accent hover:text-accent-foreground flex shrink-0
-                    items-center gap-2 rounded-md px-2 py-1.5 text-[13px]
-                    font-medium select-none`,
+                  items-center gap-2 rounded-md px-2 py-1.5 text-[13px]
+                  font-medium select-none`,
                   isSelected && 'bg-accent text-accent-foreground'
                 )}
               />
@@ -124,10 +124,9 @@ export function RunHistoryPalette({ selectedId }: RunHistoryPaletteProps) {
               </div>
               <div
                 className={cn(
-                  'text-[13px] break-words whitespace-pre-wrap',
+                  'text-[13px] wrap-break-word whitespace-pre-wrap',
                   run.status === 'error' && 'text-destructive',
-                  run.status === 'success' &&
-                    'text-emerald-600 dark:text-emerald-400'
+                  run.status === 'success' && 'text-emerald-400'
                 )}
               >
                 {run.message}

@@ -66,7 +66,7 @@ export function RunHistoryCanvas({ run }: RunHistoryCanvasProps) {
     <CanvasModeContext.Provider
       value={{
         readOnly: true,
-        run: { nodeStatuses, nodeOutputs: run.nodeOutputs },
+        run: { nodeStatuses, nodeOutputs: run.nodeOutputs, error: run.error },
       }}
     >
       <ReactFlowProvider>

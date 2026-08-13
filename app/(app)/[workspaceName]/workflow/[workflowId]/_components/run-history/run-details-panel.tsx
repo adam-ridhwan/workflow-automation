@@ -28,7 +28,10 @@ export function RunDetailsPanel({ run }: RunDetailsPanelProps) {
           </div>
           <div className='mt-1 flex items-center gap-2'>
             <Avatar size='sm'>
-              <AvatarImage src={run.ranByImageUrl ?? undefined} alt={runnerName} />
+              <AvatarImage
+                src={run.ranByImageUrl ?? undefined}
+                alt={runnerName}
+              />
               <AvatarFallback>{getInitials(runnerName)}</AvatarFallback>
             </Avatar>
             <span className='text-[13px]'>{runnerName}</span>
@@ -39,9 +42,9 @@ export function RunDetailsPanel({ run }: RunDetailsPanelProps) {
           label='Message'
           value={run.message}
           className={cn(
-            'break-words whitespace-pre-wrap',
+            'wrap-break-word whitespace-pre-wrap',
             run.status === 'error' && 'text-destructive',
-            run.status === 'success' && 'text-emerald-600 dark:text-emerald-400'
+            run.status === 'success' && 'text-emerald-400'
           )}
         />
       </div>

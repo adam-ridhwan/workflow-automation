@@ -1,6 +1,11 @@
 'use client';
 
 import { Badge } from '@/components/ui/badge';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/cn';
 import { CircleCheckIcon, CircleXIcon, Loader2Icon } from 'lucide-react';
 
@@ -33,14 +38,47 @@ export function WorkflowCanvasNodeStatus({
   }
 
   const meta = STATUS_META[status];
-  return (
-    <Badge
-      variant={meta.variant}
-      className='absolute top-full left-1/2 z-10 mt-2 -translate-x-1/2
-        text-[11px]'
-    >
+  const badgeClassName =
+    'absolute top-full left-1/2 z-10 mt-2 -translate-x-1/2 text-[11px]';
+  const badge = (
+    <Badge variant={meta.variant} className={badgeClassName}>
       <meta.icon className={cn(status === 'running' && 'animate-spin')} />
       {meta.label}
     </Badge>
   );
+
+  // A failed node's badge reveals the run's error message on hover.
+  if (status === 'error' && run?.error) {
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          openOnHover
+          nativeButton={false}
+          render={
+            <Badge
+              variant={meta.variant}
+              className={cn(badgeClassName, 'cursor-pointer')}
+            />
+          }
+        >
+          <meta.icon />
+          {meta.label}
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          side='bottom'
+          align='center'
+          className='max-w-72 min-w-48'
+        >
+          <div
+            className='text-destructive px-2 py-1.5 text-[13px] wrap-break-word
+              whitespace-pre-wrap'
+          >
+            {run.error}
+          </div>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  }
+
+  return badge;
 }
