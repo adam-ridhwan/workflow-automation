@@ -3,6 +3,7 @@
 import { convex } from '@/components/convev-client-provider';
 import { toast } from '@/components/ui/toast';
 import { api } from '@/convex/_generated/api';
+import { errorMessage } from '@/lib/error-message';
 import { addEdge, applyEdgeChanges, applyNodeChanges } from '@xyflow/react';
 import { create } from 'zustand';
 
@@ -183,8 +184,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
     } catch (error) {
       toast.add({
         type: 'error',
-        title:
-          error instanceof Error ? error.message : 'The workflow run failed.',
+        title: errorMessage(error, 'The workflow run failed.'),
       });
       return undefined;
     } finally {

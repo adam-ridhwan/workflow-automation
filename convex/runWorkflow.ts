@@ -2,6 +2,7 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 import { ConvexError, v } from 'convex/values';
+import OpenAI from 'openai';
 
 import { findNodeSpec, getArgumentValue } from '../lib/node-specs';
 import { api, internal } from './_generated/api';
@@ -479,6 +480,7 @@ export const run = action({
       return runHistoryId;
     } catch (error) {
       const stopped = error instanceof StopError;
+      const message = runErrorMessage(stopped, error);
       await ctx.runMutation(internal.workflows.recordRun, {
         workflowId: args.workflowId,
         status: stopped ? 'stopped' : 'error',
@@ -487,7 +489,7 @@ export const run = action({
         runHistoryId,
         status: stopped ? 'stopped' : 'error',
         nodeOutputs: {},
-        error: runErrorMessage(stopped, error),
+        error: message,
       });
       await ctx.runMutation(internal.runs.markFinished, {
         workflowId: args.workflowId,
@@ -506,7 +508,8 @@ export const run = action({
       if (stopped) {
         return runHistoryId;
       }
-      throw error;
+
+      throw new ConvexError(message ?? 'The run failed.');
     }
   },
 });
@@ -628,7 +631,6 @@ async function executeCanvas(
           const fileId = getArgumentValue(node, 'file');
           if (fileId !== undefined && fileId !== null && fileId !== '') {
             output = await readFile(String(fileId));
-            console.log(output);
           } else {
             // Legacy workflows stored inline content instead of a file id.
             output = String(getArgumentValue(node, 'content') ?? '');
@@ -676,19 +678,6 @@ async function runLlmNode(
   inputsByType: Record<string, NodeInput[]>
 ) {
   const provider = String(getArgumentValue(node, 'provider') ?? 'anthropic');
-  if (provider !== 'anthropic') {
-    throw new ConvexError(
-      `Provider "${provider}" is not wired up yet — use anthropic.`
-    );
-  }
-
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
-    throw new ConvexError(
-      'ANTHROPIC_API_KEY is not set. Run: npx convex env set ANTHROPIC_API_KEY <key>'
-    );
-  }
-
   const template = String(getArgumentValue(node, 'prompt') ?? '');
   const system = String(getArgumentValue(node, 'system') ?? '');
 
@@ -730,10 +719,44 @@ async function runLlmNode(
     content = template ? `${template}\n\n${all}` : all;
   }
 
+  const model = String(getArgumentValue(node, 'model') ?? '');
+  const maxTokens = Number(getArgumentValue(node, 'max_tokens')) || 1024;
+
+  if (provider === 'openai') {
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      throw new ConvexError(
+        'OPENAI_API_KEY is not set. Run: npx convex env set OPENAI_API_KEY <key>'
+      );
+    }
+    const client = new OpenAI({ apiKey });
+    const completion = await client.chat.completions.create({
+      model: model || 'gpt-4o',
+      max_completion_tokens: maxTokens,
+      messages: system
+        ? [
+            { role: 'system', content: system },
+            { role: 'user', content },
+          ]
+        : [{ role: 'user', content }],
+    });
+    return completion.choices[0]?.message?.content ?? '';
+  }
+
+  if (provider !== 'anthropic') {
+    throw new ConvexError(`Provider "${provider}" is not wired up yet.`);
+  }
+
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    throw new ConvexError(
+      'ANTHROPIC_API_KEY is not set. Run: npx convex env set ANTHROPIC_API_KEY <key>'
+    );
+  }
   const client = new Anthropic({ apiKey });
   const message = await client.messages.create({
-    model: String(getArgumentValue(node, 'model') ?? 'claude-sonnet-5'),
-    max_tokens: Number(getArgumentValue(node, 'max_tokens')) || 1024,
+    model: model || 'claude-sonnet-5',
+    max_tokens: maxTokens,
     system: system || undefined,
     messages: [{ role: 'user', content }],
   });
