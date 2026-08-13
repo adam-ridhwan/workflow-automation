@@ -28,6 +28,7 @@ export function WorkflowCanvasNode({
   id,
   data,
   selected,
+  dragging,
 }: NodeProps<Node<WorkflowNodeData>>) {
   const meta = NODE_META[data.node_uid];
   const Icon = meta?.icon ?? CircleIcon;
@@ -57,6 +58,7 @@ export function WorkflowCanvasNode({
       className={cn(
         `group/node relative flex w-64 flex-col gap-0 overflow-visible
         rounded-md p-0`,
+        dragging ? 'cursor-grabbing' : 'cursor-pointer',
         selected && 'ring-primary',
         highlighted &&
           'outline-primary outline-2 outline-offset-5 outline-dashed'
@@ -103,7 +105,7 @@ export function WorkflowCanvasNode({
                   <TooltipTrigger
                     render={
                       <span
-                        className='flex shrink-0 items-center'
+                        className='flex shrink-0 items-center p-1'
                         aria-label='Node warnings'
                       />
                     }
