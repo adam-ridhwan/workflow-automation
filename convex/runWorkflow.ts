@@ -1,6 +1,7 @@
 'use node';
 
 import Anthropic from '@anthropic-ai/sdk';
+import { getAuthUserId } from '@convex-dev/auth/server';
 import { ConvexError, v } from 'convex/values';
 import OpenAI from 'openai';
 
@@ -281,6 +282,7 @@ export const runChainStep = internalAction({
   args: {
     workflowId: v.id('workflows'),
     canvas: workflowCanvasValidator,
+    ranBy: v.optional(v.id('users')),
   },
   returns: v.union(v.literal('success'), v.literal('error')),
   handler: async (ctx, args): Promise<'success' | 'error'> => {
@@ -336,6 +338,7 @@ export const runChainStep = internalAction({
       status,
       nodeOutputs: status === 'success' ? remapOutputs(outputs, idMap) : {},
       error,
+      ranBy: args.ranBy,
     });
     // Free the run button now; let the finished badges linger a beat, then fade.
     await ctx.runMutation(internal.runs.markFinished, {
@@ -357,6 +360,7 @@ export const runChainSequence = internalAction({
   args: {
     sourceWorkflowId: v.id('workflows'),
     chainWorkflowIds: v.array(v.id('workflows')),
+    ranBy: v.optional(v.id('users')),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
@@ -372,6 +376,7 @@ export const runChainSequence = internalAction({
       await ctx.runAction(internal.runWorkflow.runChainStep, {
         workflowId: stepId,
         canvas: step.canvas,
+        ranBy: args.ranBy,
       });
     }
     // Safety net: clear any step still flagged scheduled (e.g. one skipped
@@ -401,6 +406,9 @@ export const run = action({
       throw new ConvexError('Workflow not found.');
     }
 
+    // Attribute this run (and any chain steps it triggers) to the caller.
+    const ranBy = (await getAuthUserId(ctx)) ?? undefined;
+
     // Queue any chained workflows right away so they read as "Scheduled" (and
     // can't be run on their own) the moment this run starts.
     const chain = workflow.chainWorkflowIds ?? [];
@@ -420,6 +428,7 @@ export const run = action({
     const runHistoryId = await ctx.runMutation(internal.runHistory.create, {
       workflowId: args.workflowId,
       canvas: snapshotCanvas,
+      ranBy,
     });
     const setNodeStatus = async (
       nodeId: string,
@@ -475,6 +484,7 @@ export const run = action({
         await ctx.scheduler.runAfter(0, internal.runWorkflow.runChainSequence, {
           sourceWorkflowId: args.workflowId,
           chainWorkflowIds: chain,
+          ranBy,
         });
       }
       return runHistoryId;

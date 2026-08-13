@@ -4,6 +4,7 @@ import { api } from '@/convex/_generated/api';
 import { useQuery } from 'convex/react';
 
 import { useWorkspaceParams } from '../../../../_hooks/use-workspace-params';
+import { RunDetailsPanel } from './run-details-panel';
 import { RunHistoryCanvas } from './run-history-canvas';
 import { RunHistoryPalette } from './run-history-palette';
 
@@ -49,6 +50,7 @@ export function RunHistoryView() {
     <div className='bg-canvas relative flex min-h-0 flex-1'>
       {renderCanvas()}
       <RunHistoryPalette selectedId={runHistoryId} />
+      {run && <RunDetailsPanel run={run} />}
     </div>
   );
 }

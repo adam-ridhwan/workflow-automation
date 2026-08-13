@@ -5,6 +5,11 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { api } from '@/convex/_generated/api';
 import { cn } from '@/lib/cn';
 import { formatTime } from '@/lib/format-time';
@@ -69,30 +74,67 @@ export function RunHistoryPalette({ selectedId }: RunHistoryPaletteProps) {
       // Newest first, so the oldest run in the list is #1.
       const runNumber = runs.length - index;
       return (
-        <Link
-          key={run._id}
-          href={`${base}/${run._id}`}
-          className={cn(
-            `hover:bg-accent hover:text-accent-foreground flex shrink-0
-              items-center gap-2 rounded-md px-2 py-1.5 text-[13px] font-medium
-              select-none`,
-            isSelected && 'bg-accent text-accent-foreground'
-          )}
-        >
-          <span className='flex size-4 shrink-0 items-center justify-center'>
-            <meta.icon
-              className={cn(
-                'size-3.5',
-                meta.className,
-                run.status === 'running' && 'animate-spin'
-              )}
-            />
-          </span>
-          <span className='shrink-0'>Run # {runNumber}</span>
-          <span className='text-muted-foreground ml-auto truncate text-[11px]'>
-            {formatTime(run.startedAt)}
-          </span>
-        </Link>
+        <DropdownMenu key={run._id}>
+          {/* The row is the trigger: hover opens the message; click routes. */}
+          <DropdownMenuTrigger
+            openOnHover
+            nativeButton={false}
+            render={
+              <Link
+                href={`${base}/${run._id}`}
+                className={cn(
+                  `hover:bg-accent hover:text-accent-foreground flex shrink-0
+                    items-center gap-2 rounded-md px-2 py-1.5 text-[13px]
+                    font-medium select-none`,
+                  isSelected && 'bg-accent text-accent-foreground'
+                )}
+              />
+            }
+          >
+            <span className='flex size-4 shrink-0 items-center justify-center'>
+              <meta.icon
+                className={cn(
+                  'size-3.5',
+                  meta.className,
+                  run.status === 'running' && 'animate-spin'
+                )}
+              />
+            </span>
+            <span className='shrink-0'>Run # {runNumber}</span>
+            <span className='text-muted-foreground ml-auto shrink-0 text-[11px]'>
+              {formatTime(run.startedAt)}
+            </span>
+          </DropdownMenuTrigger>
+
+          <DropdownMenuContent
+            side='right'
+            align='start'
+            sideOffset={8}
+            className='max-w-64'
+          >
+            <div className='px-2 py-1.5'>
+              <div className='text-muted-foreground text-[11px] font-medium'>
+                Ran by
+              </div>
+              <div className='text-[13px]'>{run.ranByName ?? 'Unknown'}</div>
+            </div>
+            <div className='px-2 py-1.5'>
+              <div className='text-muted-foreground text-[11px] font-medium'>
+                Message
+              </div>
+              <div
+                className={cn(
+                  'text-[13px] break-words whitespace-pre-wrap',
+                  run.status === 'error' && 'text-destructive',
+                  run.status === 'success' &&
+                    'text-emerald-600 dark:text-emerald-400'
+                )}
+              >
+                {run.message}
+              </div>
+            </div>
+          </DropdownMenuContent>
+        </DropdownMenu>
       );
     });
   }

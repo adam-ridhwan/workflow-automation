@@ -1,3 +1,4 @@
+import { getAuthUserId } from '@convex-dev/auth/server';
 import { ConvexError, Infer, v } from 'convex/values';
 
 import { internal } from './_generated/api';
@@ -8,7 +9,33 @@ import {
   query,
 } from './_generated/server';
 import { workflowCanvasValidator } from './canvas';
+import { resolveUserImageUrl } from './users';
 import { getMemberWorkspaceByName } from './workspaces';
+
+import type { Id } from './_generated/dataModel';
+import type { QueryCtx } from './_generated/server';
+
+/** Resolves a run's `ranBy` id to a display name + avatar URL, cached per query
+ * (many runs are often by the same user). */
+async function resolveRunner(
+  ctx: QueryCtx,
+  ranBy: Id<'users'> | undefined,
+  cache: Map<Id<'users'>, { name: string; imageUrl: string | null }>
+): Promise<{ ranByName: string | null; ranByImageUrl: string | null }> {
+  if (ranBy === undefined) {
+    return { ranByName: null, ranByImageUrl: null };
+  }
+  let runner = cache.get(ranBy);
+  if (runner === undefined) {
+    const user = await ctx.db.get(ranBy);
+    runner = {
+      name: user?.name ?? 'Unknown',
+      imageUrl: await resolveUserImageUrl(ctx, user),
+    };
+    cache.set(ranBy, runner);
+  }
+  return { ranByName: runner.name, ranByImageUrl: runner.imageUrl };
+}
 
 /** Per-node status. */
 export const nodeStatusValidator = v.union(
@@ -37,11 +64,30 @@ const runHistoryValidator = v.object({
   nodeStatuses: v.optional(v.record(v.string(), nodeStatusValidator)),
   nodeOutputs: v.record(v.string(), v.string()),
   error: v.optional(v.string()),
+  message: v.string(),
+  ranBy: v.optional(v.id('users')),
+  ranByName: v.union(v.null(), v.string()),
+  ranByImageUrl: v.union(v.null(), v.string()),
   startedAt: v.number(),
   finishedAt: v.optional(v.number()),
 });
 
 export type RunHistory = Infer<typeof runHistoryValidator>;
+
+/** The outcome message stored on a run: 'success' on success, the error message
+ * on failure, otherwise the status itself ('running' / 'stopped'). */
+function outcomeMessage(
+  status: Infer<typeof runStatusValidator>,
+  error?: string
+): string {
+  if (status === 'success') {
+    return 'success';
+  }
+  if (status === 'error') {
+    return error ?? 'The run failed.';
+  }
+  return status;
+}
 
 /** A workflow's runs, newest first. */
 export const list = query({
@@ -56,11 +102,20 @@ export const list = query({
     if (workflow === null || workflow.workspaceId !== workspace._id) {
       return [];
     }
-    return await ctx.db
+    const runs = await ctx.db
       .query('runHistory')
       .withIndex('workflow', (q) => q.eq('workflowId', args.workflowId))
       .order('desc')
       .take(50);
+    const cache = new Map<
+      Id<'users'>,
+      { name: string; imageUrl: string | null }
+    >();
+    const result: Infer<typeof runHistoryValidator>[] = [];
+    for (const run of runs) {
+      result.push({ ...run, ...(await resolveRunner(ctx, run.ranBy, cache)) });
+    }
+    return result;
   },
 });
 
@@ -85,13 +140,21 @@ export const get = query({
     if (workflow === null || workflow.workspaceId !== workspace._id) {
       return null;
     }
-    return run;
+    const cache = new Map<
+      Id<'users'>,
+      { name: string; imageUrl: string | null }
+    >();
+    return { ...run, ...(await resolveRunner(ctx, run.ranBy, cache)) };
   },
 });
 
 /** Snapshots the canvas at the start of a run; returns the new run's id. */
 export const create = internalMutation({
-  args: { workflowId: v.id('workflows'), canvas: workflowCanvasValidator },
+  args: {
+    workflowId: v.id('workflows'),
+    canvas: workflowCanvasValidator,
+    ranBy: v.optional(v.id('users')),
+  },
   returns: v.id('runHistory'),
   handler: async (ctx, args) => {
     return await ctx.db.insert('runHistory', {
@@ -99,6 +162,8 @@ export const create = internalMutation({
       canvas: args.canvas,
       status: 'running',
       nodeOutputs: {},
+      message: 'running',
+      ranBy: args.ranBy,
       startedAt: Date.now(),
     });
   },
@@ -129,11 +194,14 @@ export const startRerun = mutation({
       throw new ConvexError('Run not found.');
     }
 
+    const ranBy = await getAuthUserId(ctx);
     const runHistoryId = await ctx.db.insert('runHistory', {
       workflowId: args.workflowId,
       canvas: source.canvas,
       status: 'running',
       nodeOutputs: {},
+      message: 'running',
+      ranBy: ranBy ?? undefined,
       startedAt: Date.now(),
     });
     await ctx.scheduler.runAfter(0, internal.runWorkflow.execute, {
@@ -211,6 +279,7 @@ export const record = internalMutation({
     status: runStatusValidator,
     nodeOutputs: v.record(v.string(), v.string()),
     error: v.optional(v.string()),
+    ranBy: v.optional(v.id('users')),
   },
   returns: v.id('runHistory'),
   handler: async (ctx, args) => {
@@ -221,6 +290,8 @@ export const record = internalMutation({
       status: args.status,
       nodeOutputs: args.nodeOutputs,
       error: args.error,
+      message: outcomeMessage(args.status, args.error),
+      ranBy: args.ranBy,
       startedAt: now,
       finishedAt: now,
     });
@@ -241,6 +312,7 @@ export const finish = internalMutation({
       status: args.status,
       nodeOutputs: args.nodeOutputs,
       error: args.error,
+      message: outcomeMessage(args.status, args.error),
       finishedAt: Date.now(),
     });
     return null;

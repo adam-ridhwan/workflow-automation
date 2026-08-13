@@ -101,6 +101,12 @@ export default defineSchema({
     ),
     nodeOutputs: v.record(v.string(), v.string()),
     error: v.optional(v.string()),
+    /** A short outcome message, always set: 'success' on success, the error
+     * message on failure, else the status ('running' / 'stopped'). */
+    message: v.string(),
+    /** The user who started the run (a chain step inherits its source's
+     * runner). Absent on runs recorded before this was tracked. */
+    ranBy: v.optional(v.id('users')),
     startedAt: v.number(),
     finishedAt: v.optional(v.number()),
   }).index('workflow', ['workflowId']),
