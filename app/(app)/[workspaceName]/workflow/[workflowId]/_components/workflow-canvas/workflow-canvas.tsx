@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { findNodeSpec } from '@/lib/node-specs';
 import {
   DndContext,
   PointerSensor,
@@ -81,6 +82,27 @@ export function WorkflowCanvas({ canvas }: WorkflowCanvasProps) {
   // The side panels open for a single selected node.
   const selectedNodes = nodes.filter((node) => node.selected);
   const selectedNode = selectedNodes.length === 1 ? selectedNodes[0] : null;
+
+  // When a run starts, open the output node's panel by selecting it, so its
+  // result — and the loading state below — is visible without hunting for it.
+  const runPhase = useCanvasStore((s) => s.runPhase);
+  const selectNode = useCanvasStore((s) => s.selectNode);
+  const isRunning = runPhase === 'local' || runPhase === 'running';
+  const wasRunningRef = useRef(false);
+
+  useEffect(() => {
+    if (isRunning && !wasRunningRef.current) {
+      const displayNode = nodes.find(
+        (node) =>
+          findNodeSpec(node.data.node_uid)?.node_info.node_type === 'DISPLAY'
+      );
+      if (displayNode) {
+        selectNode(displayNode.id);
+      }
+    }
+    wasRunningRef.current = isRunning;
+  }, [isRunning, nodes, selectNode]);
+
   const onNodesChange = useCanvasStore((s) => s.onNodesChange);
   const onEdgesChange = useCanvasStore((s) => s.onEdgesChange);
   const onConnect = useCanvasStore((s) => s.onConnect);
@@ -187,7 +209,7 @@ export function WorkflowCanvas({ canvas }: WorkflowCanvasProps) {
               <CanvasPalette />
             </ReactFlow>
             <NodePalette />
-            <NodePanel node={selectedNode} />
+            <NodePanel node={selectedNode} loading={isRunning} />
           </div>
 
           <NodeDragPreview dragItem={dragItem} />

@@ -75,6 +75,7 @@ interface CanvasState {
   ) => void;
   organizeNodes: (target: SaveTarget) => void;
   setNodeArgument: (nodeId: string, name: string, value: unknown) => void;
+  selectNode: (nodeId: string) => void;
   setNodeAnnotation: (
     nodeId: string,
     annotation: WorkflowAnnotation | undefined
@@ -340,6 +341,14 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
             }
           : node
       ),
+    });
+  },
+  selectNode: (nodeId) => {
+    set({
+      nodes: get().nodes.map((node) => ({
+        ...node,
+        selected: node.id === nodeId,
+      })),
     });
   },
   setNodeAnnotation: (nodeId, annotation) => {
