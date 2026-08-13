@@ -3,7 +3,12 @@
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
 import { useDroppable } from '@dnd-kit/core';
-import { ChevronRightIcon, FolderIcon, WorkflowIcon } from 'lucide-react';
+import {
+  ChevronRightIcon,
+  FileIcon,
+  FolderIcon,
+  WorkflowIcon,
+} from 'lucide-react';
 import Link from 'next/link';
 
 import type { DropTargetData } from '../../_components/workspace-dnd-provider';
@@ -12,7 +17,7 @@ import type { Folder } from '@/convex/folders';
 type TrailSegmentProps = {
   name: string;
   href: string;
-  icon: 'folder' | 'workflow';
+  icon: 'folder' | 'workflow' | 'file';
   isCurrent: boolean;
   /** Set on folder segments to make them drop targets for moves. */
   folderId?: Folder['_id'];
@@ -37,7 +42,9 @@ export function TrailSegment({
     disabled: !isDroppable,
   });
 
-  const Icon = icon === 'folder' ? FolderIcon : WorkflowIcon;
+  const Icon = { folder: FolderIcon, workflow: WorkflowIcon, file: FileIcon }[
+    icon
+  ];
   return (
     <span className='flex min-w-0 items-center gap-1'>
       <ChevronRightIcon className='text-muted-foreground size-3 shrink-0' />

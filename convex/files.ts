@@ -1,5 +1,6 @@
 import { ConvexError, Infer, v } from 'convex/values';
 
+import { findNodeSpec, getArgumentValue } from '../lib/node-specs';
 import { internal } from './_generated/api';
 import {
   internalAction,
@@ -120,6 +121,71 @@ export const get = query({
   },
 });
 
+/** Data for the single-file view page: the file's URL (to fetch its text), its
+ * status, and whether a workflow that writes a file of this name is currently
+ * running — so the page can show a "running in the background" hint and refresh
+ * once the run replaces the file (the URL changes with the new blob). */
+export const view = query({
+  args: { workspaceName: v.string(), fileId: v.id('files') },
+  returns: v.union(
+    v.null(),
+    v.object({
+      name: v.string(),
+      contentType: v.string(),
+      status: fileStatusValidator,
+      url: v.union(v.string(), v.null()),
+      workflowRunning: v.boolean(),
+    })
+  ),
+  handler: async (ctx, args) => {
+    const workspace = await getMemberWorkspaceByName(ctx, args.workspaceName);
+    if (workspace === null) {
+      return null;
+    }
+    const file = await ctx.db.get(args.fileId);
+    if (file === null || file.workspaceId !== workspace._id) {
+      return null;
+    }
+    const url = file.storageId
+      ? await ctx.storage.getUrl(file.storageId)
+      : null;
+
+    // Is a workflow whose FILE_OUTPUT node targets this file name currently
+    // running? Its `runs` doc has `phase: 'running'` for the run's duration.
+    const workflows = await ctx.db
+      .query('workflows')
+      .withIndex('workspaceId', (q) => q.eq('workspaceId', workspace._id))
+      .collect();
+    let workflowRunning = false;
+    for (const workflow of workflows) {
+      const writesThisFile = Object.values(workflow.canvas.nodes).some(
+        (node) =>
+          findNodeSpec(node.node_uid)?.node_info.node_type === 'FILE_OUTPUT' &&
+          String(getArgumentValue(node, 'filename') ?? '').trim() === file.name
+      );
+      if (!writesThisFile) {
+        continue;
+      }
+      const run = await ctx.db
+        .query('runs')
+        .withIndex('workflow', (q) => q.eq('workflowId', workflow._id))
+        .unique();
+      if (run?.phase === 'running') {
+        workflowRunning = true;
+        break;
+      }
+    }
+
+    return {
+      name: file.name,
+      contentType: file.contentType,
+      status: file.status,
+      url,
+      workflowRunning,
+    };
+  },
+});
+
 /** Files in a folder, or the workspace's root files when `folderId` is
  * omitted. */
 export const list = query({
@@ -202,17 +268,18 @@ export const createFromRun = internalMutation({
       return null;
     }
 
-    // Re-running a workflow should overwrite its file, not pile up duplicates:
-    // reuse an existing same-named file in the workspace root, swapping in the
-    // new blob (and deleting the old one).
-    const existing = (
-      await ctx.db
-        .query('files')
-        .withIndex('workspaceName', (q) =>
-          q.eq('workspaceId', workflow.workspaceId).eq('name', args.name)
-        )
-        .collect()
-    ).find((file) => file.folderId === undefined);
+    // Re-running a workflow should overwrite its file, not pile up duplicates.
+    // Reuse an existing same-named file anywhere in the workspace — preferring a
+    // root file, else wherever it was moved to (a folder) — keeping its folder
+    // and swapping in the new blob.
+    const matches = await ctx.db
+      .query('files')
+      .withIndex('workspaceName', (q) =>
+        q.eq('workspaceId', workflow.workspaceId).eq('name', args.name)
+      )
+      .collect();
+    const existing =
+      matches.find((file) => file.folderId === undefined) ?? matches[0];
 
     if (existing !== undefined) {
       if (existing.storageId) {

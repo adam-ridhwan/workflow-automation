@@ -56,6 +56,13 @@ export function FileRow({ file, onDelete }: FileRowProps) {
   const { workspaceName } = useWorkspaceParams();
   const renameFile = useMutation(api.files.rename);
 
+  // Text files open in the in-app viewer; anything else opens its raw storage
+  // URL in a new tab.
+  const isText =
+    file.contentType === 'text/plain' ||
+    file.name.toLowerCase().endsWith('.txt');
+  const viewHref = `/${encodeURIComponent(workspaceName)}/file/${file._id}`;
+
   const status = STATUS_STYLES[file.status];
   const isAssembling = file.status === 'assembling';
   // The upload transfer and the indexing pass both show a live bar; assembling
@@ -67,8 +74,8 @@ export function FileRow({ file, onDelete }: FileRowProps) {
   return (
     <ResourceRowShell
       drag={{ kind: 'file', id: file._id, name: file.name }}
-      href={file.url ?? undefined}
-      hrefExternal
+      href={isText ? viewHref : (file.url ?? undefined)}
+      hrefExternal={!isText}
       icon={<FileIcon className='text-muted-foreground size-4 shrink-0' />}
       name={file.name}
       subtitle={formatBytes(file.size)}

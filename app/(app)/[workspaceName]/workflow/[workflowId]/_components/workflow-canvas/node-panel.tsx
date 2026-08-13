@@ -8,13 +8,13 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from '@/components/ui/empty';
+import { Markdown } from '@/components/ui/markdown';
 import { findNodeSpec } from '@/lib/node-specs';
 import { CircleIcon, InboxIcon, Loader2Icon } from 'lucide-react';
 
 import { NODE_META } from '../../_constants/node-meta';
 import { NodeArguments } from '../node-arguments/node-arguments';
 import { useCanvasMode } from './canvas-mode-context';
-import { NodeOutputMarkdown } from './node-output-markdown';
 import { WorkflowCanvasNodeToolbar } from './workflow-canvas-node-toolbar';
 
 import type { WorkflowNodeData } from '@/convex/canvas';
@@ -66,7 +66,7 @@ export function NodePanel({ node, loading = false }: NodePanelProps) {
       );
 
       if (hasOutput) {
-        body = <NodeOutputMarkdown output={output} />;
+        body = <Markdown>{output}</Markdown>;
       } else if (loading) {
         body = (
           <div
