@@ -182,6 +182,65 @@ export const contentForRun = internalQuery({
   },
 });
 
+/** Records a file produced by a workflow run (a FILE_OUTPUT node): the blob is
+ * already stored, so this just inserts a ready `indexed` row in the workflow's
+ * workspace, owned by the workflow owner. Deletes the orphan blob if the
+ * workflow vanished. */
+export const createFromRun = internalMutation({
+  args: {
+    workflowId: v.id('workflows'),
+    name: v.string(),
+    storageId: v.id('_storage'),
+    size: v.number(),
+    contentType: v.string(),
+  },
+  returns: v.union(v.null(), v.id('files')),
+  handler: async (ctx, args) => {
+    const workflow = await ctx.db.get(args.workflowId);
+    if (workflow === null) {
+      await ctx.storage.delete(args.storageId);
+      return null;
+    }
+
+    // Re-running a workflow should overwrite its file, not pile up duplicates:
+    // reuse an existing same-named file in the workspace root, swapping in the
+    // new blob (and deleting the old one).
+    const existing = (
+      await ctx.db
+        .query('files')
+        .withIndex('workspaceName', (q) =>
+          q.eq('workspaceId', workflow.workspaceId).eq('name', args.name)
+        )
+        .collect()
+    ).find((file) => file.folderId === undefined);
+
+    if (existing !== undefined) {
+      if (existing.storageId) {
+        await ctx.storage.delete(existing.storageId);
+      }
+      await ctx.db.patch(existing._id, {
+        storageId: args.storageId,
+        size: args.size,
+        contentType: args.contentType,
+        status: 'indexed',
+        updatedAt: Date.now(),
+      });
+      return existing._id;
+    }
+
+    return await ctx.db.insert('files', {
+      workspaceId: workflow.workspaceId,
+      name: args.name,
+      storageId: args.storageId,
+      size: args.size,
+      contentType: args.contentType,
+      status: 'indexed',
+      uploadedBy: workflow.ownerId,
+      updatedAt: Date.now(),
+    });
+  },
+});
+
 /** A short-lived URL the client POSTs raw bytes to (a whole file, or one chunk
  * of a large file); the response yields the `storageId` of the stored blob. */
 export const generateUploadUrl = mutation({

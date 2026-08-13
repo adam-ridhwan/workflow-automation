@@ -1,5 +1,6 @@
 import {
   BinaryIcon,
+  FileOutputIcon,
   FileTextIcon,
   MonitorIcon,
   SaveIcon,
@@ -61,5 +62,10 @@ export const NODE_META: Record<
     label: 'Save dataset',
     icon: SaveIcon,
     description: 'Store results as a dataset',
+  },
+  N_011: {
+    label: 'Create file',
+    icon: FileOutputIcon,
+    description: 'Save the output to a file',
   },
 };

@@ -46,6 +46,47 @@ function makeFileReader(
   };
 }
 
+/** Maps a filename's extension to a content type; defaults to plain text. */
+function contentTypeForName(name: string): string {
+  const ext = name.slice(name.lastIndexOf('.') + 1).toLowerCase();
+  switch (ext) {
+    case 'md':
+      return 'text/markdown';
+
+    case 'json':
+      return 'application/json';
+
+    case 'csv':
+      return 'text/csv';
+
+    case 'html':
+      return 'text/html';
+
+    default:
+      return 'text/plain';
+  }
+}
+
+/** Builds the writer passed to `executeCanvas` for FILE_OUTPUT nodes: stores the
+ * text as a blob and records a file in the workflow's workspace. */
+function makeFileWriter(
+  ctx: ActionCtx,
+  workflowId: Id<'workflows'>
+): (name: string, content: string) => Promise<void> {
+  return async (name, content) => {
+    const contentType = contentTypeForName(name);
+    const blob = new Blob([content], { type: contentType });
+    const storageId = await ctx.storage.store(blob);
+    await ctx.runMutation(internal.files.createFromRun, {
+      workflowId,
+      name,
+      storageId,
+      size: blob.size,
+      contentType,
+    });
+  };
+}
+
 /** Returns a copy of the canvas with every node id replaced by a fresh one
  * (edges, parents, and children remapped to match), plus the old→new id map. */
 function remapCanvasIds(canvas: WorkflowCanvasData): {
@@ -137,6 +178,7 @@ export const execute = internalAction({
         setNodeStatus,
         checkStop,
         makeFileReader(ctx, args.workflowId),
+        makeFileWriter(ctx, args.workflowId),
         args.webhookPayload
       );
       await ctx.runMutation(internal.workflows.recordRun, {
@@ -205,6 +247,7 @@ export const executeOnCanvas = internalAction({
         setNodeStatus,
         checkStop,
         makeFileReader(ctx, args.workflowId),
+        makeFileWriter(ctx, args.workflowId),
         args.webhookPayload
       );
     } catch {
@@ -273,6 +316,7 @@ export const runChainStep = internalAction({
         setNodeStatus,
         checkStop,
         makeFileReader(ctx, args.workflowId),
+        makeFileWriter(ctx, args.workflowId),
         undefined
       );
     } catch (caught) {
@@ -406,6 +450,7 @@ export const run = action({
         setNodeStatus,
         checkStop,
         makeFileReader(ctx, args.workflowId),
+        makeFileWriter(ctx, args.workflowId),
         args.webhookPayload
       );
       await ctx.runMutation(internal.workflows.recordRun, {
@@ -497,7 +542,8 @@ async function executeCanvas(
     output?: string
   ) => Promise<null>,
   checkStop: () => Promise<boolean>,
-  readFileContent: (fileId: string) => Promise<string>,
+  readFile: (fileId: string) => Promise<string>,
+  writeFile: (name: string, content: string) => Promise<void>,
   webhookPayload: string | undefined
 ) {
   const nodes = Object.values(canvas.nodes);
@@ -583,7 +629,7 @@ async function executeCanvas(
         case 'FILE_INPUT': {
           const fileId = getArgumentValue(node, 'file');
           if (fileId !== undefined && fileId !== null && fileId !== '') {
-            output = await readFileContent(String(fileId));
+            output = await readFile(String(fileId));
             console.log(output);
           } else {
             // Legacy workflows stored inline content instead of a file id.
@@ -593,8 +639,6 @@ async function executeCanvas(
         }
 
         case 'WEBHOOK':
-          // A webhook-triggered run injects the posted body; a manual editor
-          // run falls back to the node's sample payload.
           output =
             webhookPayload !== undefined
               ? webhookPayload
@@ -604,6 +648,15 @@ async function executeCanvas(
         case 'LLM':
           output = await runLlmNode(node, inputsByType);
           break;
+
+        case 'FILE_OUTPUT': {
+          const filename =
+            String(getArgumentValue(node, 'filename') ?? 'output.txt').trim() ||
+            'output.txt';
+          await writeFile(filename, input);
+          output = `Saved "${filename}"`;
+          break;
+        }
 
         default:
           // Output nodes (and unknown nodes) pass their input through.

@@ -310,6 +310,38 @@ export const NODE_SPECS = {
     },
   },
   OUTPUT: {
+    FILE_OUTPUT: {
+      in_edge_arguments: [],
+      node_arguments: [
+        {
+          argument_type: 'TEXT',
+          children: {},
+          default_value: 'output.txt',
+          have_options: false,
+          have_sub_arguments: false,
+          is_deprecated: false,
+          is_hidden: false,
+          is_list: false,
+          is_required: true,
+          name: 'filename',
+          label: 'File name',
+        },
+      ],
+      node_info: {
+        node_group: 'OUTPUT',
+        node_type: 'FILE_OUTPUT',
+        node_uid: 'N_011',
+      },
+      node_requirement: {
+        max_in_edges: 100,
+        max_out_edges: 0,
+        min_in_edges: 1,
+        min_out_edges: 0,
+        valid_inputs: ['INPUT', 'MODEL'],
+        valid_outputs: [],
+      },
+      out_edge_arguments: [],
+    },
     DISPLAY: {
       in_edge_arguments: [],
       node_arguments: [],
