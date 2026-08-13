@@ -5,16 +5,22 @@ import { usePathname } from 'next/navigation';
 
 function sectionFromPathname(pathname: string) {
   const [, , section] = pathname.split('/');
-  if (section === 'workflows') {
-    return { label: 'Workflows', Icon: WorkflowIcon };
+  switch (section) {
+    case 'workflows':
+      return { label: 'Workflows', Icon: WorkflowIcon };
+
+    case 'workflow':
+      return { label: 'Workflow', Icon: WorkflowIcon };
+
+    case 'files':
+      return { label: 'Files', Icon: FolderIcon };
+
+    case 'file':
+      return { label: 'File', Icon: FolderIcon };
+
+    default:
+      return { label: 'Overview', Icon: LayoutDashboardIcon };
   }
-  if (section === 'workflow') {
-    return { label: 'Workflow', Icon: WorkflowIcon };
-  }
-  if (section === 'files') {
-    return { label: 'Files', Icon: FolderIcon };
-  }
-  return { label: 'Overview', Icon: LayoutDashboardIcon };
 }
 
 export function SectionLabel() {
