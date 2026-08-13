@@ -19,7 +19,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/cn';
 import { useAuthActions } from '@convex-dev/auth/react';
-import { SiApple, SiGoogle } from '@icons-pack/react-simple-icons';
+import { SiGoogle } from '@icons-pack/react-simple-icons';
 import { ConvexError } from 'convex/values';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -59,19 +59,19 @@ export function LoginForm({
       <Card>
         <CardHeader className='text-center'>
           <CardTitle className='text-xl'>Welcome back</CardTitle>
-          <CardDescription>
-            Login with your Apple or Google account
-          </CardDescription>
+          <CardDescription>Login with your Google account</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit}>
             <FieldGroup>
               <Field>
-                <Button variant='outline' type='button' disabled>
-                  <SiApple className='size-4' />
-                  Login with Apple
-                </Button>
-                <Button variant='outline' type='button' disabled>
+                <Button
+                  variant='outline'
+                  type='button'
+                  onClick={() => {
+                    signIn('google');
+                  }}
+                >
                   <SiGoogle className='size-4' />
                   Login with Google
                 </Button>

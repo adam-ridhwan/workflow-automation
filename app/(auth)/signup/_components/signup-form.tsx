@@ -17,7 +17,7 @@ import {
   validatePassword,
 } from '@/lib/validate-password';
 import { useAuthActions } from '@convex-dev/auth/react';
-import { SiApple, SiGoogle, SiMeta } from '@icons-pack/react-simple-icons';
+import { SiGoogle } from '@icons-pack/react-simple-icons';
 import { ConvexError } from 'convex/values';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -151,18 +151,16 @@ export function SignupForm({
               <FieldSeparator className='*:data-[slot=field-separator-content]:bg-card'>
                 Or continue with
               </FieldSeparator>
-              <Field className='grid grid-cols-3 gap-4'>
-                <Button variant='outline' type='button' disabled>
-                  <SiApple className='size-4' />
-                  <span className='sr-only'>Sign up with Apple</span>
-                </Button>
-                <Button variant='outline' type='button' disabled>
+              <Field>
+                <Button
+                  variant='outline'
+                  type='button'
+                  onClick={() => {
+                    signIn('google');
+                  }}
+                >
                   <SiGoogle className='size-4' />
-                  <span className='sr-only'>Sign up with Google</span>
-                </Button>
-                <Button variant='outline' type='button' disabled>
-                  <SiMeta className='size-4' />
-                  <span className='sr-only'>Sign up with Meta</span>
+                  Sign up with Google
                 </Button>
               </Field>
               <FieldDescription className='text-center'>
