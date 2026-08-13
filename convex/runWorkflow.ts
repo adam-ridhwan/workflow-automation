@@ -615,8 +615,6 @@ async function executeCanvas(
     // Pass-through nodes (output/unknown) emit a plain string, so flatten.
     const input = inputEntries.map((entry) => entry.output).join('\n');
 
-    console.log('inputsByType', inputsByType);
-
     await setNodeStatus(node.node_id, 'running');
     let output = input;
     try {
@@ -731,8 +729,6 @@ async function runLlmNode(
     // No placeholder of any kind → append everything rather than dropping it.
     content = template ? `${template}\n\n${all}` : all;
   }
-
-  console.log('content', content);
 
   const client = new Anthropic({ apiKey });
   const message = await client.messages.create({
