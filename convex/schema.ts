@@ -104,6 +104,17 @@ export default defineSchema({
     /** A short outcome message, always set: 'success' on success, the error
      * message on failure, else the status ('running' / 'stopped'). */
     message: v.string(),
+    /** What kicked off the run. Absent on runs recorded before this was
+     * tracked. */
+    trigger: v.optional(
+      v.union(
+        v.literal('manual'),
+        v.literal('rerun'),
+        v.literal('webhook'),
+        v.literal('schedule'),
+        v.literal('chain')
+      )
+    ),
     /** The user who started the run (a chain step inherits its source's
      * runner). Absent on runs recorded before this was tracked. */
     ranBy: v.optional(v.id('users')),

@@ -5,10 +5,18 @@ import { cn } from '@/lib/cn';
 import { formatTime } from '@/lib/format-time';
 import { getInitials } from '@/lib/get-initials';
 
-import type { RunHistory } from '@/convex/runHistory';
+import type { RunHistory, RunTrigger } from '@/convex/runHistory';
 
 type RunDetailsPanelProps = {
   run: RunHistory;
+};
+
+const TRIGGER_LABELS: Record<RunTrigger, string> = {
+  manual: 'Manual',
+  rerun: 'Re-run',
+  webhook: 'Webhook',
+  schedule: 'Schedule',
+  chain: 'Chain',
 };
 
 /** Floating panel in the top-right of the run-history canvas: who ran the
@@ -38,6 +46,10 @@ export function RunDetailsPanel({ run }: RunDetailsPanelProps) {
           </div>
         </div>
         <Field label='Ran at' value={formatTime(run.startedAt)} />
+        <Field
+          label='Trigger'
+          value={run.trigger ? TRIGGER_LABELS[run.trigger] : 'Manual'}
+        />
         <Field
           label='Message'
           value={run.message}

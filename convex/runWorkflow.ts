@@ -232,69 +232,6 @@ export const execute = internalAction({
 });
 
 /**
- * Runs a workflow on its live canvas — the `runs` doc, so node badges animate
- * exactly like clicking "Run Workflow" — without writing a run-history record.
- * Used by the inbound webhook so an external trigger runs the canvas rather than
- * piling entries into the Runs tab. Feeds `webhookPayload` to WEBHOOK nodes.
- */
-export const executeOnCanvas = internalAction({
-  args: {
-    workflowId: v.id('workflows'),
-    canvas: workflowCanvasValidator,
-    webhookPayload: v.optional(v.string()),
-  },
-  returns: v.null(),
-  handler: async (ctx, args) => {
-    await ctx.runMutation(internal.runs.start, { workflowId: args.workflowId });
-
-    const setNodeStatus = async (
-      nodeId: string,
-      status: 'running' | 'success' | 'error',
-      output?: string
-    ) => {
-      await ctx.runMutation(internal.runs.setNodeStatus, {
-        workflowId: args.workflowId,
-        nodeId,
-        status,
-        output,
-      });
-      return null;
-    };
-
-    // An inbound trigger has no user "stop" affordance — it runs to completion.
-    const checkStop = async () => false;
-
-    let status: 'success' | 'error' = 'success';
-    try {
-      await executeCanvas(
-        args.canvas,
-        setNodeStatus,
-        checkStop,
-        makeFileReader(ctx, args.workflowId),
-        makeFileWriter(ctx, args.workflowId),
-        makeSecretResolver(ctx, args.workflowId),
-        args.webhookPayload
-      );
-    } catch {
-      status = 'error';
-    }
-
-    await ctx.runMutation(internal.workflows.recordRun, {
-      workflowId: args.workflowId,
-      status,
-    });
-    // Free the run button now; let the finished badges linger a beat, then fade.
-    await ctx.runMutation(internal.runs.markFinished, {
-      workflowId: args.workflowId,
-    });
-    await ctx.scheduler.runAfter(1000, internal.runs.clearStatuses, {
-      workflowId: args.workflowId,
-    });
-    return null;
-  },
-});
-
-/**
  * Runs one step of a workflow chain to completion. The step lights up its own
  * canvas live (the `runs` doc) exactly like clicking "Run Workflow", and once it
  * finishes the run is written to that workflow's history. Returns the step's
@@ -363,6 +300,7 @@ export const runChainStep = internalAction({
       nodeOutputs: status === 'success' ? remapOutputs(outputs, idMap) : {},
       error,
       ranBy: args.ranBy,
+      trigger: 'chain',
     });
     // Free the run button now; let the finished badges linger a beat, then fade.
     await ctx.runMutation(internal.runs.markFinished, {
@@ -453,6 +391,7 @@ export const run = action({
       workflowId: args.workflowId,
       canvas: snapshotCanvas,
       ranBy,
+      trigger: 'manual',
     });
     const setNodeStatus = async (
       nodeId: string,

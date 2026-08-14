@@ -60,9 +60,8 @@ export const set = action({
 });
 
 /** Runs every minute (see convex/crons.ts): fires every enabled schedule whose
- * `nextRunAt` has passed by running the workflow on its live canvas (animated
- * badges, no run-history entry — same as an inbound webhook), then advances each
- * to its next fire time. */
+ * `nextRunAt` has passed, recording a run-history entry (attributed to the
+ * schedule's creator) for each, then advances each to its next fire time. */
 export const dispatch = internalAction({
   args: {},
   returns: v.null(),
@@ -89,10 +88,19 @@ export const dispatch = internalAction({
         continue;
       }
 
-      // Run it live on the canvas (animated badges), like an inbound webhook —
-      // no run-history record.
-      await ctx.scheduler.runAfter(0, internal.runWorkflow.executeOnCanvas, {
+      // Record a run-history entry (attributed to the schedule's creator) then
+      // execute it, so scheduled runs are reviewable like manual ones. The
+      // snapshot reuses the workflow's node ids: the run only writes to its own
+      // history record, so there's nothing to collide with.
+      const runHistoryId = await ctx.runMutation(internal.runHistory.create, {
         workflowId: schedule.workflowId,
+        canvas: workflow.canvas,
+        ranBy: schedule.createdBy,
+        trigger: 'schedule',
+      });
+      await ctx.scheduler.runAfter(0, internal.runWorkflow.execute, {
+        workflowId: schedule.workflowId,
+        runHistoryId,
         canvas: workflow.canvas,
       });
 

@@ -239,7 +239,8 @@ export function WorkflowScheduleMenu() {
             </div>
           )}
 
-          {(builder.frequency === 'daily' || builder.frequency === 'weekly') && (
+          {(builder.frequency === 'daily' ||
+            builder.frequency === 'weekly') && (
             <div className='flex flex-col gap-1'>
               <Label className='text-[11px]'>Time</Label>
               <Input
@@ -297,16 +298,6 @@ export function WorkflowScheduleMenu() {
         <DropdownMenuSeparator />
 
         <div className='flex items-center gap-2 px-2 py-1.5'>
-          <Button
-            size='sm'
-            className='flex-1'
-            disabled={busy}
-            onClick={() => {
-              save(true);
-            }}
-          >
-            {schedule ? 'Update schedule' : 'Save schedule'}
-          </Button>
           {schedule && (
             <Button
               size='sm'
@@ -319,6 +310,17 @@ export function WorkflowScheduleMenu() {
               Remove
             </Button>
           )}
+
+          <Button
+            size='sm'
+            className='flex-1'
+            disabled={busy}
+            onClick={() => {
+              save(true);
+            }}
+          >
+            {schedule ? 'Update schedule' : 'Save schedule'}
+          </Button>
         </div>
       </DropdownMenuContent>
     </DropdownMenu>

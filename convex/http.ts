@@ -35,10 +35,17 @@ http.route({
     const payload =
       body.length > MAX_PAYLOAD_CHARS ? body.slice(0, MAX_PAYLOAD_CHARS) : body;
 
-    // Run the canvas live (animated badges) like a normal run — no run-history
-    // entry, so external triggers don't pile up in the Runs tab.
-    await ctx.scheduler.runAfter(0, internal.runWorkflow.executeOnCanvas, {
+    // Record a run-history entry then execute it, so webhook-triggered runs are
+    // reviewable like manual ones. There's no signed-in user, so `ranBy` is
+    // left unset (the run reads as run by an unknown user).
+    const runHistoryId = await ctx.runMutation(internal.runHistory.create, {
       workflowId: ref.workflowId,
+      canvas: ref.canvas,
+      trigger: 'webhook',
+    });
+    await ctx.scheduler.runAfter(0, internal.runWorkflow.execute, {
+      workflowId: ref.workflowId,
+      runHistoryId,
       canvas: ref.canvas,
       webhookPayload: payload,
     });

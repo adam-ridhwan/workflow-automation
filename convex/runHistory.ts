@@ -54,6 +54,16 @@ export const runStatusValidator = v.union(
 );
 export type RunStatus = Infer<typeof runStatusValidator>;
 
+/** What kicked off a run. */
+export const runTriggerValidator = v.union(
+  v.literal('manual'),
+  v.literal('rerun'),
+  v.literal('webhook'),
+  v.literal('schedule'),
+  v.literal('chain')
+);
+export type RunTrigger = Infer<typeof runTriggerValidator>;
+
 const runHistoryValidator = v.object({
   _id: v.id('runHistory'),
   _creationTime: v.number(),
@@ -65,6 +75,7 @@ const runHistoryValidator = v.object({
   nodeOutputs: v.record(v.string(), v.string()),
   error: v.optional(v.string()),
   message: v.string(),
+  trigger: v.optional(runTriggerValidator),
   ranBy: v.optional(v.id('users')),
   ranByName: v.union(v.null(), v.string()),
   ranByImageUrl: v.union(v.null(), v.string()),
@@ -154,6 +165,7 @@ export const create = internalMutation({
     workflowId: v.id('workflows'),
     canvas: workflowCanvasValidator,
     ranBy: v.optional(v.id('users')),
+    trigger: v.optional(runTriggerValidator),
   },
   returns: v.id('runHistory'),
   handler: async (ctx, args) => {
@@ -164,6 +176,7 @@ export const create = internalMutation({
       nodeOutputs: {},
       message: 'running',
       ranBy: args.ranBy,
+      trigger: args.trigger,
       startedAt: Date.now(),
     });
   },
@@ -202,6 +215,7 @@ export const startRerun = mutation({
       nodeOutputs: {},
       message: 'running',
       ranBy: ranBy ?? undefined,
+      trigger: 'rerun',
       startedAt: Date.now(),
     });
     await ctx.scheduler.runAfter(0, internal.runWorkflow.execute, {
@@ -280,6 +294,7 @@ export const record = internalMutation({
     nodeOutputs: v.record(v.string(), v.string()),
     error: v.optional(v.string()),
     ranBy: v.optional(v.id('users')),
+    trigger: v.optional(runTriggerValidator),
   },
   returns: v.id('runHistory'),
   handler: async (ctx, args) => {
@@ -292,6 +307,7 @@ export const record = internalMutation({
       error: args.error,
       message: outcomeMessage(args.status, args.error),
       ranBy: args.ranBy,
+      trigger: args.trigger,
       startedAt: now,
       finishedAt: now,
     });
