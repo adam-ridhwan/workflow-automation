@@ -1,6 +1,7 @@
 import { ConvexError, Infer, v } from 'convex/values';
 
 import { WORKFLOW_TEMPLATES } from '../lib/workflow-templates';
+import { internal } from './_generated/api';
 import {
   internalMutation,
   internalQuery,
@@ -32,11 +33,8 @@ const workflowValidator = v.object({
   ownerName: v.string(),
   ownerEmail: v.string(),
   ownerImageUrl: v.union(v.null(), v.string()),
-  /** Whether the requesting user owns this workflow — only they may publish it
-   * or see it while unpublished. */
   isOwner: v.boolean(),
   canvas: workflowCanvasValidator,
-  /** Ordered ids of workflows this one's chain runs, in sequence. */
   chainWorkflowIds: v.optional(v.array(v.id('workflows'))),
   runCount: v.number(),
   successCount: v.number(),
@@ -807,6 +805,16 @@ export const remove = mutation({
       args.workspaceName,
       args.workflowId
     );
+
+    // Drop the live run doc so no stale run state lingers.
+    const run = await ctx.db
+      .query('runs')
+      .withIndex('workflow', (q) => q.eq('workflowId', workflow._id))
+      .unique();
+    if (run !== null) {
+      await ctx.db.delete(run._id);
+    }
+
     // Drop any schedule that fires this workflow so the dispatcher stops trying.
     const schedule = await ctx.db
       .query('workflowSchedules')
@@ -815,7 +823,69 @@ export const remove = mutation({
     if (schedule !== null) {
       await ctx.db.delete(schedule._id);
     }
+
+    // Remove this workflow from any sibling's chain so no chain references a
+    // deleted workflow.
+    const siblings = await ctx.db
+      .query('workflows')
+      .withIndex('workspaceId', (q) =>
+        q.eq('workspaceId', workflow.workspaceId)
+      )
+      .collect();
+    for (const sibling of siblings) {
+      if (
+        sibling._id !== workflow._id &&
+        sibling.chainWorkflowIds?.includes(workflow._id)
+      ) {
+        await ctx.db.patch(sibling._id, {
+          chainWorkflowIds: sibling.chainWorkflowIds.filter(
+            (id) => id !== workflow._id
+          ),
+        });
+      }
+    }
+
     await ctx.db.delete(workflow._id);
+
+    // Run history and versions can be numerous, so purge them in the background
+    // in batches rather than risk exceeding a single mutation's limits.
+    await ctx.scheduler.runAfter(0, internal.workflows.purgeWorkflowData, {
+      workflowId: workflow._id,
+    });
+    return null;
+  },
+});
+
+/** Deletes a deleted workflow's run-history and version rows in batches,
+ * rescheduling itself until both tables are drained. */
+export const purgeWorkflowData = internalMutation({
+  args: { workflowId: v.id('workflows') },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const BATCH = 100;
+
+    const history = await ctx.db
+      .query('runHistory')
+      .withIndex('workflow', (q) => q.eq('workflowId', args.workflowId))
+      .take(BATCH);
+    for (const row of history) {
+      await ctx.db.delete(row._id);
+    }
+
+    const versions = await ctx.db
+      .query('workflowVersions')
+      .withIndex('workflow', (q) => q.eq('workflowId', args.workflowId))
+      .take(BATCH);
+    for (const version of versions) {
+      await ctx.db.delete(version._id);
+    }
+
+    // A full batch means there may be more — keep going next tick.
+    if (history.length === BATCH || versions.length === BATCH) {
+      await ctx.scheduler.runAfter(0, internal.workflows.purgeWorkflowData, {
+        workflowId: args.workflowId,
+      });
+    }
     return null;
   },
 });

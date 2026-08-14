@@ -259,7 +259,7 @@ export const NODE_SPECS = {
         {
           argument_type: 'TEXT',
           children: {},
-          default_value: 'Reply with one word.\n{{text_input}}',
+          default_value: '',
           have_options: false,
           have_sub_arguments: false,
           is_deprecated: false,

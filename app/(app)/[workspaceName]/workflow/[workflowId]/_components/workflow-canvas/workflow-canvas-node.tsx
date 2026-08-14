@@ -105,7 +105,7 @@ export function WorkflowCanvasNode({
                   <TooltipTrigger
                     render={
                       <span
-                        className='flex shrink-0 items-center p-1'
+                        className='flex shrink-0 items-center'
                         aria-label='Node warnings'
                       />
                     }

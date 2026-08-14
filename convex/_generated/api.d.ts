@@ -14,6 +14,7 @@ import type * as crons from "../crons.js";
 import type * as files from "../files.js";
 import type * as folders from "../folders.js";
 import type * as http from "../http.js";
+import type * as maintenance from "../maintenance.js";
 import type * as model_secretCrypto from "../model/secretCrypto.js";
 import type * as overview from "../overview.js";
 import type * as runHistory from "../runHistory.js";
@@ -39,6 +40,7 @@ declare const fullApi: ApiFromModules<{
   files: typeof files;
   folders: typeof folders;
   http: typeof http;
+  maintenance: typeof maintenance;
   "model/secretCrypto": typeof model_secretCrypto;
   overview: typeof overview;
   runHistory: typeof runHistory;
