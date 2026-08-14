@@ -89,6 +89,27 @@ function makeFileWriter(
   };
 }
 
+/** Builds the secret resolver passed to `executeCanvas`: looks up and decrypts a
+ * workspace secret by name for the workflow's workspace. Returns undefined when
+ * there's no such secret (so callers can fall back to an env var) or if
+ * decryption fails (e.g. SECRETS_KEY unset). */
+function makeSecretResolver(
+  ctx: ActionCtx,
+  workflowId: Id<'workflows'>
+): (name: string) => Promise<string | undefined> {
+  return async (name) => {
+    try {
+      const value = await ctx.runQuery(internal.secrets.resolveForWorkflow, {
+        workflowId,
+        name,
+      });
+      return value ?? undefined;
+    } catch {
+      return undefined;
+    }
+  };
+}
+
 /** Returns a copy of the canvas with every node id replaced by a fresh one
  * (edges, parents, and children remapped to match), plus the old→new id map. */
 function remapCanvasIds(canvas: WorkflowCanvasData): {
@@ -181,6 +202,7 @@ export const execute = internalAction({
         checkStop,
         makeFileReader(ctx, args.workflowId),
         makeFileWriter(ctx, args.workflowId),
+        makeSecretResolver(ctx, args.workflowId),
         args.webhookPayload
       );
       await ctx.runMutation(internal.workflows.recordRun, {
@@ -250,6 +272,7 @@ export const executeOnCanvas = internalAction({
         checkStop,
         makeFileReader(ctx, args.workflowId),
         makeFileWriter(ctx, args.workflowId),
+        makeSecretResolver(ctx, args.workflowId),
         args.webhookPayload
       );
     } catch {
@@ -320,6 +343,7 @@ export const runChainStep = internalAction({
         checkStop,
         makeFileReader(ctx, args.workflowId),
         makeFileWriter(ctx, args.workflowId),
+        makeSecretResolver(ctx, args.workflowId),
         undefined
       );
     } catch (caught) {
@@ -461,6 +485,7 @@ export const run = action({
         checkStop,
         makeFileReader(ctx, args.workflowId),
         makeFileWriter(ctx, args.workflowId),
+        makeSecretResolver(ctx, args.workflowId),
         args.webhookPayload
       );
       await ctx.runMutation(internal.workflows.recordRun, {
@@ -557,6 +582,7 @@ async function executeCanvas(
   checkStop: () => Promise<boolean>,
   readFile: (fileId: string) => Promise<string>,
   writeFile: (name: string, content: string) => Promise<void>,
+  getSecret: (name: string) => Promise<string | undefined>,
   webhookPayload: string | undefined
 ) {
   const nodes = Object.values(canvas.nodes);
@@ -656,7 +682,7 @@ async function executeCanvas(
           break;
 
         case 'LLM':
-          output = await runLlmNode(node, inputsByType);
+          output = await runLlmNode(node, inputsByType, getSecret);
           break;
 
         case 'FILE_OUTPUT': {
@@ -685,7 +711,8 @@ async function executeCanvas(
 
 async function runLlmNode(
   node: WorkflowNodeData,
-  inputsByType: Record<string, NodeInput[]>
+  inputsByType: Record<string, NodeInput[]>,
+  getSecret: (name: string) => Promise<string | undefined>
 ) {
   const provider = String(getArgumentValue(node, 'provider') ?? 'anthropic');
   const template = String(getArgumentValue(node, 'prompt') ?? '');
@@ -733,10 +760,10 @@ async function runLlmNode(
   const maxTokens = Number(getArgumentValue(node, 'max_tokens')) || 1024;
 
   if (provider === 'openai') {
-    const apiKey = process.env.OPENAI_API_KEY;
+    const apiKey = await getSecret('OPENAI_API_KEY');
     if (!apiKey) {
       throw new ConvexError(
-        'OPENAI_API_KEY is not set. Run: npx convex env set OPENAI_API_KEY <key>'
+        'No OpenAI API key. Add an OPENAI_API_KEY secret in workspace settings.'
       );
     }
     const client = new OpenAI({ apiKey });
@@ -757,10 +784,10 @@ async function runLlmNode(
     throw new ConvexError(`Provider "${provider}" is not wired up yet.`);
   }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = await getSecret('ANTHROPIC_API_KEY');
   if (!apiKey) {
     throw new ConvexError(
-      'ANTHROPIC_API_KEY is not set. Run: npx convex env set ANTHROPIC_API_KEY <key>'
+      'No Anthropic API key. Add an ANTHROPIC_API_KEY secret in workspace settings.'
     );
   }
   const client = new Anthropic({ apiKey });

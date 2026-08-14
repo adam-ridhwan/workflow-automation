@@ -111,6 +111,24 @@ export default defineSchema({
     finishedAt: v.optional(v.number()),
   }).index('workflow', ['workflowId']),
 
+  /** Per-workspace secrets (API keys, tokens) usable by workflow nodes. Values
+   * are encrypted at rest with AES-256-GCM; the master key lives only in the
+   * SECRETS_KEY env var, never in the database. Queries expose only metadata
+   * (name + last-4), never the plaintext. */
+  workspaceSecrets: defineTable({
+    workspaceId: v.id('workspaces'),
+    name: v.string(),
+    /** AES-256-GCM ciphertext (with the GCM auth tag appended) and iv, base64. */
+    ciphertext: v.string(),
+    iv: v.string(),
+    /** Last 4 chars of the plaintext, for a safe masked preview in the UI. */
+    last4: v.string(),
+    createdBy: v.id('users'),
+    updatedAt: v.number(),
+  })
+    .index('workspaceId', ['workspaceId'])
+    .index('workspaceName', ['workspaceId', 'name']),
+
   /** A cron schedule that auto-runs a workflow. One row per scheduled workflow.
    * A single dispatcher cron (see convex/crons.ts) scans `nextRunAt` each minute
    * and fires the ones that are due. */

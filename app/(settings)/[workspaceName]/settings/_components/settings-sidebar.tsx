@@ -10,7 +10,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { ArrowLeftIcon, Building2Icon, User } from 'lucide-react';
+import { ArrowLeftIcon, Building2Icon, KeyRoundIcon, User } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -35,6 +35,11 @@ export function SettingsSidebar({ workspaceName }: SettingsSidebarProps) {
       title: 'General',
       url: `/${workspaceSlug}/settings/workspace`,
       icon: <Building2Icon />,
+    },
+    {
+      title: 'Secrets',
+      url: `/${workspaceSlug}/settings/secrets`,
+      icon: <KeyRoundIcon />,
     },
   ];
 
