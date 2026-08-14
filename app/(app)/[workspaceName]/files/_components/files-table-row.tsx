@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -9,13 +10,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { TableCell } from '@/components/ui/table';
 import { UserAvatar } from '@/components/user-avatar';
 import { api } from '@/convex/_generated/api';
 import { cn } from '@/lib/cn';
 import { formatBytes } from '@/lib/format-bytes';
 import { formatTime } from '@/lib/format-time';
 import { useMutation } from 'convex/react';
+import { ConvexError } from 'convex/values';
 import {
   DownloadIcon,
   EllipsisVerticalIcon,
@@ -23,11 +24,14 @@ import {
   PencilIcon,
   Trash2Icon,
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
-import { ResourceRowShell } from '../../_components/resource-row-shell';
+import { resourceRowComposer } from '../../_components/resource-row-composer';
 import { useWorkspaceParams } from '../../_hooks/use-workspace-params';
 
 import type { File, FileStatus } from '@/convex/files';
+
+const FileRowComposer = resourceRowComposer<File>();
 
 type FileRowProps = {
   file: File;
@@ -67,7 +71,41 @@ const STATUS_STYLES: Record<
 
 export function FileRow({ file, onDelete }: FileRowProps) {
   const { workspaceName } = useWorkspaceParams();
+  const router = useRouter();
   const renameFile = useMutation(api.files.rename);
+
+  // Inline-rename state, owned here and handed to the composer's NameCell.
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [renameError, setRenameError] = useState<string | null>(null);
+
+  function startRename() {
+    setRenameError(null);
+    setIsRenaming(true);
+  }
+
+  function stopRename() {
+    setIsRenaming(false);
+    setRenameError(null);
+  }
+
+  async function submitRename(rawName: string) {
+    const nextName = rawName.trim();
+    if (nextName.length === 0 || nextName === file.name) {
+      stopRename();
+      return;
+    }
+    try {
+      await renameFile({ workspaceName, fileId: file._id, name: nextName });
+      stopRename();
+      router.refresh();
+    } catch (err) {
+      setRenameError(
+        err instanceof ConvexError && typeof err.data === 'string'
+          ? err.data
+          : 'Could not rename file. Please try again.'
+      );
+    }
+  }
 
   // Text files open in the in-app viewer; anything else opens its raw storage
   // URL in a new tab.
@@ -85,17 +123,80 @@ export function FileRow({ file, onDelete }: FileRowProps) {
   const barWidth = isAssembling ? 100 : file.progress;
 
   return (
-    <ResourceRowShell
-      drag={{ kind: 'file', id: file._id, name: file.name }}
-      href={isText ? viewHref : (file.url ?? undefined)}
-      hrefExternal={!isText}
-      icon={<FileIcon className='text-muted-foreground size-4 shrink-0' />}
-      name={file.name}
-      subtitle={formatBytes(file.size)}
-      onRename={(name) => renameFile({ workspaceName, fileId: file._id, name })}
-      renameErrorFallback='Could not rename file. Please try again.'
-      actions={({ startRename }) => (
-        <TableCell className='px-5'>
+    <FileRowComposer.Provider resource={file}>
+      <FileRowComposer.Row
+        drag={{ kind: 'file', id: file._id, name: file.name }}
+        dragDisabled={isRenaming}
+      >
+        <FileRowComposer.NameCell
+          icon={<FileIcon className='text-muted-foreground size-4 shrink-0' />}
+          name={file.name}
+          subtitle={formatBytes(file.size)}
+          href={isText ? viewHref : (file.url ?? undefined)}
+          hrefExternal={!isText}
+          isRenaming={isRenaming}
+          renameError={renameError}
+          onRenameSubmit={submitRename}
+          onRenameCancel={stopRename}
+        />
+
+        <FileRowComposer.Cell>
+          {inProgress ? (
+            <span className='flex max-w-36 flex-col gap-1.5'>
+              <Badge
+                variant='secondary'
+                className={cn('gap-1.5 rounded-full', status.badgeClassName)}
+              >
+                <span
+                  className='size-1.25 animate-pulse rounded-full bg-current'
+                />
+                {isAssembling
+                  ? 'Assembling…'
+                  : `${status.label} ${file.progress}%`}
+              </Badge>
+              <span className='bg-muted h-1 w-full overflow-hidden rounded-full'>
+                <span
+                  className={cn(
+                    'block h-full rounded-full transition-[width] duration-300',
+                    status.barClassName,
+                    isAssembling && 'animate-pulse'
+                  )}
+                  style={{ width: `${barWidth}%` }}
+                />
+              </span>
+            </span>
+          ) : (
+            <Badge
+              variant='secondary'
+              className={cn('gap-1.5 rounded-full', status.badgeClassName)}
+            >
+              <span className='size-1.25 rounded-full bg-current' />
+              {status.label}
+            </Badge>
+          )}
+        </FileRowComposer.Cell>
+
+        <FileRowComposer.Cell className='text-muted-foreground text-xs'>
+          {formatTime(file._creationTime)}
+        </FileRowComposer.Cell>
+
+        <FileRowComposer.Cell>
+          <span className='flex min-w-0 items-center gap-2'>
+            <UserAvatar
+              user={{
+                name: file.uploadedByName,
+                email: file.uploadedByEmail,
+                avatar: file.uploadedByImageUrl ?? undefined,
+              }}
+              size='sm'
+              className='relative'
+              fallbackClassName='text-[10px] font-semibold'
+            />
+            <span className='truncate text-xs'>{file.uploadedByName}</span>
+          </span>
+        </FileRowComposer.Cell>
+
+        <FileRowComposer.Actions>
           <DropdownMenu>
             <DropdownMenuTrigger
               render={
@@ -142,70 +243,8 @@ export function FileRow({ file, onDelete }: FileRowProps) {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        </TableCell>
-      )}
-      cells={
-        <>
-          <TableCell className='px-5'>
-            {inProgress ? (
-              <span className='flex max-w-36 flex-col gap-1.5'>
-                <Badge
-                  variant='secondary'
-                  className={cn('gap-1.5 rounded-full', status.badgeClassName)}
-                >
-                  <span
-                    className='size-1.25 animate-pulse rounded-full bg-current'
-                  />
-                  {isAssembling
-                    ? 'Assembling…'
-                    : `${status.label} ${file.progress}%`}
-                </Badge>
-                <span
-                  className='bg-muted h-1 w-full overflow-hidden rounded-full'
-                >
-                  <span
-                    className={cn(
-                      `block h-full rounded-full transition-[width]
-                        duration-300`,
-                      status.barClassName,
-                      isAssembling && 'animate-pulse'
-                    )}
-                    style={{ width: `${barWidth}%` }}
-                  />
-                </span>
-              </span>
-            ) : (
-              <Badge
-                variant='secondary'
-                className={cn('gap-1.5 rounded-full', status.badgeClassName)}
-              >
-                <span className='size-1.25 rounded-full bg-current' />
-                {status.label}
-              </Badge>
-            )}
-          </TableCell>
-
-          <TableCell className='text-muted-foreground px-5 text-xs'>
-            {formatTime(file._creationTime)}
-          </TableCell>
-
-          <TableCell className='px-5'>
-            <span className='flex min-w-0 items-center gap-2'>
-              <UserAvatar
-                user={{
-                  name: file.uploadedByName,
-                  email: file.uploadedByEmail,
-                  avatar: file.uploadedByImageUrl ?? undefined,
-                }}
-                size='sm'
-                className='relative'
-                fallbackClassName='text-[10px] font-semibold'
-              />
-              <span className='truncate text-xs'>{file.uploadedByName}</span>
-            </span>
-          </TableCell>
-        </>
-      }
-    />
+        </FileRowComposer.Actions>
+      </FileRowComposer.Row>
+    </FileRowComposer.Provider>
   );
 }
