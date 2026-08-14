@@ -807,6 +807,14 @@ export const remove = mutation({
       args.workspaceName,
       args.workflowId
     );
+    // Drop any schedule that fires this workflow so the dispatcher stops trying.
+    const schedule = await ctx.db
+      .query('workflowSchedules')
+      .withIndex('workflow', (q) => q.eq('workflowId', workflow._id))
+      .unique();
+    if (schedule !== null) {
+      await ctx.db.delete(schedule._id);
+    }
     await ctx.db.delete(workflow._id);
     return null;
   },

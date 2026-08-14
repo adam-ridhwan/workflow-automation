@@ -45,8 +45,8 @@ function SelectTrigger({
         data-placeholder:text-muted-foreground dark:bg-input/30
         dark:hover:bg-input/50 dark:aria-invalid:border-destructive/50
         dark:aria-invalid:ring-destructive/40 flex w-fit items-center
-        justify-between gap-1.5 rounded-lg border bg-transparent py-2 pr-2
-        pl-2.5 text-sm whitespace-nowrap transition-colors outline-none
+        cursor-pointer justify-between gap-1.5 rounded-lg border bg-transparent
+        py-2 pr-2 pl-2.5 text-sm whitespace-nowrap transition-colors outline-none
         select-none focus-visible:ring-3 disabled:cursor-not-allowed
         disabled:opacity-50 aria-invalid:ring-3 data-[size=default]:h-8
         data-[size=sm]:h-7 data-[size=sm]:rounded-[min(var(--radius-md),10px)]
@@ -98,8 +98,8 @@ function SelectContent({
           data-slot='select-content'
           data-align-trigger={alignItemWithTrigger}
           className={cn(
-            `menu-inverted bg-popover text-popover-foreground ring-foreground/10
-            data-[side=bottom]:slide-in-from-top-2
+            `menu-inverted bg-background text-popover-foreground
+            ring-foreground/10 data-[side=bottom]:slide-in-from-top-2
             data-[side=inline-end]:slide-in-from-left-2
             data-[side=inline-start]:slide-in-from-right-2
             data-[side=left]:slide-in-from-right-2
@@ -148,7 +148,7 @@ function SelectItem({
       className={cn(
         `focus:bg-accent focus:text-accent-foreground
         not-data-[variant=destructive]:focus:**:text-accent-foreground relative
-        flex w-full cursor-default items-center gap-1.5 rounded-md py-1 pr-8
+        flex w-full cursor-pointer items-center gap-1.5 rounded-md py-1 pr-8
         pl-1.5 text-sm outline-hidden select-none
         data-disabled:pointer-events-none data-disabled:opacity-50
         [&_svg]:pointer-events-none [&_svg]:shrink-0

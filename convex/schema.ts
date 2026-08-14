@@ -111,6 +111,26 @@ export default defineSchema({
     finishedAt: v.optional(v.number()),
   }).index('workflow', ['workflowId']),
 
+  /** A cron schedule that auto-runs a workflow. One row per scheduled workflow.
+   * A single dispatcher cron (see convex/crons.ts) scans `nextRunAt` each minute
+   * and fires the ones that are due. */
+  workflowSchedules: defineTable({
+    workflowId: v.id('workflows'),
+    /** Standard 5-field cron expression, evaluated in `timezone`. */
+    cron: v.string(),
+    /** IANA timezone the cron is interpreted in (e.g. 'America/New_York'). */
+    timezone: v.string(),
+    enabled: v.boolean(),
+    /** Epoch ms of the next fire time; the dispatcher orders/filters on this.
+     * Absent while (re)computing or when disabled. */
+    nextRunAt: v.optional(v.number()),
+    lastRunAt: v.optional(v.number()),
+    createdBy: v.id('users'),
+  })
+    .index('workflow', ['workflowId'])
+    // Dispatcher scans due-and-enabled rows in nextRunAt order.
+    .index('due', ['enabled', 'nextRunAt']),
+
   workflows: defineTable({
     workspaceId: v.id('workspaces'),
     name: v.string(),

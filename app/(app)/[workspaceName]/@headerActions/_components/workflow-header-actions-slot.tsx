@@ -6,6 +6,7 @@ import { useQuery } from 'convex/react';
 import { useWorkspaceParams } from '../../_hooks/use-workspace-params';
 import { WorkflowChainMenu } from '../../workflow/[workflowId]/_components/workflow-header/workflow-chain-menu';
 import { WorkflowMoreMenu } from '../../workflow/[workflowId]/_components/workflow-header/workflow-more-menu';
+import { WorkflowScheduleMenu } from '../../workflow/[workflowId]/_components/workflow-header/workflow-schedule-menu';
 import { WorkflowStatusBadge } from '../../workflow/[workflowId]/_components/workflow-header/workflow-status-badge';
 import { WorkflowVersionsMenu } from '../../workflow/[workflowId]/_components/workflow-header/workflow-versions-menu';
 
@@ -25,6 +26,7 @@ export function WorkflowHeaderActionsSlot() {
         isOwner={workflow.isOwner}
       />
       <WorkflowVersionsMenu />
+      <WorkflowScheduleMenu />
       <WorkflowChainMenu chainWorkflowIds={workflow.chainWorkflowIds ?? []} />
       <WorkflowMoreMenu name={workflow.name} />
     </>

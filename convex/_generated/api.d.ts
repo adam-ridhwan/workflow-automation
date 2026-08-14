@@ -10,6 +10,7 @@
 
 import type * as auth from "../auth.js";
 import type * as canvas from "../canvas.js";
+import type * as crons from "../crons.js";
 import type * as files from "../files.js";
 import type * as folders from "../folders.js";
 import type * as http from "../http.js";
@@ -17,6 +18,8 @@ import type * as overview from "../overview.js";
 import type * as runHistory from "../runHistory.js";
 import type * as runWorkflow from "../runWorkflow.js";
 import type * as runs from "../runs.js";
+import type * as scheduleDispatch from "../scheduleDispatch.js";
+import type * as schedules from "../schedules.js";
 import type * as users from "../users.js";
 import type * as workflows from "../workflows.js";
 import type * as workspaces from "../workspaces.js";
@@ -30,6 +33,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   canvas: typeof canvas;
+  crons: typeof crons;
   files: typeof files;
   folders: typeof folders;
   http: typeof http;
@@ -37,6 +41,8 @@ declare const fullApi: ApiFromModules<{
   runHistory: typeof runHistory;
   runWorkflow: typeof runWorkflow;
   runs: typeof runs;
+  scheduleDispatch: typeof scheduleDispatch;
+  schedules: typeof schedules;
   users: typeof users;
   workflows: typeof workflows;
   workspaces: typeof workspaces;
