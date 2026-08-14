@@ -2,6 +2,7 @@
 
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/cn';
+import { Loader2Icon } from 'lucide-react';
 
 type WorkflowRunStateBadgeProps = {
   phase?: 'scheduled' | 'running';
@@ -23,7 +24,7 @@ export function WorkflowRunStateBadge({
         className='gap-1.5 rounded-full bg-blue-500/15 text-blue-600
           dark:text-blue-400'
       >
-        <span className='size-1.25 animate-pulse rounded-full bg-current' />
+        <Loader2Icon className='size-3 animate-spin' />
         Running
       </Badge>
     );
