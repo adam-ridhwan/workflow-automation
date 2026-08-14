@@ -1,7 +1,14 @@
 'use client';
 
 import { Badge } from '@/components/ui/badge';
-import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { TableCell } from '@/components/ui/table';
 import { UserAvatar } from '@/components/user-avatar';
 import { api } from '@/convex/_generated/api';
@@ -9,7 +16,13 @@ import { cn } from '@/lib/cn';
 import { formatBytes } from '@/lib/format-bytes';
 import { formatTime } from '@/lib/format-time';
 import { useMutation } from 'convex/react';
-import { DownloadIcon, FileIcon } from 'lucide-react';
+import {
+  DownloadIcon,
+  EllipsisVerticalIcon,
+  FileIcon,
+  PencilIcon,
+  Trash2Icon,
+} from 'lucide-react';
 
 import { ResourceRowShell } from '../../_components/resource-row-shell';
 import { useWorkspaceParams } from '../../_hooks/use-workspace-params';
@@ -80,27 +93,57 @@ export function FileRow({ file, onDelete }: FileRowProps) {
       name={file.name}
       subtitle={formatBytes(file.size)}
       onRename={(name) => renameFile({ workspaceName, fileId: file._id, name })}
-      renameLabel='Rename file'
       renameErrorFallback='Could not rename file. Please try again.'
-      deleteLabel='Delete file'
-      onDelete={onDelete}
-      extraMenuItems={
-        file.url && (
-          <DropdownMenuItem
-            render={
-              <a
-                href={file.url}
-                download={file.name}
-                target='_blank'
-                rel='noreferrer'
-              />
-            }
-          >
-            <DownloadIcon />
-            Download
-          </DropdownMenuItem>
-        )
-      }
+      actions={({ startRename }) => (
+        <TableCell className='px-5'>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <Button
+                  type='button'
+                  variant='ghost'
+                  size='icon'
+                  className='text-muted-foreground relative size-7'
+                  aria-label={`Actions for ${file.name}`}
+                />
+              }
+            >
+              <EllipsisVerticalIcon className='size-4' />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align='end' className='w-46'>
+              {file.url && (
+                <>
+                  <DropdownMenuItem
+                    render={
+                      <a
+                        href={file.url}
+                        download={file.name}
+                        target='_blank'
+                        rel='noreferrer'
+                      />
+                    }
+                  >
+                    <DownloadIcon className='size-3' />
+                    Download
+                  </DropdownMenuItem>
+
+                  <DropdownMenuSeparator />
+                </>
+              )}
+
+              <DropdownMenuItem onClick={startRename}>
+                <PencilIcon className='size-3' />
+                Rename file
+              </DropdownMenuItem>
+
+              <DropdownMenuItem onClick={onDelete}>
+                <Trash2Icon className='size-3' />
+                Delete file
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </TableCell>
+      )}
       cells={
         <>
           <TableCell className='px-5'>

@@ -1,19 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { TableCell, TableRow } from '@/components/ui/table';
 import { cn } from '@/lib/cn';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
 import { ConvexError } from 'convex/values';
-import { EllipsisVerticalIcon, PencilIcon, Trash2Icon } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -35,12 +27,11 @@ type ResourceRowShellProps = {
   /** The middle <TableCell>s between the name and the actions column. */
   cells: React.ReactNode;
   onRename: (name: string) => Promise<unknown>;
-  renameLabel: string;
   renameErrorFallback: string;
-  deleteLabel: string;
-  onDelete: () => void;
-  /** Extra menu items inserted between Rename and Delete. */
-  extraMenuItems?: React.ReactNode;
+  /** The trailing actions <TableCell> (the kebab menu). Receives `startRename`
+   * so its Rename item can drive the shell-owned inline rename input. Usually
+   * a `<ResourceRowActions>`. */
+  actions: (helpers: { startRename: () => void }) => React.ReactNode;
 };
 
 /** The shared skeleton for a workflow, file, or folder row: a draggable (and
@@ -57,15 +48,17 @@ export function ResourceRowShell({
   subtitle,
   cells,
   onRename,
-  renameLabel,
   renameErrorFallback,
-  deleteLabel,
-  onDelete,
-  extraMenuItems,
+  actions,
 }: ResourceRowShellProps) {
   const router = useRouter();
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameError, setRenameError] = useState<string | null>(null);
+
+  function startRename() {
+    setRenameError(null);
+    setIsRenaming(true);
+  }
 
   function stopRenaming() {
     setIsRenaming(false);
@@ -188,39 +181,7 @@ export function ResourceRowShell({
 
       {cells}
 
-      <TableCell className='px-5'>
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <Button
-                type='button'
-                variant='ghost'
-                size='icon'
-                className='text-muted-foreground relative size-7'
-                aria-label={`Actions for ${name}`}
-              />
-            }
-          >
-            <EllipsisVerticalIcon className='size-4' />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align='end' className='w-46'>
-            <DropdownMenuItem
-              onClick={() => {
-                setRenameError(null);
-                setIsRenaming(true);
-              }}
-            >
-              <PencilIcon />
-              {renameLabel}
-            </DropdownMenuItem>
-            {extraMenuItems}
-            <DropdownMenuItem onClick={onDelete}>
-              <Trash2Icon />
-              {deleteLabel}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </TableCell>
+      {actions({ startRename })}
     </TableRow>
   );
 }

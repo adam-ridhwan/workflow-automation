@@ -4,7 +4,7 @@ import { useState } from 'react';
 
 import { ResourceTable } from '../../_components/resource-table';
 import { DeleteFileDialog } from './delete-file-dialog';
-import { FileRow } from './file-row';
+import { FileRow } from './files-table-row';
 
 import type { File } from '@/convex/files';
 import type { Folder } from '@/convex/folders';

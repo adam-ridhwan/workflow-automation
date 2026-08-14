@@ -162,6 +162,39 @@ export const setNodeStatus = internalMutation({
   },
 });
 
+/** The live run phase of every currently-active workflow in the workspace,
+ * keyed by workflow id. Powers the run/stop controls in the workflows table:
+ * one subscription that updates as any workflow starts, queues, or finishes.
+ * Workflows with no active run are omitted. */
+export const phasesByWorkspace = query({
+  args: { workspaceName: v.string() },
+  returns: v.record(
+    v.string(),
+    v.union(v.literal('scheduled'), v.literal('running'))
+  ),
+  handler: async (ctx, args) => {
+    const workspace = await getMemberWorkspaceByName(ctx, args.workspaceName);
+    if (workspace === null) {
+      return {};
+    }
+    const workflows = await ctx.db
+      .query('workflows')
+      .withIndex('workspaceId', (q) => q.eq('workspaceId', workspace._id))
+      .collect();
+    const phases: Record<string, 'scheduled' | 'running'> = {};
+    for (const workflow of workflows) {
+      const run = await ctx.db
+        .query('runs')
+        .withIndex('workflow', (q) => q.eq('workflowId', workflow._id))
+        .unique();
+      if (run?.phase !== undefined) {
+        phases[workflow._id] = run.phase;
+      }
+    }
+    return phases;
+  },
+});
+
 /** Clears the per-node statuses (keeps outputs); scheduled a moment after a
  * successful run so the badges fade away. */
 export const clearStatuses = internalMutation({

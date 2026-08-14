@@ -1,10 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import { api } from '@/convex/_generated/api';
+import { useQuery } from 'convex/react';
 
 import { ResourceTable } from '../../_components/resource-table';
+import { useWorkspaceParams } from '../../_hooks/use-workspace-params';
 import { DeleteWorkflowDialog } from './delete-workflow-dialog';
-import { WorkflowRow } from './workflows-table-row-workflow';
+import { WorkflowsTableRow } from './workflows-table-row';
 
 import type { Folder } from '@/convex/folders';
 import type { Workflow } from '@/convex/workflows';
@@ -21,6 +24,8 @@ export function WorkflowsTable({
   isFiltered,
 }: WorkflowsTableProps) {
   const [deleteTarget, setDeleteTarget] = useState<Workflow | null>(null);
+  const { workspaceName } = useWorkspaceParams();
+  const phases = useQuery(api.runs.phasesByWorkspace, { workspaceName });
 
   return (
     <>
@@ -33,9 +38,10 @@ export function WorkflowsTable({
         emptyMessage='No workflows yet. Create your first one.'
       >
         {workflows.map((workflow) => (
-          <WorkflowRow
+          <WorkflowsTableRow
             key={workflow._id}
             workflow={workflow}
+            phase={phases?.[workflow._id]}
             onDelete={() => {
               setDeleteTarget(workflow);
             }}

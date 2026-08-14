@@ -8,6 +8,7 @@ import { useMutation } from 'convex/react';
 import { FolderIcon } from 'lucide-react';
 
 import { useWorkspaceParams } from '../_hooks/use-workspace-params';
+import { ResourceRowActions } from './resource-row-actions';
 import { ResourceRowShell } from './resource-row-shell';
 
 import type { Folder } from '@/convex/folders';
@@ -40,10 +41,16 @@ export function FolderRow({ folder, onDelete }: FolderRowProps) {
       onRename={(name) =>
         renameFolder({ workspaceName, folderId: folder._id, name })
       }
-      renameLabel='Rename folder'
       renameErrorFallback='Could not rename folder. Please try again.'
-      deleteLabel='Delete folder'
-      onDelete={onDelete}
+      actions={({ startRename }) => (
+        <ResourceRowActions
+          name={folder.name}
+          onStartRename={startRename}
+          renameLabel='Rename folder'
+          onDelete={onDelete}
+          deleteLabel='Delete folder'
+        />
+      )}
       cells={
         <>
           <TableCell className='text-muted-foreground px-5 text-xs'>
