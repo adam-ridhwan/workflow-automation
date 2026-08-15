@@ -17,7 +17,6 @@ import {
   CopyIcon,
   EllipsisVerticalIcon,
   ExternalLinkIcon,
-  GlobeIcon,
   PencilIcon,
   Trash2Icon,
 } from 'lucide-react';
@@ -33,7 +32,6 @@ export function PageMoreMenu() {
   const { workspaceName, pageId } = useWorkspaceParams();
   const page = useQuery(api.pages.get, { workspaceName, pageId });
   const duplicatePage = useMutation(api.pages.duplicate);
-  const setPublished = useMutation(api.pages.setPublished);
   const router = useRouter();
   const [renameOpen, setRenameOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -55,18 +53,6 @@ export function PageMoreMenu() {
     }
   }
 
-  async function handleSetPublished(next: boolean) {
-    try {
-      await setPublished({ workspaceName, pageId, isPublished: next });
-      toast.add({
-        type: 'success',
-        title: next ? 'Page published.' : 'Page unpublished.',
-      });
-    } catch (error) {
-      toast.add({ type: 'error', title: errorMessage(error) });
-    }
-  }
-
   return (
     <>
       <DropdownMenu>
@@ -79,7 +65,7 @@ export function PageMoreMenu() {
         </DropdownMenuTrigger>
 
         <DropdownMenuContent align='end' className='w-44'>
-          {page.isPublished ? (
+          {page.isPublished && (
             <>
               <DropdownMenuItem
                 onClick={() => {
@@ -93,27 +79,9 @@ export function PageMoreMenu() {
                 <ExternalLinkIcon className='size-3' />
                 Open published
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => {
-                  handleSetPublished(false);
-                }}
-              >
-                <GlobeIcon className='size-3' />
-                Unpublish
-              </DropdownMenuItem>
+              <DropdownMenuSeparator />
             </>
-          ) : (
-            <DropdownMenuItem
-              onClick={() => {
-                handleSetPublished(true);
-              }}
-            >
-              <GlobeIcon className='size-3' />
-              Publish
-            </DropdownMenuItem>
           )}
-
-          <DropdownMenuSeparator />
 
           <DropdownMenuItem
             onClick={() => {

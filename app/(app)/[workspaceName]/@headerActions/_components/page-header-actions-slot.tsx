@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { PencilIcon, PlayIcon } from 'lucide-react';
 
 import { PageMoreMenu } from '../../page/[pageId]/_components/page-more-menu';
+import { PageStatusBadge } from '../../page/[pageId]/_components/page-status-badge';
 import { usePageStore } from '../../page/[pageId]/_store/page-store';
 
 /** The page builder's Edit/Preview toggle, rendered into the site header via the
@@ -15,6 +16,7 @@ export function PageHeaderActionsSlot() {
 
   return (
     <>
+      <PageStatusBadge />
       <div className='bg-muted flex items-center gap-0.5 rounded-lg p-0.5'>
         <Button
           size='sm'
