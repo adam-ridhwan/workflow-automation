@@ -41,16 +41,19 @@ export async function AppSidebar({ workspaceName }: AppSidebarProps) {
       title: 'Workflows',
       url: `/${workspaceSlug}/workflows`,
       icon: <WorkflowIcon />,
+      match: ['workflows', 'workflow'],
     },
     {
       title: 'Pages',
       url: `/${workspaceSlug}/pages`,
       icon: <LayoutTemplateIcon />,
+      match: ['pages', 'page'],
     },
     {
       title: 'Files',
       url: `/${workspaceSlug}/files`,
       icon: <FolderIcon />,
+      match: ['files', 'file'],
     },
   ];
 

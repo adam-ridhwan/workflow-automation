@@ -15,11 +15,18 @@ type NavMainProps = {
     title: string;
     url: string;
     icon?: React.ReactNode;
+    /** Section path segments (right after the workspace) that mark this item
+     * active — e.g. ['workflows', 'workflow'] so both the list and a workflow's
+     * detail route highlight it. When omitted, only an exact url match wins. */
+    match?: string[];
   }[];
 };
 
 export function NavMain({ items }: NavMainProps) {
   const pathname = usePathname();
+  // The segment right after the workspace slug identifies the section, e.g.
+  // /<workspace>/workflow/<id>/canvas -> 'workflow'.
+  const section = pathname.split('/').filter(Boolean)[1] ?? '';
 
   return (
     <SidebarGroup>
@@ -29,7 +36,9 @@ export function NavMain({ items }: NavMainProps) {
           <SidebarMenuItem key={item.title}>
             <SidebarMenuButton
               tooltip={item.title}
-              isActive={pathname === item.url}
+              isActive={
+                item.match ? item.match.includes(section) : pathname === item.url
+              }
               render={<Link href={item.url} />}
             >
               {item.icon}
