@@ -1,9 +1,11 @@
+import { getAuthUserId } from '@convex-dev/auth/server';
 import { ConvexError, Infer, v } from 'convex/values';
 
 import { mutation, query } from './_generated/server';
 import { pageLayoutValidator } from './pageLayout';
 import { resolveUserImageUrl } from './users';
 import {
+  getMembership,
   getMemberWorkspaceByName,
   getWorkspaceByNameOrThrow,
   requireMember,
@@ -23,6 +25,7 @@ const pageValidator = v.object({
   ownerEmail: v.string(),
   ownerImageUrl: v.union(v.null(), v.string()),
   isOwner: v.boolean(),
+  isPublished: v.boolean(),
   workflowId: v.optional(v.id('workflows')),
   /** Name of the bound workflow, resolved for display; absent when unbound or
    * the workflow was deleted. */
@@ -94,11 +97,71 @@ export const get = query({
       : null;
     return {
       ...page,
+      isPublished: page.isPublished ?? false,
       workflowName: workflow?.name,
       ownerName: owner?.name ?? 'Unknown',
       ownerEmail: owner?.email ?? '',
       ownerImageUrl: await resolveUserImageUrl(ctx, owner),
       isOwner: page.ownerId === userId,
+    };
+  },
+});
+
+/** Publish or unpublish the page. Same member-gated logic as workflows. */
+export const setPublished = mutation({
+  args: {
+    workspaceName: v.string(),
+    pageId: v.id('pages'),
+    isPublished: v.boolean(),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const page = await getMemberPage(ctx, args.workspaceName, args.pageId);
+    await ctx.db.patch(page._id, {
+      isPublished: args.isPublished,
+      updatedAt: Date.now(),
+    });
+    return null;
+  },
+});
+
+const publishedPageValidator = v.object({
+  _id: v.id('pages'),
+  name: v.string(),
+  workspaceName: v.string(),
+  workflowId: v.optional(v.id('workflows')),
+  layout: pageLayoutValidator,
+});
+
+/** The standalone published view of a page. Returns the page only when the
+ * caller is signed in AND a member of the owning workspace AND the page is
+ * published; null in every other case (so the route can 404). */
+export const getPublished = query({
+  args: { pageId: v.id('pages') },
+  returns: v.union(v.null(), publishedPageValidator),
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      return null;
+    }
+    const page = await ctx.db.get(args.pageId);
+    if (page === null || !(page.isPublished ?? false)) {
+      return null;
+    }
+    const membership = await getMembership(ctx, page.workspaceId, userId);
+    if (membership === null) {
+      return null;
+    }
+    const workspace = await ctx.db.get(page.workspaceId);
+    if (workspace === null) {
+      return null;
+    }
+    return {
+      _id: page._id,
+      name: page.name,
+      workspaceName: workspace.name,
+      workflowId: page.workflowId,
+      layout: page.layout,
     };
   },
 });
@@ -150,6 +213,7 @@ export const list = query({
       }
       result.push({
         ...row,
+        isPublished: row.isPublished ?? false,
         workflowName,
         ownerName: owner.name,
         ownerEmail: owner.email,
@@ -243,6 +307,7 @@ export const create = mutation({
       name,
       ownerId: membership.userId,
       folderId: args.folderId,
+      isPublished: false,
       layout: EMPTY_LAYOUT,
       updatedAt: Date.now(),
     });

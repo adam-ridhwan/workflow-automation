@@ -231,11 +231,13 @@ export function PageBuilder({
         <div className='flex min-w-0 items-center gap-3'>
           <span className='truncate text-sm font-medium'>{page.name}</span>
         </div>
-        <div className='flex items-center gap-2'>
-          <PageSaveIndicator />
-          {mode === 'edit' && <PageUndoRedoButtons target={target} />}
-          <PageWorkflowPicker target={target} options={workflowOptions} />
-        </div>
+        {mode === 'edit' && (
+          <div className='flex items-center gap-2'>
+            <PageSaveIndicator />
+            <PageUndoRedoButtons target={target} />
+            <PageWorkflowPicker target={target} options={workflowOptions} />
+          </div>
+        )}
       </div>
 
       {mode === 'edit' ? (

@@ -204,6 +204,10 @@ export default defineSchema({
     /** The workflow this page drives. Absent until the author picks one. */
     workflowId: v.optional(v.id('workflows')),
     folderId: v.optional(v.id('folders')),
+    /** Whether the page is published — viewable at its standalone /p/[pageId]
+     * route by any signed-in workspace member. Absent on rows created before
+     * this existed; treated as unpublished. */
+    isPublished: v.optional(v.boolean()),
     layout: pageLayoutValidator,
     updatedAt: v.number(),
   })
