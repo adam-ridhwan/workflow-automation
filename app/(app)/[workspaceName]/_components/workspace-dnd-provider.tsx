@@ -14,19 +14,26 @@ import {
 } from '@dnd-kit/core';
 import { useMutation } from 'convex/react';
 import { ConvexError } from 'convex/values';
-import { FileIcon, FolderIcon, WorkflowIcon } from 'lucide-react';
+import {
+  FileIcon,
+  FolderIcon,
+  LayoutTemplateIcon,
+  WorkflowIcon,
+} from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 
 import { useWorkspaceParams } from '../_hooks/use-workspace-params';
 
 import type { File } from '@/convex/files';
 import type { Folder } from '@/convex/folders';
+import type { Page } from '@/convex/pages';
 import type { Workflow } from '@/convex/workflows';
 import type { DragEndEvent, DragStartEvent, Modifier } from '@dnd-kit/core';
 
 export type DragData =
   | { kind: 'workflow'; id: Workflow['_id']; name: string }
   | { kind: 'file'; id: File['_id']; name: string }
+  | { kind: 'page'; id: Page['_id']; name: string }
   | { kind: 'folder'; id: Folder['_id']; name: string };
 
 /** Attached to droppables; `folderId` undefined means the workspace root. */
@@ -46,6 +53,13 @@ function renderDragIcon(kind: DragData['kind']) {
   }
   if (kind === 'file') {
     return <FileIcon className='text-muted-foreground size-3.5 shrink-0' />;
+  }
+  if (kind === 'page') {
+    return (
+      <LayoutTemplateIcon
+        className='text-muted-foreground size-3.5 shrink-0'
+      />
+    );
   }
   return <WorkflowIcon className='text-muted-foreground size-3.5 shrink-0' />;
 }
@@ -81,6 +95,7 @@ export function WorkspaceDndProvider({ children }: WorkspaceDndProviderProps) {
   const params = useParams<{ folderId?: Folder['_id'] }>();
   const moveWorkflow = useMutation(api.workflows.move);
   const moveFile = useMutation(api.files.move);
+  const movePage = useMutation(api.pages.move);
   const moveFolder = useMutation(api.folders.move);
   const [dragItem, setDragItem] = useState<DragData | null>(null);
   // Dropping releases the pointer over a row, which fires a click that would
@@ -101,6 +116,8 @@ export function WorkspaceDndProvider({ children }: WorkspaceDndProviderProps) {
       await moveWorkflow({ workspaceName, workflowId: item.id, folderId });
     } else if (item.kind === 'file') {
       await moveFile({ workspaceName, fileId: item.id, folderId });
+    } else if (item.kind === 'page') {
+      await movePage({ workspaceName, pageId: item.id, folderId });
     } else {
       await moveFolder({
         workspaceName,

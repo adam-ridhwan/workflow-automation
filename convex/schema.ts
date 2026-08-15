@@ -3,6 +3,7 @@ import { defineSchema, defineTable } from 'convex/server';
 import { v } from 'convex/values';
 
 import { workflowCanvasValidator } from './canvas';
+import { pageLayoutValidator } from './pageLayout';
 
 export default defineSchema({
   ...authTables,
@@ -43,7 +44,11 @@ export default defineSchema({
   folders: defineTable({
     workspaceId: v.id('workspaces'),
     name: v.string(),
-    kind: v.union(v.literal('workflow'), v.literal('file')),
+    kind: v.union(
+      v.literal('workflow'),
+      v.literal('file'),
+      v.literal('page')
+    ),
     parentId: v.optional(v.id('folders')),
     createdBy: v.id('users'),
   })
@@ -187,6 +192,24 @@ export default defineSchema({
     .index('workspaceName', ['workspaceId', 'name'])
     .index('folder', ['workspaceId', 'folderId'])
     .index('webhookToken', ['webhookToken']),
+
+  /** A customizable UI page: a free-positioned layout of components (inputs,
+   * button, output displays) bound to a single workflow. Filling the inputs and
+   * pressing the button runs that workflow with the entered values injected;
+   * output components render the produced text. */
+  pages: defineTable({
+    workspaceId: v.id('workspaces'),
+    name: v.string(),
+    ownerId: v.id('users'),
+    /** The workflow this page drives. Absent until the author picks one. */
+    workflowId: v.optional(v.id('workflows')),
+    folderId: v.optional(v.id('folders')),
+    layout: pageLayoutValidator,
+    updatedAt: v.number(),
+  })
+    .index('workspaceId', ['workspaceId'])
+    .index('workspaceName', ['workspaceId', 'name'])
+    .index('folder', ['workspaceId', 'folderId']),
 
   files: defineTable({
     workspaceId: v.id('workspaces'),

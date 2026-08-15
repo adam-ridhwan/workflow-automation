@@ -15,7 +15,8 @@ import type { MutationCtx } from './_generated/server';
  * separately. */
 export const folderKindValidator = v.union(
   v.literal('workflow'),
-  v.literal('file')
+  v.literal('file'),
+  v.literal('page')
 );
 export type FolderKind = Infer<typeof folderKindValidator>;
 

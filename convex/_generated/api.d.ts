@@ -17,6 +17,8 @@ import type * as http from "../http.js";
 import type * as maintenance from "../maintenance.js";
 import type * as model_secretCrypto from "../model/secretCrypto.js";
 import type * as overview from "../overview.js";
+import type * as pageLayout from "../pageLayout.js";
+import type * as pages from "../pages.js";
 import type * as runHistory from "../runHistory.js";
 import type * as runWorkflow from "../runWorkflow.js";
 import type * as runs from "../runs.js";
@@ -43,6 +45,8 @@ declare const fullApi: ApiFromModules<{
   maintenance: typeof maintenance;
   "model/secretCrypto": typeof model_secretCrypto;
   overview: typeof overview;
+  pageLayout: typeof pageLayout;
+  pages: typeof pages;
   runHistory: typeof runHistory;
   runWorkflow: typeof runWorkflow;
   runs: typeof runs;

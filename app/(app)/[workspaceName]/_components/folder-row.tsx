@@ -11,7 +11,7 @@ import { useWorkspaceParams } from '../_hooks/use-workspace-params';
 import { ResourceRowActions } from './resource-row-actions';
 import { ResourceRowShell } from './resource-row-shell';
 
-import type { Folder } from '@/convex/folders';
+import type { Folder, FolderKind } from '@/convex/folders';
 
 type FolderRowProps = {
   folder: Folder;
@@ -24,7 +24,12 @@ export function FolderRow({ folder, onDelete }: FolderRowProps) {
   const { workspaceName } = useWorkspaceParams();
   const renameFolder = useMutation(api.folders.rename);
 
-  const section = folder.kind === 'file' ? 'files' : 'workflows';
+  const SECTION_BY_KIND: Record<FolderKind, string> = {
+    workflow: 'workflows',
+    file: 'files',
+    page: 'pages',
+  };
+  const section = SECTION_BY_KIND[folder.kind];
   const href = `/${encodeURIComponent(workspaceName)}/${section}/folder/${folder._id}`;
 
   return (
