@@ -1,6 +1,11 @@
 'use client';
 
-import { FolderIcon, LayoutDashboardIcon, WorkflowIcon } from 'lucide-react';
+import {
+  FolderIcon,
+  LayoutDashboardIcon,
+  LayoutTemplateIcon,
+  WorkflowIcon,
+} from 'lucide-react';
 import { usePathname } from 'next/navigation';
 
 function sectionFromPathname(pathname: string) {
@@ -17,6 +22,12 @@ function sectionFromPathname(pathname: string) {
 
     case 'file':
       return { label: 'File', Icon: FolderIcon };
+
+    case 'pages':
+      return { label: 'Pages', Icon: LayoutTemplateIcon };
+
+    case 'page':
+      return { label: 'Page', Icon: LayoutTemplateIcon };
 
     default:
       return { label: 'Overview', Icon: LayoutDashboardIcon };

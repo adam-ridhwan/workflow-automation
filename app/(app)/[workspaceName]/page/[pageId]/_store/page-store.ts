@@ -3,6 +3,7 @@ import { api } from '@/convex/_generated/api';
 import { create } from 'zustand';
 
 import { PAGE_COMPONENT_META } from '../_constants/page-component-meta';
+import { PageHistoryService } from '../_lib/page-history';
 
 import type { Id } from '@/convex/_generated/dataModel';
 import type { PageComponentData, PageComponentType } from '@/convex/pageLayout';
@@ -19,6 +20,11 @@ type PageBuilderState = {
   version: number;
   selectedId: string | null;
   saveStatus: SaveStatus;
+  /** Whether the builder is in edit or live-preview mode. Held here (not local
+   * state) so the header-actions parallel route can toggle it. */
+  mode: 'edit' | 'preview';
+  canUndo: boolean;
+  canRedo: boolean;
   /** Alignment guide lines (content coords) shown while dragging/resizing. */
   guideX: number | null;
   guideY: number | null;
@@ -58,6 +64,9 @@ type PageBuilderState = {
   removeComponent: (target: SaveTarget, id: string) => void;
   select: (id: string | null) => void;
   setGuides: (x: number | null, y: number | null) => void;
+  setMode: (mode: 'edit' | 'preview') => void;
+  undo: (target: SaveTarget) => void;
+  redo: (target: SaveTarget) => void;
   setWorkflowId: (
     target: SaveTarget,
     workflowId: Id<'workflows'> | undefined
@@ -65,6 +74,14 @@ type PageBuilderState = {
 
   saveLayout: (target: SaveTarget) => void;
 };
+
+/** Undo/redo history for the layout, shared with the store. Lives outside React
+ * so a snapshot is recorded on every committed save. */
+const history = new PageHistoryService();
+
+/** True only while undo/redo restores a snapshot, so the save it triggers isn't
+ * recorded back into history as a fresh entry. */
+let isRestoring = false;
 
 type SetState = (partial: Partial<PageBuilderState>) => void;
 
@@ -115,11 +132,23 @@ export const usePageStore = create<PageBuilderState>((set, get) => ({
   version: 1,
   selectedId: null,
   saveStatus: 'saved',
+  mode: 'edit',
+  canUndo: false,
+  canRedo: false,
   guideX: null,
   guideY: null,
 
   setPage: (components, workflowId, version) => {
-    set({ components, workflowId, version, selectedId: null });
+    history.reset(components);
+    set({
+      components,
+      workflowId,
+      version,
+      selectedId: null,
+      mode: 'edit',
+      canUndo: history.canUndo(),
+      canRedo: history.canRedo(),
+    });
   },
 
   addComponent: (target, type, position) => {
@@ -196,6 +225,42 @@ export const usePageStore = create<PageBuilderState>((set, get) => ({
     set({ guideX: x, guideY: y });
   },
 
+  setMode: (mode) => {
+    set({ mode });
+  },
+
+  undo: (target) => {
+    const components = history.undo();
+    if (components === undefined) {
+      return;
+    }
+    set({
+      components,
+      selectedId: null,
+      canUndo: history.canUndo(),
+      canRedo: history.canRedo(),
+    });
+    isRestoring = true;
+    get().saveLayout(target);
+    isRestoring = false;
+  },
+
+  redo: (target) => {
+    const components = history.redo();
+    if (components === undefined) {
+      return;
+    }
+    set({
+      components,
+      selectedId: null,
+      canUndo: history.canUndo(),
+      canRedo: history.canRedo(),
+    });
+    isRestoring = true;
+    get().saveLayout(target);
+    isRestoring = false;
+  },
+
   setWorkflowId: (target, workflowId) => {
     set({ workflowId });
     beginSave(set);
@@ -215,6 +280,12 @@ export const usePageStore = create<PageBuilderState>((set, get) => ({
 
   saveLayout: (target) => {
     const { components, version } = get();
+    // Record the post-edit snapshot into history, unless this save is itself an
+    // undo/redo restoring a past one.
+    if (!isRestoring) {
+      history.record(components);
+      set({ canUndo: history.canUndo(), canRedo: history.canRedo() });
+    }
     beginSave(set);
     convex
       .mutation(api.pages.updateLayout, {

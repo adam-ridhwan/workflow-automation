@@ -7,6 +7,7 @@ import {
   ChevronRightIcon,
   FileIcon,
   FolderIcon,
+  LayoutTemplateIcon,
   WorkflowIcon,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -17,7 +18,7 @@ import type { Folder } from '@/convex/folders';
 type TrailSegmentProps = {
   name: string;
   href: string;
-  icon: 'folder' | 'workflow' | 'file';
+  icon: 'folder' | 'workflow' | 'file' | 'page';
   isCurrent: boolean;
   /** Set on folder segments to make them drop targets for moves. */
   folderId?: Folder['_id'];
@@ -42,9 +43,12 @@ export function TrailSegment({
     disabled: !isDroppable,
   });
 
-  const Icon = { folder: FolderIcon, workflow: WorkflowIcon, file: FileIcon }[
-    icon
-  ];
+  const Icon = {
+    folder: FolderIcon,
+    workflow: WorkflowIcon,
+    file: FileIcon,
+    page: LayoutTemplateIcon,
+  }[icon];
   return (
     <span className='flex min-w-0 items-center gap-1'>
       <ChevronRightIcon className='text-muted-foreground size-3 shrink-0' />

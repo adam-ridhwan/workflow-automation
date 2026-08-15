@@ -13,7 +13,7 @@ import type { DropTargetData } from '../../_components/workspace-dnd-provider';
 
 type TrailStartProps = {
   /** Which section's root the home link returns to. */
-  section?: 'workflows' | 'files';
+  section?: 'workflows' | 'files' | 'pages';
 };
 
 /** Leading separator + home link, rendered only when a trail exists. Also a

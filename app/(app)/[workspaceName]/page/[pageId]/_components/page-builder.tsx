@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { api } from '@/convex/_generated/api';
 import { cn } from '@/lib/cn';
 import {
@@ -12,34 +11,31 @@ import {
   useSensors,
 } from '@dnd-kit/core';
 import { useQuery } from 'convex/react';
-import { PencilIcon, PlayIcon } from 'lucide-react';
 
-import {
-  PAGE_COMPONENT_META,
-  snap,
-} from '../_constants/page-component-meta';
-import { useWorkspaceParams } from '../../../_hooks/use-workspace-params';
+import { PAGE_COMPONENT_META, snap } from '../_constants/page-component-meta';
 import { bindableNodes } from '../_lib/bindable-nodes';
 import { snapToComponents } from '../_lib/snap-to-components';
 import { usePageStore } from '../_store/page-store';
+import { useWorkspaceParams } from '../../../_hooks/use-workspace-params';
 import { PageEditCanvas } from './page-edit-canvas';
 import { PagePalette } from './page-palette';
 import { PagePreview } from './page-preview';
 import { PagePropertiesPanel } from './page-properties-panel';
 import { PageSaveIndicator } from './page-save-indicator';
+import { PageUndoRedoButtons } from './page-undo-redo-buttons';
 import { PageWorkflowPicker } from './page-workflow-picker';
 
+import type { PlacedPageDragData } from './page-canvas-item';
+import type { PalettePageDragData } from './page-palette-item';
 import type { Id } from '@/convex/_generated/dataModel';
-import type { Page } from '@/convex/pages';
 import type { PageComponentType } from '@/convex/pageLayout';
+import type { Page } from '@/convex/pages';
 import type {
   DragEndEvent,
   DragMoveEvent,
   DragStartEvent,
   Modifier,
 } from '@dnd-kit/core';
-import type { PalettePageDragData } from './page-palette-item';
-import type { PlacedPageDragData } from './page-canvas-item';
 
 type WorkflowOption = { _id: Id<'workflows'>; name: string };
 type FileOption = { _id: string; name: string };
@@ -68,7 +64,7 @@ export function PageBuilder({
   const workflowId = usePageStore((s) => s.workflowId);
   const setGuides = usePageStore((s) => s.setGuides);
 
-  const [mode, setMode] = useState<'edit' | 'preview'>('edit');
+  const mode = usePageStore((s) => s.mode);
   const [activePaletteType, setActivePaletteType] =
     useState<PageComponentType | null>(null);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
@@ -91,9 +87,7 @@ export function PageBuilder({
   // the latest input/output nodes.
   const boundWorkflow = useQuery(
     api.workflows.get,
-    workflowId
-      ? { workspaceName: target.workspaceName, workflowId }
-      : 'skip'
+    workflowId ? { workspaceName: target.workspaceName, workflowId } : 'skip'
   );
   const { inputs, outputs } = useMemo(
     () =>
@@ -107,9 +101,7 @@ export function PageBuilder({
   // its edges/center align with other components, and publish the guide lines.
   const snapModifier: Modifier = ({ transform, active }) => {
     const data = active?.data.current as
-      | PalettePageDragData
-      | PlacedPageDragData
-      | undefined;
+      PalettePageDragData | PlacedPageDragData | undefined;
     if (!data || !('kind' in data) || data.kind !== 'placed') {
       return transform;
     }
@@ -139,9 +131,7 @@ export function PageBuilder({
   // during render) so we never setState mid-render of DndContext.
   function handleDragMove(e: DragMoveEvent) {
     const data = e.active.data.current as
-      | PalettePageDragData
-      | PlacedPageDragData
-      | undefined;
+      PalettePageDragData | PlacedPageDragData | undefined;
     if (!data || !('kind' in data) || data.kind !== 'placed') {
       return;
     }
@@ -165,9 +155,7 @@ export function PageBuilder({
   function handleDragStart(e: DragStartEvent) {
     setGuides(null, null);
     const data = e.active.data.current as
-      | PalettePageDragData
-      | PlacedPageDragData
-      | undefined;
+      PalettePageDragData | PlacedPageDragData | undefined;
     if (data && 'type' in data) {
       setActivePaletteType(data.type);
     }
@@ -177,9 +165,7 @@ export function PageBuilder({
     setActivePaletteType(null);
     setGuides(null, null);
     const data = e.active.data.current as
-      | PalettePageDragData
-      | PlacedPageDragData
-      | undefined;
+      PalettePageDragData | PlacedPageDragData | undefined;
     if (!data) {
       return;
     }
@@ -238,35 +224,17 @@ export function PageBuilder({
   return (
     <div className='flex min-h-0 flex-1 flex-col'>
       {/* Builder toolbar */}
-      <div className='flex h-12 shrink-0 items-center justify-between gap-3 border-b px-4'>
+      <div
+        className='flex h-12 shrink-0 items-center justify-between gap-3
+          border-b px-4'
+      >
         <div className='flex min-w-0 items-center gap-3'>
           <span className='truncate text-sm font-medium'>{page.name}</span>
         </div>
         <div className='flex items-center gap-2'>
           <PageSaveIndicator />
+          {mode === 'edit' && <PageUndoRedoButtons target={target} />}
           <PageWorkflowPicker target={target} options={workflowOptions} />
-          <div className='bg-muted flex items-center gap-0.5 rounded-lg p-0.5'>
-            <Button
-              size='sm'
-              variant={mode === 'edit' ? 'outline' : 'ghost'}
-              onClick={() => {
-                setMode('edit');
-              }}
-            >
-              <PencilIcon />
-              Edit
-            </Button>
-            <Button
-              size='sm'
-              variant={mode === 'preview' ? 'outline' : 'ghost'}
-              onClick={() => {
-                setMode('preview');
-              }}
-            >
-              <PlayIcon />
-              Preview
-            </Button>
-          </div>
         </div>
       </div>
 
@@ -298,7 +266,7 @@ export function PageBuilder({
               <div
                 className={cn(
                   `bg-background flex items-center gap-2 rounded-lg border px-2
-                  py-1.5 text-sm shadow-md`
+                    py-1.5 text-sm shadow-md`
                 )}
               >
                 {PAGE_COMPONENT_META[activePaletteType].label}

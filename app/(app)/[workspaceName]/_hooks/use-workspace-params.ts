@@ -15,6 +15,7 @@ export function useWorkspaceParams() {
   const params = useParams<{
     workspaceName: string;
     workflowId?: Id<'workflows'>;
+    pageId?: Id<'pages'>;
     runHistoryId?: Id<'runHistory'>;
   }>();
 
@@ -36,6 +37,13 @@ export function useWorkspaceParams() {
         );
       }
       return params.workflowId;
+    },
+    // Only present on the page detail route; throws elsewhere.
+    get pageId(): Id<'pages'> {
+      if (params.pageId === undefined) {
+        throw new Error('useWorkspaceParams: pageId is missing from the route.');
+      }
+      return params.pageId;
     },
   };
 }
