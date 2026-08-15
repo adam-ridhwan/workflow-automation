@@ -203,7 +203,8 @@ export const execute = internalAction({
         makeFileReader(ctx, args.workflowId),
         makeFileWriter(ctx, args.workflowId),
         makeSecretResolver(ctx, args.workflowId),
-        args.webhookPayload
+        args.webhookPayload,
+        undefined
       );
       await ctx.runMutation(internal.workflows.recordRun, {
         workflowId: args.workflowId,
@@ -281,6 +282,7 @@ export const runChainStep = internalAction({
         makeFileReader(ctx, args.workflowId),
         makeFileWriter(ctx, args.workflowId),
         makeSecretResolver(ctx, args.workflowId),
+        undefined,
         undefined
       );
     } catch (caught) {
@@ -425,7 +427,8 @@ export const run = action({
         makeFileReader(ctx, args.workflowId),
         makeFileWriter(ctx, args.workflowId),
         makeSecretResolver(ctx, args.workflowId),
-        args.webhookPayload
+        args.webhookPayload,
+        undefined
       );
       await ctx.runMutation(internal.workflows.recordRun, {
         workflowId: args.workflowId,
@@ -489,6 +492,126 @@ export const run = action({
 });
 
 /**
+ * Runs a workflow on behalf of a UI page: the entered input values
+ * (`runtimeInputs`, keyed by the workflow input node they feed) override those
+ * nodes' stored arguments for this run. Lights up the live `runs` doc exactly
+ * like a manual run (so a page run shows progress everywhere the workflow is
+ * listed) and records run history, then returns each node's output keyed by its
+ * original id so the page can render the values bound to its output components.
+ * Unlike `run`, it does not trigger the workflow's chain.
+ */
+export const runForPage = action({
+  args: {
+    workspaceName: v.string(),
+    workflowId: v.id('workflows'),
+    runtimeInputs: v.record(v.string(), v.string()),
+  },
+  returns: v.object({
+    runHistoryId: v.id('runHistory'),
+    outputs: v.record(v.string(), v.string()),
+  }),
+  handler: async (
+    ctx,
+    args
+  ): Promise<{
+    runHistoryId: Id<'runHistory'>;
+    outputs: Record<string, string>;
+  }> => {
+    const workflow = await ctx.runQuery(api.workflows.get, {
+      workspaceName: args.workspaceName,
+      workflowId: args.workflowId,
+    });
+    if (workflow === null) {
+      throw new ConvexError('Workflow not found.');
+    }
+
+    const ranBy = (await getAuthUserId(ctx)) ?? undefined;
+
+    await ctx.runMutation(internal.runs.start, { workflowId: args.workflowId });
+    const { canvas: snapshotCanvas, idMap } = remapCanvasIds(workflow.canvas);
+    const runHistoryId = await ctx.runMutation(internal.runHistory.create, {
+      workflowId: args.workflowId,
+      canvas: snapshotCanvas,
+      ranBy,
+      trigger: 'manual',
+    });
+
+    const setNodeStatus = async (
+      nodeId: string,
+      status: 'running' | 'success' | 'error',
+      output?: string
+    ) => {
+      await ctx.runMutation(internal.runs.setNodeStatus, {
+        workflowId: args.workflowId,
+        nodeId,
+        status,
+        output,
+      });
+      await ctx.runMutation(internal.runHistory.setNodeStatus, {
+        runHistoryId,
+        nodeId: idMap[nodeId] ?? nodeId,
+        status,
+      });
+      return null;
+    };
+
+    const checkStop = () =>
+      ctx.runQuery(internal.runHistory.isStopRequested, { runHistoryId });
+
+    try {
+      const outputs = await executeCanvas(
+        workflow.canvas,
+        setNodeStatus,
+        checkStop,
+        makeFileReader(ctx, args.workflowId),
+        makeFileWriter(ctx, args.workflowId),
+        makeSecretResolver(ctx, args.workflowId),
+        undefined,
+        args.runtimeInputs
+      );
+      await ctx.runMutation(internal.workflows.recordRun, {
+        workflowId: args.workflowId,
+        status: 'success',
+      });
+      await ctx.runMutation(internal.runHistory.finish, {
+        runHistoryId,
+        status: 'success',
+        nodeOutputs: remapOutputs(outputs, idMap),
+      });
+      await ctx.runMutation(internal.runs.markFinished, {
+        workflowId: args.workflowId,
+      });
+      await ctx.scheduler.runAfter(1000, internal.runs.clearStatuses, {
+        workflowId: args.workflowId,
+      });
+      // Return outputs keyed by the workflow's original node ids so the page can
+      // match them to the nodes its output components bind to.
+      return { runHistoryId, outputs };
+    } catch (error) {
+      const stopped = error instanceof StopError;
+      const message = runErrorMessage(stopped, error);
+      await ctx.runMutation(internal.workflows.recordRun, {
+        workflowId: args.workflowId,
+        status: stopped ? 'stopped' : 'error',
+      });
+      await ctx.runMutation(internal.runHistory.finish, {
+        runHistoryId,
+        status: stopped ? 'stopped' : 'error',
+        nodeOutputs: {},
+        error: message,
+      });
+      await ctx.runMutation(internal.runs.markFinished, {
+        workflowId: args.workflowId,
+      });
+      await ctx.scheduler.runAfter(1000, internal.runs.clearStatuses, {
+        workflowId: args.workflowId,
+      });
+      throw new ConvexError(message ?? 'The run failed.');
+    }
+  },
+});
+
+/**
  * Runs the canvas graph in topological order. Input nodes produce their
  * configured value, LLM nodes call Claude with `{{value}}` replaced by their
  * parents' output, and every other node passes its input through — which is
@@ -522,7 +645,10 @@ async function executeCanvas(
   readFile: (fileId: string) => Promise<string>,
   writeFile: (name: string, content: string) => Promise<void>,
   getSecret: (name: string) => Promise<string | undefined>,
-  webhookPayload: string | undefined
+  webhookPayload: string | undefined,
+  /** Values entered on a UI page, keyed by the input node they feed. When set
+   * for a node, they override that node's stored argument at run time. */
+  runtimeInputs: Record<string, string> | undefined
 ) {
   const nodes = Object.values(canvas.nodes);
   const edges = canvas.edges;
@@ -597,13 +723,22 @@ async function executeCanvas(
     let output = input;
     try {
       const spec = findNodeSpec(node.node_uid);
+      const runtimeInput = runtimeInputs?.[node.node_id];
       switch (spec?.node_info.node_type) {
         case 'TEXT_INPUT':
-          output = String(getArgumentValue(node, 'text_input') ?? '');
+          output =
+            runtimeInput !== undefined
+              ? runtimeInput
+              : String(getArgumentValue(node, 'text_input') ?? '');
           break;
 
         case 'FILE_INPUT': {
-          const fileId = getArgumentValue(node, 'file');
+          // A page's file picker supplies a file id here; otherwise fall back to
+          // the node's stored selection.
+          const fileId =
+            runtimeInput !== undefined && runtimeInput !== ''
+              ? runtimeInput
+              : getArgumentValue(node, 'file');
           if (fileId !== undefined && fileId !== null && fileId !== '') {
             output = await readFile(String(fileId));
           } else {
