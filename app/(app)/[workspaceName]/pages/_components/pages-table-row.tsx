@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -12,6 +13,7 @@ import {
 import { toast } from '@/components/ui/toast';
 import { UserAvatar } from '@/components/user-avatar';
 import { api } from '@/convex/_generated/api';
+import { cn } from '@/lib/cn';
 import { errorMessage } from '@/lib/error-message';
 import { formatTime } from '@/lib/format-time';
 import { useMutation } from 'convex/react';
@@ -100,8 +102,19 @@ export function PagesTableRow({ page, onDelete }: PagesTableRowProps) {
           onRenameCancel={stopRename}
         />
 
-        <PageRow.Cell className='text-muted-foreground text-xs'>
-          {page.workflowName ?? <span className='italic'>Unbound</span>}
+        <PageRow.Cell>
+          <Badge
+            variant='secondary'
+            className={cn(
+              'gap-1.5 rounded-full',
+              page.isPublished
+                ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                : 'bg-muted text-muted-foreground'
+            )}
+          >
+            <span className='size-1.25 rounded-full bg-current' />
+            {page.isPublished ? 'Published' : 'Unpublished'}
+          </Badge>
         </PageRow.Cell>
 
         <PageRow.Cell className='text-muted-foreground text-xs'>

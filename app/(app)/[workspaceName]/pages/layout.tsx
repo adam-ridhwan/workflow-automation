@@ -14,7 +14,7 @@ export default function PagesListLayout({ children }: PagesListLayoutProps) {
     <>
       <PagesHeader />
       <Table className='table-fixed'>
-        <ResourceTableHeader labels={['Name', 'Workflow', 'Created', 'Owner']} />
+        <ResourceTableHeader labels={['Name', 'Status', 'Created', 'Owner']} />
       </Table>
       {children}
     </>
