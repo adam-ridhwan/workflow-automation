@@ -51,37 +51,36 @@ export function SchedulesCalendar({ schedules }: SchedulesCalendarProps) {
 
   return (
     <div className='flex min-h-0 flex-1'>
-      <div className='shrink-0 border-r p-4'>
-        <Calendar
-          className='p-0'
-          mode='single'
-          month={month}
-          onMonthChange={setMonth}
-          selected={selected}
-          onSelect={setSelected}
-          startMonth={startBound}
-          endMonth={endBound}
-          modifiers={{ scheduled: scheduledDays }}
-          modifiersClassNames={{
-            scheduled:
-              "relative after:absolute after:bottom-1 after:left-1/2 after:size-1 after:-translate-x-1/2 after:rounded-full after:bg-primary after:content-['']",
-          }}
-        />
+      <div className='flex shrink-0 flex-col border-r'>
+        <h3 className='border-b px-4 py-3 text-center text-sm font-semibold tracking-tight'>
+          {selected
+            ? selected.toLocaleDateString(undefined, {
+                weekday: 'long',
+                month: 'long',
+                day: 'numeric',
+              })
+            : 'Select a day'}
+        </h3>
+        <div className='p-4'>
+          <Calendar
+            className='p-0'
+            mode='single'
+            month={month}
+            onMonthChange={setMonth}
+            selected={selected}
+            onSelect={setSelected}
+            startMonth={startBound}
+            endMonth={endBound}
+            modifiers={{ scheduled: scheduledDays }}
+            modifiersClassNames={{
+              scheduled:
+                "relative after:absolute after:bottom-1 after:left-1/2 after:size-1 after:-translate-x-1/2 after:rounded-full after:bg-primary after:content-['']",
+            }}
+          />
+        </div>
       </div>
 
       <div className='flex min-h-0 flex-1 flex-col'>
-        <div className='px-5 pt-4 pb-2'>
-          <h3 className='text-sm font-semibold tracking-tight'>
-            {selected
-              ? selected.toLocaleDateString(undefined, {
-                  weekday: 'long',
-                  month: 'long',
-                  day: 'numeric',
-                })
-              : 'Select a day'}
-          </h3>
-        </div>
-
         <Table className='table-fixed'>
           <ResourceTableHeader labels={['Workflow', 'Time', 'Timezone', '']} />
         </Table>
