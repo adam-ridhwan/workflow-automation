@@ -62,6 +62,7 @@ type PageBuilderState = {
     bindingNodeId: string | undefined
   ) => void;
   removeComponent: (target: SaveTarget, id: string) => void;
+  duplicateComponent: (target: SaveTarget, id: string) => void;
   select: (id: string | null) => void;
   setGuides: (x: number | null, y: number | null) => void;
   setMode: (mode: 'edit' | 'preview') => void;
@@ -213,6 +214,25 @@ export const usePageStore = create<PageBuilderState>((set, get) => ({
     set((state) => ({
       components: state.components.filter((component) => component.id !== id),
       selectedId: state.selectedId === id ? null : state.selectedId,
+    }));
+    get().saveLayout(target);
+  },
+
+  duplicateComponent: (target, id) => {
+    const source = get().components.find((component) => component.id === id);
+    if (!source) {
+      return;
+    }
+    const copy: PageComponentData = {
+      ...source,
+      id: crypto.randomUUID(),
+      x: source.x + 16,
+      y: source.y + 16,
+      props: { ...source.props },
+    };
+    set((state) => ({
+      components: [...state.components, copy],
+      selectedId: copy.id,
     }));
     get().saveLayout(target);
   },

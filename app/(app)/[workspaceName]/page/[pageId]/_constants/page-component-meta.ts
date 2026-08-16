@@ -1,6 +1,11 @@
 import {
+  ChevronsUpDownIcon,
+  HashIcon,
   HeadingIcon,
+  ImageIcon,
+  MinusIcon,
   MousePointerClickIcon,
+  SquareCheckIcon,
   TextIcon,
   TypeIcon,
   UploadIcon,
@@ -22,7 +27,12 @@ export type PageComponentMeta = {
 export const PALETTE_TYPES: PageComponentType[] = [
   'HEADING',
   'TEXT',
+  'DIVIDER',
+  'IMAGE',
   'TEXT_INPUT',
+  'NUMBER_INPUT',
+  'SELECT',
+  'CHECKBOX',
   'FILE_INPUT',
   'BUTTON',
   'OUTPUT',
@@ -62,12 +72,50 @@ export const PAGE_COMPONENT_META: Record<PageComponentType, PageComponentMeta> =
       defaultSize: { w: 320, h: 92 },
       defaultProps: { label: 'File' },
     },
+    NUMBER_INPUT: {
+      label: 'Number input',
+      icon: HashIcon,
+      binds: 'input',
+      defaultSize: { w: 320, h: 72 },
+      defaultProps: { label: 'Number', placeholder: '0' },
+    },
+    SELECT: {
+      label: 'Dropdown',
+      icon: ChevronsUpDownIcon,
+      binds: 'input',
+      defaultSize: { w: 320, h: 72 },
+      defaultProps: {
+        label: 'Select',
+        options: 'Option 1\nOption 2\nOption 3',
+      },
+    },
+    CHECKBOX: {
+      label: 'Checkbox',
+      icon: SquareCheckIcon,
+      binds: 'input',
+      defaultSize: { w: 240, h: 44 },
+      defaultProps: { label: 'Enabled' },
+    },
+    DIVIDER: {
+      label: 'Divider',
+      icon: MinusIcon,
+      binds: null,
+      defaultSize: { w: 320, h: 24 },
+      defaultProps: {},
+    },
+    IMAGE: {
+      label: 'Image',
+      icon: ImageIcon,
+      binds: null,
+      defaultSize: { w: 320, h: 180 },
+      defaultProps: { url: '', alt: '' },
+    },
     BUTTON: {
-      label: 'Run button',
+      label: 'Button',
       icon: MousePointerClickIcon,
       binds: null,
       defaultSize: { w: 160, h: 44 },
-      defaultProps: { text: 'Run' },
+      defaultProps: { text: 'Run', action: 'run' },
     },
     OUTPUT: {
       label: 'Output',
@@ -77,6 +125,14 @@ export const PAGE_COMPONENT_META: Record<PageComponentType, PageComponentMeta> =
       defaultProps: { label: 'Output' },
     },
   };
+
+/** Whether a component feeds a workflow input at run time. */
+export function isInputComponent(type: PageComponentType): boolean {
+  return PAGE_COMPONENT_META[type].binds === 'input';
+}
+
+/** Inner padding (px) between the container border and where components snap. */
+export const CONTAINER_PADDING = 16;
 
 export const GRID_SIZE = 8;
 export const MIN_COMPONENT_W = 96;

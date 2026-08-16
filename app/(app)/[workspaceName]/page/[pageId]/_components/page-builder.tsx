@@ -14,7 +14,11 @@ import {
 import { useQuery } from 'convex/react';
 import { PencilIcon, PlayIcon } from 'lucide-react';
 
-import { PAGE_COMPONENT_META, snap } from '../_constants/page-component-meta';
+import {
+  CONTAINER_PADDING,
+  PAGE_COMPONENT_META,
+  snap,
+} from '../_constants/page-component-meta';
 import { bindableNodes } from '../_lib/bindable-nodes';
 import { snapToComponents } from '../_lib/snap-to-components';
 import { usePageStore } from '../_store/page-store';
@@ -72,6 +76,25 @@ export function PageBuilder({
     useState<PageComponentType | null>(null);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
 
+  // Snap targets: every other component's rect, plus the bordered container's
+  // own bounds so components can snap to its edges and center.
+  const snapTargets = (excludeId: string) => {
+    const rects = usePageStore
+      .getState()
+      .components.filter((c) => c.id !== excludeId)
+      .map((c) => ({ x: c.x, y: c.y, w: c.w, h: c.h }));
+    const el = wrapperRef.current;
+    if (el) {
+      rects.push({
+        x: CONTAINER_PADDING,
+        y: CONTAINER_PADDING,
+        w: el.clientWidth - CONTAINER_PADDING * 2,
+        h: el.clientHeight - CONTAINER_PADDING * 2,
+      });
+    }
+    return rects;
+  };
+
   // Seed the store from the server-loaded page exactly once.
   const initialized = useRef(false);
   useEffect(() => {
@@ -81,6 +104,76 @@ export function PageBuilder({
     initialized.current = true;
     setPage(page.layout.components, page.workflowId, page.layout.version);
   }, [page, setPage]);
+
+  // Builder keyboard shortcuts (edit mode): delete, arrow-nudge, duplicate,
+  // undo/redo. Ignored while typing in a field so the properties panel works.
+  useEffect(() => {
+    if (mode !== 'edit') {
+      return;
+    }
+    function onKeyDown(e: KeyboardEvent) {
+      const el = e.target as HTMLElement | null;
+      const typing =
+        el?.tagName === 'INPUT' ||
+        el?.tagName === 'TEXTAREA' ||
+        el?.tagName === 'SELECT' ||
+        el?.isContentEditable === true;
+      const store = usePageStore.getState();
+      const modifier = e.metaKey || e.ctrlKey;
+
+      if (modifier && (e.key === 'z' || e.key === 'Z')) {
+        if (typing) {
+          return;
+        }
+        e.preventDefault();
+        if (e.shiftKey) {
+          store.redo(target);
+        } else {
+          store.undo(target);
+        }
+        return;
+      }
+
+      const id = store.selectedId;
+      if (typing || id === null) {
+        return;
+      }
+
+      if (modifier && (e.key === 'd' || e.key === 'D')) {
+        e.preventDefault();
+        store.duplicateComponent(target, id);
+        return;
+      }
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        e.preventDefault();
+        store.removeComponent(target, id);
+        return;
+      }
+
+      const step = e.shiftKey ? 10 : 1;
+      const deltas: Record<string, [number, number]> = {
+        ArrowUp: [0, -step],
+        ArrowDown: [0, step],
+        ArrowLeft: [-step, 0],
+        ArrowRight: [step, 0],
+      };
+      const delta = deltas[e.key];
+      if (delta) {
+        const component = store.components.find((c) => c.id === id);
+        if (component) {
+          e.preventDefault();
+          store.moveComponent(target, id, {
+            x: component.x + delta[0],
+            y: component.y + delta[1],
+          });
+        }
+      }
+    }
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [mode, target]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } })
@@ -119,9 +212,7 @@ export function PageBuilder({
       w: activeComponent.w,
       h: activeComponent.h,
     };
-    const others = store.components
-      .filter((c) => c.id !== data.id)
-      .map((c) => ({ x: c.x, y: c.y, w: c.w, h: c.h }));
+    const others = snapTargets(data.id);
     const result = snapToComponents(prospective, others);
     return {
       ...transform,
@@ -148,9 +239,7 @@ export function PageBuilder({
       w: activeComponent.w,
       h: activeComponent.h,
     };
-    const others = components
-      .filter((c) => c.id !== data.id)
-      .map((c) => ({ x: c.x, y: c.y, w: c.w, h: c.h }));
+    const others = snapTargets(data.id);
     const result = snapToComponents(prospective, others);
     setGuides(result.guideX, result.guideY);
   }
@@ -186,9 +275,7 @@ export function PageBuilder({
         w: component.w,
         h: component.h,
       };
-      const others = components
-        .filter((c) => c.id !== data.id)
-        .map((c) => ({ x: c.x, y: c.y, w: c.w, h: c.h }));
+      const others = snapTargets(data.id);
       const result = snapToComponents(prospective, others);
       moveComponent(target, data.id, {
         x: result.guideX !== null ? result.x : snap(prospective.x),
@@ -215,6 +302,14 @@ export function PageBuilder({
       ) {
         return;
       }
+      // Ignore drops that land on a floating panel rather than the canvas.
+      if (
+        document
+          .elementFromPoint(pointerX, pointerY)
+          ?.closest('[data-page-palette],[data-page-panel]')
+      ) {
+        return;
+      }
       const scrollLeft = wrapperRef.current?.scrollLeft ?? 0;
       const scrollTop = wrapperRef.current?.scrollTop ?? 0;
       addComponent(target, data.type, {
@@ -231,9 +326,29 @@ export function PageBuilder({
         className='flex h-12 shrink-0 items-center justify-between gap-3
           border-b px-4'
       >
-        <div className='flex min-w-0 items-center gap-3'>
-          <span className='truncate text-sm font-medium'>{page.name}</span>
+        <div className='bg-muted flex items-center gap-0.5 rounded-lg p-0.5'>
+          <Button
+            size='sm'
+            variant={mode === 'edit' ? 'outline' : 'ghost'}
+            onClick={() => {
+              setMode('edit');
+            }}
+          >
+            <PencilIcon />
+            Edit
+          </Button>
+          <Button
+            size='sm'
+            variant={mode === 'preview' ? 'outline' : 'ghost'}
+            onClick={() => {
+              setMode('preview');
+            }}
+          >
+            <PlayIcon />
+            Preview
+          </Button>
         </div>
+
         <div className='flex items-center gap-2'>
           {mode === 'edit' && (
             <>
@@ -242,28 +357,6 @@ export function PageBuilder({
               <PageWorkflowPicker target={target} options={workflowOptions} />
             </>
           )}
-          <div className='bg-muted flex items-center gap-0.5 rounded-lg p-0.5'>
-            <Button
-              size='sm'
-              variant={mode === 'edit' ? 'outline' : 'ghost'}
-              onClick={() => {
-                setMode('edit');
-              }}
-            >
-              <PencilIcon />
-              Edit
-            </Button>
-            <Button
-              size='sm'
-              variant={mode === 'preview' ? 'outline' : 'ghost'}
-              onClick={() => {
-                setMode('preview');
-              }}
-            >
-              <PlayIcon />
-              Preview
-            </Button>
-          </div>
         </div>
       </div>
 
@@ -280,9 +373,9 @@ export function PageBuilder({
             setGuides(null, null);
           }}
         >
-          <div className='flex min-h-0 flex-1'>
-            <PagePalette />
+          <div className='relative flex min-h-0 flex-1'>
             <PageEditCanvas target={target} wrapperRef={wrapperRef} />
+            <PagePalette />
             <PagePropertiesPanel
               target={target}
               inputNodes={inputs}

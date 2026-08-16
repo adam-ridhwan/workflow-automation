@@ -5,11 +5,16 @@ import { Infer, v } from 'convex/values';
  * HEADING are static decoration; BUTTON triggers the page's workflow run. */
 export const pageComponentTypeValidator = v.union(
   v.literal('TEXT_INPUT'),
+  v.literal('NUMBER_INPUT'),
+  v.literal('SELECT'),
+  v.literal('CHECKBOX'),
   v.literal('FILE_INPUT'),
   v.literal('BUTTON'),
   v.literal('OUTPUT'),
   v.literal('TEXT'),
-  v.literal('HEADING')
+  v.literal('HEADING'),
+  v.literal('DIVIDER'),
+  v.literal('IMAGE')
 );
 
 /** One placed component on a page: its kind, free position + size on the grid,

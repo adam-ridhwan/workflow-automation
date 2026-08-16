@@ -6,6 +6,7 @@ import { api } from '@/convex/_generated/api';
 import { errorMessage } from '@/lib/error-message';
 import { useAction } from 'convex/react';
 
+import { isInputComponent } from '../_constants/page-component-meta';
 import { usePageStore } from '../_store/page-store';
 import { PageComponentView } from './page-component-view';
 
@@ -38,10 +39,7 @@ export function PagePreview({ workspaceName, fileOptions }: PagePreviewProps) {
     // feeds. Later components with the same binding win (last one wired).
     const runtimeInputs: Record<string, string> = {};
     for (const component of components) {
-      if (
-        (component.type === 'TEXT_INPUT' || component.type === 'FILE_INPUT') &&
-        component.bindingNodeId
-      ) {
+      if (isInputComponent(component.type) && component.bindingNodeId) {
         runtimeInputs[component.bindingNodeId] = values[component.id] ?? '';
       }
     }
@@ -61,12 +59,16 @@ export function PagePreview({ workspaceName, fileOptions }: PagePreviewProps) {
     }
   }
 
+  function handleClear() {
+    setValues({});
+    setOutputs({});
+  }
+
   return (
     <div className='min-h-0 flex-1 overflow-auto bg-background'>
       <div className='relative mx-auto min-h-full w-full max-w-5xl'>
         {components.map((component) => {
-          const isInput =
-            component.type === 'TEXT_INPUT' || component.type === 'FILE_INPUT';
+          const isInput = isInputComponent(component.type);
           const outputValue = component.bindingNodeId
             ? outputs[component.bindingNodeId]
             : undefined;
@@ -93,6 +95,7 @@ export function PagePreview({ workspaceName, fileOptions }: PagePreviewProps) {
                 isRunning={running}
                 canRun={canRun}
                 onRun={handleRun}
+                onClear={handleClear}
               />
             </div>
           );

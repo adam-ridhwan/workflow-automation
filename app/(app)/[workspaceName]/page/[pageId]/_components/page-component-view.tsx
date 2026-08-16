@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/cn';
 
@@ -29,12 +30,21 @@ type PageComponentViewProps = {
   outputValue?: string;
   isRunning?: boolean;
   onRun?: () => void;
+  onClear?: () => void;
   canRun?: boolean;
 };
 
 function propString(component: PageComponentData, key: string, fallback = '') {
   const value = component.props[key];
   return typeof value === 'string' ? value : fallback;
+}
+
+/** Parse a SELECT's newline-separated options prop into a clean list. */
+function selectOptions(component: PageComponentData): string[] {
+  return propString(component, 'options')
+    .split('\n')
+    .map((option) => option.trim())
+    .filter((option) => option.length > 0);
 }
 
 export function PageComponentView({
@@ -46,6 +56,7 @@ export function PageComponentView({
   outputValue,
   isRunning,
   onRun,
+  onClear,
   canRun,
 }: PageComponentViewProps) {
   const isEdit = mode === 'edit';
@@ -60,10 +71,40 @@ export function PageComponentView({
 
     case 'TEXT':
       return (
-        <p className='text-muted-foreground text-sm'>
+        <Markdown className='text-muted-foreground text-sm'>
           {propString(component, 'text')}
-        </p>
+        </Markdown>
       );
+
+    case 'DIVIDER':
+      return (
+        <div className='flex h-full items-center'>
+          <hr className='border-border w-full border-t' />
+        </div>
+      );
+
+    case 'IMAGE': {
+      const url = propString(component, 'url');
+      const alt = propString(component, 'alt');
+      if (!url) {
+        return (
+          <div
+            className='bg-muted/40 text-muted-foreground flex h-full w-full
+              items-center justify-center rounded-lg border text-xs'
+          >
+            Set an image URL
+          </div>
+        );
+      }
+      return (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={url}
+          alt={alt}
+          className='h-full w-full rounded-lg object-cover'
+        />
+      );
+    }
 
     case 'TEXT_INPUT': {
       const multiline = component.props.multiline !== false;
@@ -89,6 +130,67 @@ export function PageComponentView({
             />
           )}
         </div>
+      );
+    }
+
+    case 'NUMBER_INPUT': {
+      const label = propString(component, 'label', 'Number');
+      const placeholder = propString(component, 'placeholder');
+      return (
+        <div className='flex flex-col gap-1.5'>
+          <Label className='text-xs'>{label}</Label>
+          <Input
+            type='number'
+            value={isEdit ? '' : (value ?? '')}
+            onChange={(e) => onValueChange?.(e.target.value)}
+            placeholder={placeholder}
+            disabled={isEdit}
+          />
+        </div>
+      );
+    }
+
+    case 'SELECT': {
+      const label = propString(component, 'label', 'Select');
+      const options = selectOptions(component);
+      const items = Object.fromEntries(
+        options.map((option) => [option, option])
+      );
+      return (
+        <div className='flex flex-col gap-1.5'>
+          <Label className='text-xs'>{label}</Label>
+          <Select
+            items={items}
+            value={value ?? ''}
+            onValueChange={(next) => onValueChange?.(next ?? '')}
+            disabled={isEdit}
+          >
+            <SelectTrigger size='sm' className='w-full'>
+              <SelectValue placeholder='Choose…' />
+            </SelectTrigger>
+            <SelectContent alignItemWithTrigger={false}>
+              {options.map((option) => (
+                <SelectItem key={option} value={option}>
+                  {option}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      );
+    }
+
+    case 'CHECKBOX': {
+      const label = propString(component, 'label', 'Enabled');
+      return (
+        <label className='flex h-full items-center gap-2 text-sm select-none'>
+          <Switch
+            checked={!isEdit && value === 'true'}
+            onCheckedChange={(checked) => onValueChange?.(String(checked))}
+            disabled={isEdit}
+          />
+          <span>{label}</span>
+        </label>
       );
     }
 
@@ -121,20 +223,31 @@ export function PageComponentView({
       );
     }
 
-    case 'BUTTON':
+    case 'BUTTON': {
+      const isClear = propString(component, 'action', 'run') === 'clear';
+      const fallbackText = isClear ? 'Clear' : 'Run';
       return (
         <Button
           className='w-full'
-          disabled={isEdit || isRunning || canRun === false}
+          variant={isClear ? 'outline' : 'default'}
+          disabled={isEdit || (!isClear && (isRunning || canRun === false))}
           onClick={() => {
-            if (!isEdit) {
+            if (isEdit) {
+              return;
+            }
+            if (isClear) {
+              onClear?.();
+            } else {
               onRun?.();
             }
           }}
         >
-          {isRunning ? 'Running…' : propString(component, 'text', 'Run')}
+          {!isClear && isRunning
+            ? 'Running…'
+            : propString(component, 'text', fallbackText)}
         </Button>
       );
+    }
 
     case 'OUTPUT': {
       const label = propString(component, 'label', 'Output');

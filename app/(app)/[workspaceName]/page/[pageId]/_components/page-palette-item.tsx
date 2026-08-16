@@ -1,6 +1,5 @@
 'use client';
 
-import { cn } from '@/lib/cn';
 import { useDraggable } from '@dnd-kit/core';
 
 import { PAGE_COMPONENT_META } from '../_constants/page-component-meta';
@@ -26,15 +25,13 @@ export function PagePaletteItem({ type }: PagePaletteItemProps) {
       ref={setNodeRef}
       {...listeners}
       {...attributes}
-      className={cn(
-        `hover:border-primary/40 hover:bg-accent/40 flex cursor-grab items-center
-        gap-2 rounded-lg border p-2 text-sm transition-colors select-none
-        active:cursor-grabbing`,
-        isDragging && 'opacity-40'
-      )}
+      data-dragging={isDragging ? '' : undefined}
+      className='hover:bg-accent hover:text-accent-foreground flex cursor-grab
+        items-center gap-2 rounded-md px-2 py-1.5 text-[13px] font-medium
+        select-none active:cursor-grabbing data-dragging:opacity-50'
     >
-      <Icon className='text-muted-foreground size-4 shrink-0' />
-      <span className='truncate'>{meta.label}</span>
+      <Icon className='text-muted-foreground size-3.5 shrink-0' />
+      {meta.label}
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { PageComponentView } from '@/app/(app)/[workspaceName]/page/[pageId]/_components/page-component-view';
+import { isInputComponent } from '@/app/(app)/[workspaceName]/page/[pageId]/_constants/page-component-meta';
 import { toast } from '@/components/ui/toast';
 import { api } from '@/convex/_generated/api';
 import { errorMessage } from '@/lib/error-message';
@@ -42,10 +43,7 @@ export function PublishedPageView({ page, fileOptions }: PublishedPageViewProps)
     }
     const runtimeInputs: Record<string, string> = {};
     for (const component of components) {
-      if (
-        (component.type === 'TEXT_INPUT' || component.type === 'FILE_INPUT') &&
-        component.bindingNodeId
-      ) {
+      if (isInputComponent(component.type) && component.bindingNodeId) {
         runtimeInputs[component.bindingNodeId] = values[component.id] ?? '';
       }
     }
@@ -64,12 +62,16 @@ export function PublishedPageView({ page, fileOptions }: PublishedPageViewProps)
     }
   }
 
+  function handleClear() {
+    setValues({});
+    setOutputs({});
+  }
+
   return (
     <div className='bg-background min-h-screen w-full overflow-auto'>
       <div className='relative mx-auto min-h-screen w-full max-w-5xl'>
         {components.map((component) => {
-          const isInput =
-            component.type === 'TEXT_INPUT' || component.type === 'FILE_INPUT';
+          const isInput = isInputComponent(component.type);
           const outputValue = component.bindingNodeId
             ? outputs[component.bindingNodeId]
             : undefined;
@@ -96,6 +98,7 @@ export function PublishedPageView({ page, fileOptions }: PublishedPageViewProps)
                 isRunning={running}
                 canRun={canRun}
                 onRun={handleRun}
+                onClear={handleClear}
               />
             </div>
           );

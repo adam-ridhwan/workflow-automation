@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -11,7 +12,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Trash2Icon } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { CopyIcon, Trash2Icon } from 'lucide-react';
 
 import { PAGE_COMPONENT_META } from '../_constants/page-component-meta';
 import { usePageStore } from '../_store/page-store';
@@ -28,6 +30,8 @@ type PagePropertiesPanelProps = {
   hasWorkflow: boolean;
 };
 
+/** Floating inspector for the selected component, top-right of the canvas.
+ * Hidden when nothing is selected, like the workflow node panel. */
 export function PagePropertiesPanel({
   target,
   inputNodes,
@@ -39,17 +43,12 @@ export function PagePropertiesPanel({
   const updateProps = usePageStore((s) => s.updateProps);
   const setBinding = usePageStore((s) => s.setBinding);
   const removeComponent = usePageStore((s) => s.removeComponent);
+  const duplicateComponent = usePageStore((s) => s.duplicateComponent);
 
   const selected = components.find((c) => c.id === selectedId) ?? null;
 
   if (selected === null) {
-    return (
-      <aside className='flex w-72 shrink-0 flex-col border-l p-4'>
-        <p className='text-muted-foreground text-sm'>
-          Select a component to edit its properties.
-        </p>
-      </aside>
-    );
+    return null;
   }
 
   const meta = PAGE_COMPONENT_META[selected.type];
@@ -120,90 +119,206 @@ export function PagePropertiesPanel({
   }
 
   return (
-    <aside className='flex w-72 shrink-0 flex-col gap-4 overflow-y-auto border-l p-4'>
-      <div className='flex items-center justify-between'>
-        <span className='text-sm font-medium'>{meta.label}</span>
-        <Button
-          variant='ghost'
-          size='icon-sm'
-          onClick={() => {
-            removeComponent(target, selected.id);
-          }}
-        >
-          <Trash2Icon />
-        </Button>
-      </div>
-
-      {/* Text-bearing props */}
-      {(selected.type === 'HEADING' ||
-        selected.type === 'TEXT' ||
-        selected.type === 'BUTTON') && (
-        <div className='flex flex-col gap-1.5'>
-          <Label className='text-xs'>Text</Label>
-          <Input
-            value={typeof selected.props.text === 'string' ? selected.props.text : ''}
-            onChange={(e) => {
-              setProp('text', e.target.value);
-            }}
-          />
-        </div>
-      )}
-
-      {/* Labeled inputs/output */}
-      {(selected.type === 'TEXT_INPUT' ||
-        selected.type === 'FILE_INPUT' ||
-        selected.type === 'OUTPUT') && (
-        <div className='flex flex-col gap-1.5'>
-          <Label className='text-xs'>Label</Label>
-          <Input
-            value={
-              typeof selected.props.label === 'string' ? selected.props.label : ''
-            }
-            onChange={(e) => {
-              setProp('label', e.target.value);
-            }}
-          />
-        </div>
-      )}
-
-      {selected.type === 'TEXT_INPUT' && (
-        <>
-          <div className='flex flex-col gap-1.5'>
-            <Label className='text-xs'>Placeholder</Label>
-            <Input
-              value={
-                typeof selected.props.placeholder === 'string'
-                  ? selected.props.placeholder
-                  : ''
-              }
-              onChange={(e) => {
-                setProp('placeholder', e.target.value);
+    <div className='absolute top-4 right-4 bottom-4 z-10 flex w-72' data-page-panel>
+      <Card className='flex min-h-0 flex-1 flex-col gap-0 overflow-hidden p-0'>
+        <div className='flex h-11 items-center justify-between gap-2 border-b px-3'>
+          <span className='text-sm font-medium'>{meta.label}</span>
+          <div className='flex items-center gap-0.5'>
+            <Button
+              variant='ghost'
+              size='icon-sm'
+              aria-label='Duplicate'
+              onClick={() => {
+                duplicateComponent(target, selected.id);
               }}
-            />
-          </div>
-          <div className='flex items-center justify-between'>
-            <Label className='text-xs'>Multiline</Label>
-            <Switch
-              checked={selected.props.multiline !== false}
-              onCheckedChange={(checked) => {
-                setProp('multiline', checked);
+            >
+              <CopyIcon />
+            </Button>
+            <Button
+              variant='ghost'
+              size='icon-sm'
+              aria-label='Delete'
+              onClick={() => {
+                removeComponent(target, selected.id);
               }}
-            />
+            >
+              <Trash2Icon />
+            </Button>
           </div>
-        </>
-      )}
-
-      {/* Workflow-node binding */}
-      {bindingOptions !== null && (
-        <div className='flex flex-col gap-1.5'>
-          <Label className='text-xs'>
-            {meta.binds === 'input'
-              ? 'Feeds workflow input'
-              : 'Shows workflow output'}
-          </Label>
-          {renderBindingControl()}
         </div>
-      )}
-    </aside>
+
+        <div className='flex flex-col gap-4 overflow-y-auto p-4'>
+          {/* Text-bearing props */}
+          {(selected.type === 'HEADING' ||
+            selected.type === 'TEXT' ||
+            selected.type === 'BUTTON') && (
+            <div className='flex flex-col gap-1.5'>
+              <Label className='text-xs'>Text</Label>
+              <Input
+                value={
+                  typeof selected.props.text === 'string'
+                    ? selected.props.text
+                    : ''
+                }
+                onChange={(e) => {
+                  setProp('text', e.target.value);
+                }}
+              />
+            </div>
+          )}
+
+          {/* Labeled inputs/output */}
+          {(selected.type === 'TEXT_INPUT' ||
+            selected.type === 'NUMBER_INPUT' ||
+            selected.type === 'SELECT' ||
+            selected.type === 'CHECKBOX' ||
+            selected.type === 'FILE_INPUT' ||
+            selected.type === 'OUTPUT') && (
+            <div className='flex flex-col gap-1.5'>
+              <Label className='text-xs'>Label</Label>
+              <Input
+                value={
+                  typeof selected.props.label === 'string'
+                    ? selected.props.label
+                    : ''
+                }
+                onChange={(e) => {
+                  setProp('label', e.target.value);
+                }}
+              />
+            </div>
+          )}
+
+          {selected.type === 'TEXT_INPUT' && (
+            <>
+              <div className='flex flex-col gap-1.5'>
+                <Label className='text-xs'>Placeholder</Label>
+                <Input
+                  value={
+                    typeof selected.props.placeholder === 'string'
+                      ? selected.props.placeholder
+                      : ''
+                  }
+                  onChange={(e) => {
+                    setProp('placeholder', e.target.value);
+                  }}
+                />
+              </div>
+              <div className='flex items-center justify-between'>
+                <Label className='text-xs'>Multiline</Label>
+                <Switch
+                  checked={selected.props.multiline !== false}
+                  onCheckedChange={(checked) => {
+                    setProp('multiline', checked);
+                  }}
+                />
+              </div>
+            </>
+          )}
+
+          {selected.type === 'NUMBER_INPUT' && (
+            <div className='flex flex-col gap-1.5'>
+              <Label className='text-xs'>Placeholder</Label>
+              <Input
+                value={
+                  typeof selected.props.placeholder === 'string'
+                    ? selected.props.placeholder
+                    : ''
+                }
+                onChange={(e) => {
+                  setProp('placeholder', e.target.value);
+                }}
+              />
+            </div>
+          )}
+
+          {selected.type === 'SELECT' && (
+            <div className='flex flex-col gap-1.5'>
+              <Label className='text-xs'>Options (one per line)</Label>
+              <Textarea
+                value={
+                  typeof selected.props.options === 'string'
+                    ? selected.props.options
+                    : ''
+                }
+                onChange={(e) => {
+                  setProp('options', e.target.value);
+                }}
+                className='min-h-24'
+              />
+            </div>
+          )}
+
+          {selected.type === 'IMAGE' && (
+            <>
+              <div className='flex flex-col gap-1.5'>
+                <Label className='text-xs'>Image URL</Label>
+                <Input
+                  value={
+                    typeof selected.props.url === 'string'
+                      ? selected.props.url
+                      : ''
+                  }
+                  onChange={(e) => {
+                    setProp('url', e.target.value);
+                  }}
+                  placeholder='https://…'
+                />
+              </div>
+              <div className='flex flex-col gap-1.5'>
+                <Label className='text-xs'>Alt text</Label>
+                <Input
+                  value={
+                    typeof selected.props.alt === 'string'
+                      ? selected.props.alt
+                      : ''
+                  }
+                  onChange={(e) => {
+                    setProp('alt', e.target.value);
+                  }}
+                />
+              </div>
+            </>
+          )}
+
+          {selected.type === 'BUTTON' && (
+            <div className='flex flex-col gap-1.5'>
+              <Label className='text-xs'>Action</Label>
+              <Select
+                items={{ run: 'Run workflow', clear: 'Clear inputs' }}
+                value={
+                  typeof selected.props.action === 'string'
+                    ? selected.props.action
+                    : 'run'
+                }
+                onValueChange={(next) => {
+                  setProp('action', next ?? 'run');
+                }}
+              >
+                <SelectTrigger size='sm' className='w-full'>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent alignItemWithTrigger={false}>
+                  <SelectItem value='run'>Run workflow</SelectItem>
+                  <SelectItem value='clear'>Clear inputs</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* Workflow-node binding */}
+          {bindingOptions !== null && (
+            <div className='flex flex-col gap-1.5'>
+              <Label className='text-xs'>
+                {meta.binds === 'input'
+                  ? 'Feeds workflow input'
+                  : 'Shows workflow output'}
+              </Label>
+              {renderBindingControl()}
+            </div>
+          )}
+        </div>
+      </Card>
+    </div>
   );
 }

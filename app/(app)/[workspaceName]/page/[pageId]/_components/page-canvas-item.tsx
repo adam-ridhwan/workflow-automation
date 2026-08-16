@@ -5,6 +5,7 @@ import { cn } from '@/lib/cn';
 import { useDraggable } from '@dnd-kit/core';
 
 import {
+  CONTAINER_PADDING,
   MIN_COMPONENT_H,
   MIN_COMPONENT_W,
   snap,
@@ -56,11 +57,23 @@ export function PageCanvasItem({ component, target }: PageCanvasItemProps) {
     const startW = component.w;
     const startH = component.h;
 
-    const otherRects = () =>
-      usePageStore
+    const otherRects = () => {
+      const rects = usePageStore
         .getState()
         .components.filter((c) => c.id !== component.id)
         .map((c) => ({ x: c.x, y: c.y, w: c.w, h: c.h }));
+      // Also snap to the bordered container's edges.
+      const surface = document.querySelector('[data-page-surface]');
+      if (surface) {
+        rects.push({
+          x: CONTAINER_PADDING,
+          y: CONTAINER_PADDING,
+          w: surface.clientWidth - CONTAINER_PADDING * 2,
+          h: surface.clientHeight - CONTAINER_PADDING * 2,
+        });
+      }
+      return rects;
+    };
 
     function onMove(moveEvent: PointerEvent) {
       const rawW = Math.max(MIN_COMPONENT_W, startW + (moveEvent.clientX - startX));
