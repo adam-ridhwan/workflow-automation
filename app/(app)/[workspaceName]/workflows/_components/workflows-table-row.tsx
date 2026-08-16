@@ -18,6 +18,7 @@ import { useAction, useMutation } from 'convex/react';
 import { ConvexError } from 'convex/values';
 import {
   EllipsisVerticalIcon,
+  GlobeIcon,
   PencilIcon,
   PlayIcon,
   SquareIcon,
@@ -51,6 +52,7 @@ export function WorkflowsTableRow({
   const renameWorkflow = useMutation(api.workflows.rename);
   const runWorkflow = useAction(api.runWorkflow.run);
   const stopRun = useMutation(api.runHistory.stopRun);
+  const setPublished = useMutation(api.workflows.setPublished);
   // True from the click until the run finishes (or errors). Survives alongside
   // `phase` so the control stays busy even before the run doc reports 'running'.
   const [isStarting, setIsStarting] = useState(false);
@@ -104,6 +106,23 @@ export function WorkflowsTableRow({
       });
     } finally {
       setIsStarting(false);
+    }
+  }
+
+  async function handleSetPublished(next: boolean) {
+    try {
+      await setPublished({
+        workspaceName,
+        workflowId: workflow._id,
+        isPublished: next,
+      });
+      toast.add({
+        type: 'success',
+        title: next ? 'Workflow published.' : 'Workflow unpublished.',
+      });
+      router.refresh();
+    } catch (error) {
+      toast.add({ type: 'error', title: errorMessage(error) });
     }
   }
 
@@ -197,6 +216,15 @@ export function WorkflowsTableRow({
               <DropdownMenuItem onClick={startRename}>
                 <PencilIcon className='size-3' />
                 Rename workflow
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                onClick={() => {
+                  handleSetPublished(!workflow.isPublished);
+                }}
+              >
+                <GlobeIcon className='size-3' />
+                {workflow.isPublished ? 'Unpublish' : 'Publish'}
               </DropdownMenuItem>
 
               <DropdownMenuItem onClick={onDelete}>

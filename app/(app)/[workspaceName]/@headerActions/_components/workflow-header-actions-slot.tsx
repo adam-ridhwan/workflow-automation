@@ -21,10 +21,7 @@ export function WorkflowHeaderActionsSlot() {
   }
   return (
     <>
-      <WorkflowStatusBadge
-        isPublished={workflow.isPublished}
-        isOwner={workflow.isOwner}
-      />
+      <WorkflowStatusBadge isPublished={workflow.isPublished} />
       <WorkflowVersionsMenu />
       <WorkflowScheduleMenu />
       <WorkflowChainMenu chainWorkflowIds={workflow.chainWorkflowIds ?? []} />

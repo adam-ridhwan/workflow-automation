@@ -275,12 +275,6 @@ export const setPublished = mutation({
       args.workspaceName,
       args.workflowId
     );
-    const userId = await requireUserId(ctx);
-    if (workflow.ownerId !== userId) {
-      throw new ConvexError(
-        'Only the workflow owner can change its published status.'
-      );
-    }
 
     if (workflow.isPublished === args.isPublished) {
       return null;
