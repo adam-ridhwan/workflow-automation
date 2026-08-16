@@ -238,13 +238,16 @@ export const listDue = internalQuery({
  * run. Null if the workflow was deleted out from under the schedule. */
 export const workflowForSchedule = internalQuery({
   args: { workflowId: v.id('workflows') },
-  returns: v.union(v.null(), v.object({ canvas: workflowCanvasValidator })),
+  returns: v.union(
+    v.null(),
+    v.object({ canvas: workflowCanvasValidator, isPublished: v.boolean() })
+  ),
   handler: async (ctx, args) => {
     const workflow = await ctx.db.get(args.workflowId);
     if (workflow === null) {
       return null;
     }
-    return { canvas: workflow.canvas };
+    return { canvas: workflow.canvas, isPublished: workflow.isPublished };
   },
 });
 

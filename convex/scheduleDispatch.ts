@@ -88,21 +88,23 @@ export const dispatch = internalAction({
         continue;
       }
 
-      // Record a run-history entry (attributed to the schedule's creator) then
-      // execute it, so scheduled runs are reviewable like manual ones. The
-      // snapshot reuses the workflow's node ids: the run only writes to its own
-      // history record, so there's nothing to collide with.
-      const runHistoryId = await ctx.runMutation(internal.runHistory.create, {
-        workflowId: schedule.workflowId,
-        canvas: workflow.canvas,
-        ranBy: schedule.createdBy,
-        trigger: 'schedule',
-      });
-      await ctx.scheduler.runAfter(0, internal.runWorkflow.execute, {
-        workflowId: schedule.workflowId,
-        runHistoryId,
-        canvas: workflow.canvas,
-      });
+      // Only run published workflows; an unpublished one still advances below so
+      // its schedule doesn't fire every minute. Runs are recorded to history
+      // (attributed to the schedule's creator) so they're reviewable like
+      // manual ones; the snapshot reuses the workflow's node ids.
+      if (workflow.isPublished) {
+        const runHistoryId = await ctx.runMutation(internal.runHistory.create, {
+          workflowId: schedule.workflowId,
+          canvas: workflow.canvas,
+          ranBy: schedule.createdBy,
+          trigger: 'schedule',
+        });
+        await ctx.scheduler.runAfter(0, internal.runWorkflow.execute, {
+          workflowId: schedule.workflowId,
+          runHistoryId,
+          canvas: workflow.canvas,
+        });
+      }
 
       // Advance to the next fire time. A cron that no longer parses disables the
       // schedule (markRan clears `enabled` when nextRunAt is undefined).

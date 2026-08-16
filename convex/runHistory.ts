@@ -202,6 +202,9 @@ export const startRerun = mutation({
     if (workflow === null || workflow.workspaceId !== workspace._id) {
       throw new ConvexError('Workflow not found.');
     }
+    if (!workflow.isPublished) {
+      throw new ConvexError('Publish this workflow before running it.');
+    }
     const source = await ctx.db.get(args.fromRunHistoryId);
     if (source === null || source.workflowId !== args.workflowId) {
       throw new ConvexError('Run not found.');

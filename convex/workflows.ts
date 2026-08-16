@@ -769,6 +769,10 @@ export const chainStepCanvas = internalQuery({
     if (source.workspaceId !== step.workspaceId) {
       return null;
     }
+    // Don't run an unpublished workflow as a chain step.
+    if (!step.isPublished) {
+      return null;
+    }
     return { name: step.name, canvas: step.canvas };
   },
 });
@@ -789,7 +793,7 @@ export const byWebhookToken = internalQuery({
       .query('workflows')
       .withIndex('webhookToken', (q) => q.eq('webhookToken', args.token))
       .unique();
-    if (workflow === null) {
+    if (workflow === null || !workflow.isPublished) {
       return null;
     }
     return { workflowId: workflow._id, canvas: workflow.canvas };

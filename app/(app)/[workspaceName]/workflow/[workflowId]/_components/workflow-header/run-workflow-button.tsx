@@ -2,6 +2,8 @@
 
 import { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
+import { api } from '@/convex/_generated/api';
+import { useQuery } from 'convex/react';
 import { ClockIcon, Loader2Icon, PlayIcon, SquareIcon } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 
@@ -31,6 +33,15 @@ export function RunWorkflowButton() {
 
   const errors = useMemo(() => validateWorkflow(nodes, edges), [nodes, edges]);
   const isRerun = runHistoryId !== undefined;
+  const workflow = useQuery(api.workflows.get, { workspaceName, workflowId });
+  const isPublished = workflow?.isPublished ?? false;
+
+  let runTitle: string | undefined;
+  if (!isPublished) {
+    runTitle = 'Publish this workflow before running it.';
+  } else if (!isRerun) {
+    runTitle = errors[0];
+  }
 
   // A chain-driven run can't be stopped from here, so it shows a disabled
   // indicator: "Scheduled" while queued behind an earlier workflow, "Running…"
@@ -71,8 +82,8 @@ export function RunWorkflowButton() {
 
   return (
     <Button
-      disabled={!isRerun && errors.length > 0}
-      title={isRerun ? undefined : errors[0]}
+      disabled={!isPublished || (!isRerun && errors.length > 0)}
+      title={runTitle}
       onClick={async () => {
         const newRunId = await runWorkflow(
           { workspaceName, workflowId },

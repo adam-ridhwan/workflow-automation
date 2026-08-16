@@ -183,7 +183,10 @@ export function WorkflowsTableRow({
                   Stop run
                 </DropdownMenuItem>
               ) : (
-                <DropdownMenuItem disabled={isBusy} onClick={handleRun}>
+                <DropdownMenuItem
+                  disabled={isBusy || !workflow.isPublished}
+                  onClick={handleRun}
+                >
                   <PlayIcon className='size-3' />
                   Run workflow
                 </DropdownMenuItem>

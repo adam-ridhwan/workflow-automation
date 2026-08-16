@@ -369,6 +369,9 @@ export const run = action({
     if (workflow === null) {
       throw new ConvexError('Workflow not found.');
     }
+    if (!workflow.isPublished) {
+      throw new ConvexError('Publish this workflow before running it.');
+    }
 
     // Attribute this run (and any chain steps it triggers) to the caller.
     const ranBy = (await getAuthUserId(ctx)) ?? undefined;
@@ -523,6 +526,9 @@ export const runForPage = action({
     });
     if (workflow === null) {
       throw new ConvexError('Workflow not found.');
+    }
+    if (!workflow.isPublished) {
+      throw new ConvexError('Publish this workflow before running it.');
     }
 
     const ranBy = (await getAuthUserId(ctx)) ?? undefined;
