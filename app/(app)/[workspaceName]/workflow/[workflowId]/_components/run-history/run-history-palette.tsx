@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+import { Card } from '@/components/ui/card';
 import {
   Collapsible,
   CollapsibleContent,
@@ -52,6 +54,20 @@ export function RunHistoryPalette({ selectedId }: RunHistoryPaletteProps) {
   const runs = useQuery(api.runHistory.list, { workspaceName, workflowId });
 
   const base = `/${encodeURIComponent(workspaceName)}/workflow/${workflowId}/run-history`;
+
+  const [open, setOpen] = useState(true);
+
+  // Tallies for the footer summary.
+  const counts = { success: 0, error: 0, running: 0 };
+  for (const run of runs ?? []) {
+    if (run.status === 'success') {
+      counts.success += 1;
+    } else if (run.status === 'error') {
+      counts.error += 1;
+    } else if (run.status === 'running') {
+      counts.running += 1;
+    }
+  }
 
   function renderRuns() {
     if (runs === undefined) {
@@ -139,12 +155,16 @@ export function RunHistoryPalette({ selectedId }: RunHistoryPaletteProps) {
   }
 
   return (
-    <div className='absolute top-0 left-0 z-10 flex max-h-full flex-col p-4'>
+    <div className='absolute inset-y-0 left-0 z-10 flex flex-col p-4'>
       <Collapsible
-        defaultOpen
-        className='menu-inverted bg-popover text-popover-foreground
-          ring-foreground/10 flex max-h-full min-h-0 w-56 flex-col rounded-lg
-          p-1 shadow-md ring-1 backdrop-blur-xl'
+        open={open}
+        onOpenChange={setOpen}
+        className={cn(
+          `menu-inverted bg-popover text-popover-foreground ring-foreground/10
+          flex min-h-0 w-56 flex-col rounded-lg p-1 shadow-md ring-1
+          backdrop-blur-xl`,
+          open && 'h-full'
+        )}
       >
         <CollapsibleTrigger
           className='group/palette hover:bg-accent hover:text-accent-foreground
@@ -161,9 +181,61 @@ export function RunHistoryPalette({ selectedId }: RunHistoryPaletteProps) {
           />
         </CollapsibleTrigger>
 
-        <CollapsibleContent className='flex min-h-0 flex-col overflow-y-auto'>
+        <CollapsibleContent
+          className='flex min-h-0 flex-1 flex-col overflow-y-auto'
+        >
           {renderRuns()}
         </CollapsibleContent>
+
+        {runs !== undefined && (
+          <div className='mt-1 flex shrink-0 flex-col gap-2 pt-1'>
+            <Card className='border-border gap-0 bg-transparent px-2.5 py-1.5'>
+              <div className='flex items-center gap-2'>
+                <span
+                  className='text-foreground text-sm font-semibold tabular-nums'
+                >
+                  {counts.success}
+                </span>
+                <span className='text-foreground text-xs font-medium'>
+                  Completed
+                </span>
+                <CircleCheckIcon
+                  className='ml-auto size-3.5 shrink-0 text-emerald-400/70'
+                />
+              </div>
+            </Card>
+            <Card className='border-border gap-0 bg-transparent px-2.5 py-1.5'>
+              <div className='flex items-center gap-2'>
+                <span
+                  className='text-foreground text-sm font-semibold tabular-nums'
+                >
+                  {counts.error}
+                </span>
+                <span className='text-foreground text-xs font-medium'>
+                  Failed
+                </span>
+                <CircleXIcon
+                  className='text-destructive/70 ml-auto size-3.5 shrink-0'
+                />
+              </div>
+            </Card>
+            <Card className='border-border gap-0 bg-transparent px-2.5 py-1.5'>
+              <div className='flex items-center gap-2'>
+                <span
+                  className='text-foreground text-sm font-semibold tabular-nums'
+                >
+                  {counts.running}
+                </span>
+                <span className='text-foreground text-xs font-medium'>
+                  In progress
+                </span>
+                <Loader2Icon
+                  className='text-muted-foreground ml-auto size-3.5 shrink-0'
+                />
+              </div>
+            </Card>
+          </div>
+        )}
       </Collapsible>
     </div>
   );
