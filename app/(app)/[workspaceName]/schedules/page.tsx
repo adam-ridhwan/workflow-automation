@@ -2,7 +2,7 @@ import { api } from '@/convex/_generated/api';
 import { convexAuthNextjsToken } from '@convex-dev/auth/nextjs/server';
 import { fetchQuery } from 'convex/nextjs';
 
-import { SchedulesTable } from './_components/schedules-table';
+import { SchedulesCalendar } from './_components/schedules-calendar';
 import { sieveSchedules } from './_lib/sieve-schedules';
 
 import type { SchedulesSearchParams } from './_lib/sieve-schedules';
@@ -28,7 +28,6 @@ export default async function SchedulesPage({
   );
 
   const sieved = sieveSchedules(schedules, { state, sort, order, q });
-  const isFiltered = Boolean(state || q);
 
-  return <SchedulesTable schedules={sieved} isFiltered={isFiltered} />;
+  return <SchedulesCalendar schedules={sieved} />;
 }

@@ -1,6 +1,3 @@
-import { Table } from '@/components/ui/table';
-
-import { ResourceTableHeader } from '../_components/resource-table-header';
 import { SchedulesHeader } from './_components/schedules-header';
 
 type SchedulesListLayoutProps = Readonly<{
@@ -13,11 +10,6 @@ export default function SchedulesListLayout({
   return (
     <>
       <SchedulesHeader />
-      <Table className='table-fixed'>
-        <ResourceTableHeader
-          labels={['Workflow', 'Next run', 'Last run', 'Status']}
-        />
-      </Table>
       {children}
     </>
   );
