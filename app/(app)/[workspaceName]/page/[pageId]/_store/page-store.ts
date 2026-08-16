@@ -2,7 +2,11 @@ import { convex } from '@/components/convev-client-provider';
 import { api } from '@/convex/_generated/api';
 import { create } from 'zustand';
 
-import { PAGE_COMPONENT_META } from '../_constants/page-component-meta';
+import {
+  CONTAINER_PADDING,
+  MIN_COMPONENT_W,
+  PAGE_COMPONENT_META,
+} from '../_constants/page-component-meta';
 import { PageHistoryService } from '../_lib/page-history';
 
 import type { Id } from '@/convex/_generated/dataModel';
@@ -50,6 +54,16 @@ type PageBuilderState = {
     target: SaveTarget,
     id: string,
     size: { w: number; h: number }
+  ) => void;
+  setFullWidth: (
+    target: SaveTarget,
+    id: string,
+    containerWidth: number
+  ) => void;
+  setBox: (
+    target: SaveTarget,
+    id: string,
+    box: { x: number; y: number; w: number; h: number }
   ) => void;
   updateProps: (
     target: SaveTarget,
@@ -185,6 +199,30 @@ export const usePageStore = create<PageBuilderState>((set, get) => ({
     set((state) => ({
       components: state.components.map((component) =>
         component.id === id ? { ...component, w: size.w, h: size.h } : component
+      ),
+    }));
+    get().saveLayout(target);
+  },
+
+  setFullWidth: (target, id, containerWidth) => {
+    const width = Math.max(
+      MIN_COMPONENT_W,
+      containerWidth - CONTAINER_PADDING * 2
+    );
+    set((state) => ({
+      components: state.components.map((component) =>
+        component.id === id
+          ? { ...component, x: CONTAINER_PADDING, w: width }
+          : component
+      ),
+    }));
+    get().saveLayout(target);
+  },
+
+  setBox: (target, id, box) => {
+    set((state) => ({
+      components: state.components.map((component) =>
+        component.id === id ? { ...component, ...box } : component
       ),
     }));
     get().saveLayout(target);

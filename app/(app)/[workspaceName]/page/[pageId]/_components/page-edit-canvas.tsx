@@ -16,10 +16,6 @@ export function PageEditCanvas({ target, wrapperRef }: PageEditCanvasProps) {
   const guideX = usePageStore((s) => s.guideX);
   const guideY = usePageStore((s) => s.guideY);
 
-  // Guide lines run the length of the working area (max component extent).
-  const contentW = components.reduce((m, c) => Math.max(m, c.x + c.w), 0) + 400;
-  const contentH = components.reduce((m, c) => Math.max(m, c.y + c.h), 0) + 400;
-
   return (
     // Full-width dotted canvas — spans the entire area; the floating palette
     // and properties panel overlay its left/right edges.
@@ -55,14 +51,16 @@ export function PageEditCanvas({ target, wrapperRef }: PageEditCanvasProps) {
 
           {guideX !== null && (
             <div
-              className='bg-primary pointer-events-none absolute top-0 z-20 w-px'
-              style={{ left: guideX, height: contentH }}
+              className='bg-primary pointer-events-none absolute inset-y-0 z-20
+                w-px'
+              style={{ left: guideX }}
             />
           )}
           {guideY !== null && (
             <div
-              className='bg-primary pointer-events-none absolute left-0 z-20 h-px'
-              style={{ top: guideY, width: contentW }}
+              className='bg-primary pointer-events-none absolute inset-x-0 z-20
+                h-px'
+              style={{ top: guideY }}
             />
           )}
 

@@ -1,6 +1,14 @@
 import { MIN_COMPONENT_H, MIN_COMPONENT_W } from '../_constants/page-component-meta';
 
-export type Rect = { x: number; y: number; w: number; h: number };
+export type Rect = {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  /** Snap to this rect but draw no guide line (used for the container edge, so
+   * it doesn't duplicate the visible border). */
+  silent?: boolean;
+};
 
 export type SnapResult = {
   x: number;
@@ -12,10 +20,20 @@ export type SnapResult = {
 };
 
 export type ResizeSnapResult = {
+  x: number;
+  y: number;
   w: number;
   h: number;
   guideX: number | null;
   guideY: number | null;
+};
+
+/** Which edges of a component are moving during a corner resize. */
+export type ResizeEdges = {
+  left?: boolean;
+  right?: boolean;
+  top?: boolean;
+  bottom?: boolean;
 };
 
 /** How close (px) an edge/center must be to snap. */
@@ -68,7 +86,7 @@ export function snapToComponents(
       if (gap < bestV) {
         bestV = gap;
         result.x = snapX;
-        result.guideX = lineX;
+        result.guideX = b.silent ? null : lineX;
       }
     }
 
@@ -84,7 +102,7 @@ export function snapToComponents(
       if (gap < bestH) {
         bestH = gap;
         result.y = snapY;
-        result.guideY = lineY;
+        result.guideY = b.silent ? null : lineY;
       }
     }
   }
@@ -93,45 +111,74 @@ export function snapToComponents(
 }
 
 /**
- * Alignment snapping while resizing from the bottom-right corner: snaps the
- * moving right edge to other components' left/right/center-x and the moving
- * bottom edge to their top/bottom/center-y. The top-left stays fixed.
+ * Alignment snapping while resizing from any corner: snaps whichever edges are
+ * moving (per `edges`) to other components' / the container's edges and centers,
+ * keeping the opposite corner anchored. Silent rects snap without a guide line.
  */
-export function snapResize(
-  rect: Rect,
+export function snapResizeBox(
+  box: Rect,
   others: Rect[],
+  edges: ResizeEdges,
   distance: number = SNAP_DISTANCE
 ): ResizeSnapResult {
-  const result: ResizeSnapResult = {
-    w: rect.w,
-    h: rect.h,
-    guideX: null,
-    guideY: null,
-  };
+  let x = box.x;
+  let y = box.y;
+  let w = box.w;
+  let h = box.h;
+  let guideX: number | null = null;
+  let guideY: number | null = null;
   let bestV = distance;
   let bestH = distance;
 
-  const right = rect.x + rect.w;
-  const bottom = rect.y + rect.h;
-
   for (const b of others) {
-    for (const lineX of [b.x, b.x + b.w, b.x + b.w / 2]) {
-      const gap = Math.abs(right - lineX);
-      if (gap < bestV) {
-        bestV = gap;
-        result.w = Math.max(MIN_COMPONENT_W, lineX - rect.x);
-        result.guideX = lineX;
+    const xs = [b.x, b.x + b.w, b.x + b.w / 2];
+    const ys = [b.y, b.y + b.h, b.y + b.h / 2];
+
+    if (edges.right) {
+      for (const lineX of xs) {
+        const gap = Math.abs(x + w - lineX);
+        if (gap < bestV) {
+          bestV = gap;
+          w = Math.max(MIN_COMPONENT_W, lineX - x);
+          guideX = b.silent ? null : lineX;
+        }
       }
     }
-    for (const lineY of [b.y, b.y + b.h, b.y + b.h / 2]) {
-      const gap = Math.abs(bottom - lineY);
-      if (gap < bestH) {
-        bestH = gap;
-        result.h = Math.max(MIN_COMPONENT_H, lineY - rect.y);
-        result.guideY = lineY;
+    if (edges.left) {
+      for (const lineX of xs) {
+        const gap = Math.abs(x - lineX);
+        if (gap < bestV) {
+          bestV = gap;
+          const rightEdge = x + w;
+          w = Math.max(MIN_COMPONENT_W, rightEdge - lineX);
+          x = rightEdge - w;
+          guideX = b.silent ? null : lineX;
+        }
+      }
+    }
+    if (edges.bottom) {
+      for (const lineY of ys) {
+        const gap = Math.abs(y + h - lineY);
+        if (gap < bestH) {
+          bestH = gap;
+          h = Math.max(MIN_COMPONENT_H, lineY - y);
+          guideY = b.silent ? null : lineY;
+        }
+      }
+    }
+    if (edges.top) {
+      for (const lineY of ys) {
+        const gap = Math.abs(y - lineY);
+        if (gap < bestH) {
+          bestH = gap;
+          const bottomEdge = y + h;
+          h = Math.max(MIN_COMPONENT_H, bottomEdge - lineY);
+          y = bottomEdge - h;
+          guideY = b.silent ? null : lineY;
+        }
       }
     }
   }
 
-  return result;
+  return { x, y, w, h, guideX, guideY };
 }

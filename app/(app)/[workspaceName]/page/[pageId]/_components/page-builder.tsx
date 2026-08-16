@@ -31,6 +31,7 @@ import { PageSaveIndicator } from './page-save-indicator';
 import { PageUndoRedoButtons } from './page-undo-redo-buttons';
 import { PageWorkflowPicker } from './page-workflow-picker';
 
+import type { Rect } from '../_lib/snap-to-components';
 import type { PlacedPageDragData } from './page-canvas-item';
 import type { PalettePageDragData } from './page-palette-item';
 import type { Id } from '@/convex/_generated/dataModel';
@@ -79,7 +80,7 @@ export function PageBuilder({
   // Snap targets: every other component's rect, plus the bordered container's
   // own bounds so components can snap to its edges and center.
   const snapTargets = (excludeId: string) => {
-    const rects = usePageStore
+    const rects: Rect[] = usePageStore
       .getState()
       .components.filter((c) => c.id !== excludeId)
       .map((c) => ({ x: c.x, y: c.y, w: c.w, h: c.h }));
@@ -90,6 +91,7 @@ export function PageBuilder({
         y: CONTAINER_PADDING,
         w: el.clientWidth - CONTAINER_PADDING * 2,
         h: el.clientHeight - CONTAINER_PADDING * 2,
+        silent: true,
       });
     }
     return rects;
