@@ -69,11 +69,7 @@ export function PageMoreMenu() {
             <>
               <DropdownMenuItem
                 onClick={() => {
-                  window.open(
-                    `/p/${pageId}`,
-                    '_blank',
-                    'noopener,noreferrer'
-                  );
+                  window.open(`/${pageId}`, '_blank', 'noopener,noreferrer');
                 }}
               >
                 <ExternalLinkIcon className='size-3' />
