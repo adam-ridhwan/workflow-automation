@@ -103,6 +103,38 @@ export function parseCron(cron: string): CronBuilderState {
   return { ...base, frequency: 'custom' };
 }
 
+/** Formats an hour/minute as a wall-clock time like "9:00 AM". */
+function formatHourMinute(hour: number, minute: number): string {
+  const date = new Date();
+  date.setHours(hour, minute, 0, 0);
+  return date.toLocaleTimeString(undefined, {
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
+
+/** A human-readable description of a stored cron, for the schedules overview.
+ * Recognizes the presets the builder produces; falls back to the raw cron. */
+export function describeCron(cron: string): string {
+  const trimmed = cron.trim();
+
+  const hourly = HOURLY.exec(trimmed);
+  if (hourly) {
+    const minute = Number(hourly[1]);
+    return minute === 0 ? 'Every hour' : `Every hour at :${pad(minute)}`;
+  }
+  const daily = DAILY.exec(trimmed);
+  if (daily) {
+    return `Every day at ${formatHourMinute(Number(daily[2]), Number(daily[1]))}`;
+  }
+  const weekly = WEEKLY.exec(trimmed);
+  if (weekly) {
+    const day = WEEKDAYS[clamp(Number(weekly[3]), 0, 6)];
+    return `Every ${day} at ${formatHourMinute(Number(weekly[2]), Number(weekly[1]))}`;
+  }
+  return trimmed;
+}
+
 /** The browser's IANA timezone (e.g. "America/New_York"). */
 export function browserTimezone(): string {
   return Intl.DateTimeFormat().resolvedOptions().timeZone;

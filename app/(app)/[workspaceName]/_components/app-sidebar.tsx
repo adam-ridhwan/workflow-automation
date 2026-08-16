@@ -9,6 +9,7 @@ import { api } from '@/convex/_generated/api';
 import { convexAuthNextjsToken } from '@convex-dev/auth/nextjs/server';
 import { fetchQuery } from 'convex/nextjs';
 import {
+  CalendarClockIcon,
   FolderIcon,
   HouseIcon,
   LayoutTemplateIcon,
@@ -54,6 +55,12 @@ export async function AppSidebar({ workspaceName }: AppSidebarProps) {
       url: `/${workspaceSlug}/files`,
       icon: <FolderIcon />,
       match: ['files', 'file'],
+    },
+    {
+      title: 'Schedules',
+      url: `/${workspaceSlug}/schedules`,
+      icon: <CalendarClockIcon />,
+      match: ['schedules'],
     },
   ];
 

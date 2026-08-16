@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  CalendarClockIcon,
   FolderIcon,
   LayoutDashboardIcon,
   LayoutTemplateIcon,
@@ -28,6 +29,9 @@ function sectionFromPathname(pathname: string) {
 
     case 'page':
       return { label: 'Page', Icon: LayoutTemplateIcon };
+
+    case 'schedules':
+      return { label: 'Schedules', Icon: CalendarClockIcon };
 
     default:
       return { label: 'Overview', Icon: LayoutDashboardIcon };

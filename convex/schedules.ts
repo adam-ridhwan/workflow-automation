@@ -30,6 +30,22 @@ const scheduleValidator = v.object({
 
 export type WorkflowSchedule = Infer<typeof scheduleValidator>;
 
+const scheduleWithWorkflowValidator = v.object({
+  _id: v.id('workflowSchedules'),
+  _creationTime: v.number(),
+  workflowId: v.id('workflows'),
+  workflowName: v.string(),
+  cron: v.string(),
+  timezone: v.string(),
+  enabled: v.boolean(),
+  nextRunAt: v.optional(v.number()),
+  lastRunAt: v.optional(v.number()),
+});
+
+export type WorkflowScheduleWithWorkflow = Infer<
+  typeof scheduleWithWorkflowValidator
+>;
+
 /** Resolves the caller-visible workflow for a member, or null. */
 async function memberWorkflow(
   ctx: QueryCtx,
@@ -64,6 +80,49 @@ export const getForWorkflow = query({
       .query('workflowSchedules')
       .withIndex('workflow', (q) => q.eq('workflowId', args.workflowId))
       .unique();
+  },
+});
+
+/** Every schedule in the workspace, with its workflow's name, for the
+ * workspace-wide schedules overview. */
+export const listForWorkspace = query({
+  args: { workspaceName: v.string() },
+  returns: v.array(scheduleWithWorkflowValidator),
+  handler: async (ctx, args) => {
+    const workspace = await getMemberWorkspaceByName(ctx, args.workspaceName);
+    if (workspace === null) {
+      return [];
+    }
+    await requireUserId(ctx);
+    const workflows = await ctx.db
+      .query('workflows')
+      .withIndex('workspaceId', (q) => q.eq('workspaceId', workspace._id))
+      .collect();
+    const result: WorkflowScheduleWithWorkflow[] = [];
+    for (const workflow of workflows) {
+      const schedule = await ctx.db
+        .query('workflowSchedules')
+        .withIndex('workflow', (q) => q.eq('workflowId', workflow._id))
+        .unique();
+      if (schedule !== null) {
+        result.push({
+          _id: schedule._id,
+          _creationTime: schedule._creationTime,
+          workflowId: schedule.workflowId,
+          workflowName: workflow.name,
+          cron: schedule.cron,
+          timezone: schedule.timezone,
+          enabled: schedule.enabled,
+          nextRunAt: schedule.nextRunAt,
+          lastRunAt: schedule.lastRunAt,
+        });
+      }
+    }
+    // Soonest next run first; disabled/unscheduled sink to the bottom.
+    result.sort(
+      (a, b) => (a.nextRunAt ?? Infinity) - (b.nextRunAt ?? Infinity)
+    );
+    return result;
   },
 });
 
