@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { Button } from '@/components/ui/button';
 import { api } from '@/convex/_generated/api';
 import { cn } from '@/lib/cn';
 import {
@@ -11,6 +12,7 @@ import {
   useSensors,
 } from '@dnd-kit/core';
 import { useQuery } from 'convex/react';
+import { PencilIcon, PlayIcon } from 'lucide-react';
 
 import { PAGE_COMPONENT_META, snap } from '../_constants/page-component-meta';
 import { bindableNodes } from '../_lib/bindable-nodes';
@@ -65,6 +67,7 @@ export function PageBuilder({
   const setGuides = usePageStore((s) => s.setGuides);
 
   const mode = usePageStore((s) => s.mode);
+  const setMode = usePageStore((s) => s.setMode);
   const [activePaletteType, setActivePaletteType] =
     useState<PageComponentType | null>(null);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
@@ -231,13 +234,37 @@ export function PageBuilder({
         <div className='flex min-w-0 items-center gap-3'>
           <span className='truncate text-sm font-medium'>{page.name}</span>
         </div>
-        {mode === 'edit' && (
-          <div className='flex items-center gap-2'>
-            <PageSaveIndicator />
-            <PageUndoRedoButtons target={target} />
-            <PageWorkflowPicker target={target} options={workflowOptions} />
+        <div className='flex items-center gap-2'>
+          {mode === 'edit' && (
+            <>
+              <PageSaveIndicator />
+              <PageUndoRedoButtons target={target} />
+              <PageWorkflowPicker target={target} options={workflowOptions} />
+            </>
+          )}
+          <div className='bg-muted flex items-center gap-0.5 rounded-lg p-0.5'>
+            <Button
+              size='sm'
+              variant={mode === 'edit' ? 'outline' : 'ghost'}
+              onClick={() => {
+                setMode('edit');
+              }}
+            >
+              <PencilIcon />
+              Edit
+            </Button>
+            <Button
+              size='sm'
+              variant={mode === 'preview' ? 'outline' : 'ghost'}
+              onClick={() => {
+                setMode('preview');
+              }}
+            >
+              <PlayIcon />
+              Preview
+            </Button>
           </div>
-        )}
+        </div>
       </div>
 
       {mode === 'edit' ? (
