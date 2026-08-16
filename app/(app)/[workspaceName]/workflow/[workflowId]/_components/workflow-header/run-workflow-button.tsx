@@ -4,7 +4,13 @@ import { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { api } from '@/convex/_generated/api';
 import { useQuery } from 'convex/react';
-import { ClockIcon, Loader2Icon, PlayIcon, SquareIcon } from 'lucide-react';
+import {
+  ClockIcon,
+  Loader2Icon,
+  PlayIcon,
+  RotateCcwIcon,
+  SquareIcon,
+} from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 
 import { validateWorkflow } from '../../_lib/validate-workflow';
@@ -106,7 +112,11 @@ export function RunWorkflowButton() {
       }}
       className='w-36 gap-1.5'
     >
-      <PlayIcon className='size-3.5' />
+      {onRunHistory ? (
+        <RotateCcwIcon className='size-3.5' />
+      ) : (
+        <PlayIcon className='size-3.5' />
+      )}
       Run Workflow
     </Button>
   );
