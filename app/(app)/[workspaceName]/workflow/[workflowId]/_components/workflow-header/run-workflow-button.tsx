@@ -35,10 +35,16 @@ export function RunWorkflowButton() {
   const isRerun = runHistoryId !== undefined;
   const workflow = useQuery(api.workflows.get, { workspaceName, workflowId });
   const isPublished = workflow?.isPublished ?? false;
+  // On the run-history view, a run must be selected to re-run; the list route
+  // (no id in the path) has nothing to run.
+  const onRunHistory = pathname.includes('/run-history');
+  const noRunSelected = onRunHistory && runHistoryId === undefined;
 
   let runTitle: string | undefined;
   if (!isPublished) {
     runTitle = 'Publish this workflow before running it.';
+  } else if (noRunSelected) {
+    runTitle = 'Select a run to re-run.';
   } else if (!isRerun) {
     runTitle = errors[0];
   }
@@ -82,7 +88,9 @@ export function RunWorkflowButton() {
 
   return (
     <Button
-      disabled={!isPublished || (!isRerun && errors.length > 0)}
+      disabled={
+        !isPublished || noRunSelected || (!isRerun && errors.length > 0)
+      }
       title={runTitle}
       onClick={async () => {
         const newRunId = await runWorkflow(

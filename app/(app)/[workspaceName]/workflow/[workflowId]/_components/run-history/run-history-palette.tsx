@@ -188,7 +188,7 @@ export function RunHistoryPalette({ selectedId }: RunHistoryPaletteProps) {
         </CollapsibleContent>
 
         {runs !== undefined && (
-          <div className='mt-1 flex shrink-0 flex-col gap-2 pt-1'>
+          <div className='mt-1 flex shrink-0 flex-col gap-2 p-1'>
             <Card className='border-border gap-0 bg-transparent px-2.5 py-1.5'>
               <div className='flex items-center gap-2'>
                 <span
