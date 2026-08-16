@@ -14,14 +14,14 @@ import type { Folder } from '@/convex/folders';
 
 const FILTERS = [
   { value: 'all', label: 'All pages' },
-  { value: 'bound', label: 'Bound' },
-  { value: 'unbound', label: 'Unbound' },
+  { value: 'published', label: 'Published' },
+  { value: 'unpublished', label: 'Unpublished' },
 ];
 
 const SORTS = [
   { value: 'recent', label: 'Most recent', short: 'Recent' },
   { value: 'name', label: 'Name', short: 'Name' },
-  { value: 'workflow', label: 'Workflow', short: 'Workflow' },
+  { value: 'status', label: 'Status', short: 'Status' },
 ];
 
 export function PagesHeader() {
