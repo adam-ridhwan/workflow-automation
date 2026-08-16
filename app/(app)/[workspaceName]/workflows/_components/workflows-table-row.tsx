@@ -82,7 +82,11 @@ export function WorkflowsTableRow({
       return;
     }
     try {
-      await renameWorkflow({ workspaceName, workflowId: workflow._id, name: nextName });
+      await renameWorkflow({
+        workspaceName,
+        workflowId: workflow._id,
+        name: nextName,
+      });
       stopRename();
       router.refresh();
     } catch (err) {
@@ -141,7 +145,9 @@ export function WorkflowsTableRow({
         dragDisabled={isRenaming}
       >
         <WorkflowRow.NameCell
-          icon={<WorkflowIcon className='text-muted-foreground size-4 shrink-0' />}
+          icon={
+            <WorkflowIcon className='text-muted-foreground size-4 shrink-0' />
+          }
           name={workflow.name}
           subtitle={workflow.description}
           href={`/${encodeURIComponent(workspaceName)}/workflow/${workflow._id}/canvas`}
@@ -194,7 +200,7 @@ export function WorkflowsTableRow({
             >
               <EllipsisVerticalIcon className='size-4' />
             </DropdownMenuTrigger>
-            
+
             <DropdownMenuContent align='end' className='w-46'>
               {phase === 'running' ? (
                 <DropdownMenuItem onClick={handleStop}>
@@ -211,21 +217,23 @@ export function WorkflowsTableRow({
                 </DropdownMenuItem>
               )}
 
-              <DropdownMenuSeparator />
-
-              <DropdownMenuItem onClick={startRename}>
-                <PencilIcon className='size-3' />
-                Rename workflow
-              </DropdownMenuItem>
-
               <DropdownMenuItem
                 onClick={() => {
                   handleSetPublished(!workflow.isPublished);
                 }}
               >
                 <GlobeIcon className='size-3' />
-                {workflow.isPublished ? 'Unpublish' : 'Publish'}
+                {workflow.isPublished
+                  ? 'Unpublish workflow'
+                  : 'Publish workflow'}
               </DropdownMenuItem>
+
+              <DropdownMenuItem onClick={startRename}>
+                <PencilIcon className='size-3' />
+                Rename workflow
+              </DropdownMenuItem>
+
+              <DropdownMenuSeparator />
 
               <DropdownMenuItem onClick={onDelete}>
                 <Trash2Icon className='size-3' />
