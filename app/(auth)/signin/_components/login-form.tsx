@@ -32,6 +32,7 @@ export function LoginForm({
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [googleSubmitting, setGoogleSubmitting] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -68,12 +69,25 @@ export function LoginForm({
                 <Button
                   variant='outline'
                   type='button'
-                  onClick={() => {
-                    signIn('google');
+                  disabled={googleSubmitting}
+                  onClick={async () => {
+                    setError(null);
+                    setGoogleSubmitting(true);
+                    try {
+                      await signIn('google');
+                    } catch (err) {
+                      console.error('Google sign-in failed:', err);
+                      setError(
+                        err instanceof ConvexError && typeof err.data === 'string'
+                          ? err.data
+                          : 'Google sign-in failed. Please try again.',
+                      );
+                      setGoogleSubmitting(false);
+                    }
                   }}
                 >
                   <SiGoogle className='size-4' />
-                  Login with Google
+                  {googleSubmitting ? 'Redirecting…' : 'Login with Google'}
                 </Button>
               </Field>
               <FieldSeparator className='*:data-[slot=field-separator-content]:bg-card'>
