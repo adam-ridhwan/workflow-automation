@@ -354,7 +354,7 @@ export const runChainSequence = internalAction({
 
 export const run = action({
   args: {
-    workspaceName: v.string(),
+    workspaceId: v.id('workspaces'),
     workflowId: v.id('workflows'),
     /** Injected into WEBHOOK nodes — set by the "send test event" button so a
      * manual run can simulate an inbound webhook payload. */
@@ -362,8 +362,11 @@ export const run = action({
   },
   returns: v.id('runHistory'),
   handler: async (ctx, args): Promise<Id<'runHistory'>> => {
+    await ctx.runQuery(internal.workspaces.assertWriteAccessById, {
+      workspaceId: args.workspaceId,
+    });
     const workflow = await ctx.runQuery(api.workflows.get, {
-      workspaceName: args.workspaceName,
+      workspaceId: args.workspaceId,
       workflowId: args.workflowId,
     });
     if (workflow === null) {
@@ -505,7 +508,7 @@ export const run = action({
  */
 export const runForPage = action({
   args: {
-    workspaceName: v.string(),
+    workspaceId: v.id('workspaces'),
     workflowId: v.id('workflows'),
     runtimeInputs: v.record(v.string(), v.string()),
   },
@@ -521,7 +524,7 @@ export const runForPage = action({
     outputs: Record<string, string>;
   }> => {
     const workflow = await ctx.runQuery(api.workflows.get, {
-      workspaceName: args.workspaceName,
+      workspaceId: args.workspaceId,
       workflowId: args.workflowId,
     });
     if (workflow === null) {

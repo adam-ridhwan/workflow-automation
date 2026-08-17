@@ -1,9 +1,10 @@
 import { v } from 'convex/values';
 
 import { query } from './_generated/server';
-import { getMemberWorkspaceByName, requireUserId } from './workspaces';
+import { getMemberWorkspaceById, requireUserId } from './workspaces';
 
 const overviewValidator = v.object({
+  name: v.string(),
   workflows: v.object({
     total: v.number(),
     published: v.number(),
@@ -48,10 +49,10 @@ const MAX_RUNS_PER_WORKFLOW = 500;
  * success rate, member count, and the latest runs. Null when the signed-in user
  * isn't a member. */
 export const get = query({
-  args: { workspaceName: v.string() },
+  args: { workspaceId: v.id('workspaces') },
   returns: v.union(v.null(), overviewValidator),
   handler: async (ctx, args) => {
-    const workspace = await getMemberWorkspaceByName(ctx, args.workspaceName);
+    const workspace = await getMemberWorkspaceById(ctx, args.workspaceId);
     if (workspace === null) {
       return null;
     }
@@ -121,6 +122,7 @@ export const get = query({
       .collect();
 
     return {
+      name: workspace.name,
       workflows: {
         total: workflows.length,
         published,
@@ -149,7 +151,7 @@ export const get = query({
  * first — the workspace's runs-over-time chart. Empty array when the signed-in
  * user isn't a member. */
 export const runsSeries = query({
-  args: { workspaceName: v.string() },
+  args: { workspaceId: v.id('workspaces') },
   returns: v.array(
     v.object({
       t: v.number(),
@@ -158,7 +160,7 @@ export const runsSeries = query({
     })
   ),
   handler: async (ctx, args) => {
-    const workspace = await getMemberWorkspaceByName(ctx, args.workspaceName);
+    const workspace = await getMemberWorkspaceById(ctx, args.workspaceId);
     if (workspace === null) {
       return [];
     }

@@ -25,7 +25,7 @@ function computeNextRunAt(
  * enabling. Returns the next fire time, or null when disabled. */
 export const set = action({
   args: {
-    workspaceName: v.string(),
+    workspaceId: v.id('workspaces'),
     workflowId: v.id('workflows'),
     cron: v.string(),
     timezone: v.string(),
@@ -35,7 +35,7 @@ export const set = action({
   handler: async (ctx, args): Promise<number | null> => {
     const createdBy = await ctx.runQuery(
       internal.schedules.assertMemberForSchedule,
-      { workspaceName: args.workspaceName, workflowId: args.workflowId }
+      { workspaceId: args.workspaceId, workflowId: args.workflowId }
     );
 
     // Always validate the cron so even a disabled schedule stays coherent.

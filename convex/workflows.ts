@@ -11,10 +11,10 @@ import {
 import { workflowCanvasValidator } from './canvas';
 import { resolveUserImageUrl } from './users';
 import {
-  getMemberWorkspaceByName,
-  getWorkspaceByNameOrThrow,
-  requireMember,
+  getMemberWorkspaceById,
+  getWorkspaceByIdOrThrow,
   requireUserId,
+  requireWriteAccess,
 } from './workspaces';
 
 import type { Id } from './_generated/dataModel';
@@ -50,11 +50,11 @@ export type Workflow = Infer<typeof workflowValidator>;
 
 async function getMemberWorkflow(
   ctx: MutationCtx,
-  workspaceName: string,
+  workspaceId: Id<'workspaces'>,
   workflowId: Id<'workflows'>
 ) {
-  const workspace = await getWorkspaceByNameOrThrow(ctx, workspaceName);
-  await requireMember(ctx, workspace._id);
+  const workspace = await getWorkspaceByIdOrThrow(ctx, workspaceId);
+  await requireWriteAccess(ctx, workspace._id);
 
   const workflow = await ctx.db.get(workflowId);
   if (workflow === null || workflow.workspaceId !== workspace._id) {
@@ -87,10 +87,10 @@ async function nextAvailableWorkflowName(
 }
 
 export const get = query({
-  args: { workspaceName: v.string(), workflowId: v.id('workflows') },
+  args: { workspaceId: v.id('workspaces'), workflowId: v.id('workflows') },
   returns: v.union(v.null(), workflowValidator),
   handler: async (ctx, args) => {
-    const workspace = await getMemberWorkspaceByName(ctx, args.workspaceName);
+    const workspace = await getMemberWorkspaceById(ctx, args.workspaceId);
     if (workspace === null) {
       return null;
     }
@@ -117,12 +117,12 @@ export const get = query({
  * is omitted. */
 export const list = query({
   args: {
-    workspaceName: v.string(),
+    workspaceId: v.id('workspaces'),
     folderId: v.optional(v.id('folders')),
   },
   returns: v.array(workflowValidator),
   handler: async (ctx, args) => {
-    const workspace = await getMemberWorkspaceByName(ctx, args.workspaceName);
+    const workspace = await getMemberWorkspaceById(ctx, args.workspaceId);
     if (workspace === null) {
       return [];
     }
@@ -168,15 +168,15 @@ export const list = query({
 
 export const create = mutation({
   args: {
-    workspaceName: v.string(),
+    workspaceId: v.id('workspaces'),
     name: v.string(),
     description: v.optional(v.string()),
     folderId: v.optional(v.id('folders')),
   },
   returns: v.id('workflows'),
   handler: async (ctx, args) => {
-    const workspace = await getWorkspaceByNameOrThrow(ctx, args.workspaceName);
-    const membership = await requireMember(ctx, workspace._id);
+    const workspace = await getWorkspaceByIdOrThrow(ctx, args.workspaceId);
+    const membership = await requireWriteAccess(ctx, workspace._id);
 
     if (args.folderId !== undefined) {
       const folder = await ctx.db.get(args.folderId);
@@ -226,7 +226,7 @@ export const create = mutation({
 
 export const rename = mutation({
   args: {
-    workspaceName: v.string(),
+    workspaceId: v.id('workspaces'),
     workflowId: v.id('workflows'),
     name: v.string(),
   },
@@ -234,7 +234,7 @@ export const rename = mutation({
   handler: async (ctx, args) => {
     const workflow = await getMemberWorkflow(
       ctx,
-      args.workspaceName,
+      args.workspaceId,
       args.workflowId
     );
 
@@ -264,7 +264,7 @@ export const rename = mutation({
 /** Publish or unpublish a workflow. */
 export const setPublished = mutation({
   args: {
-    workspaceName: v.string(),
+    workspaceId: v.id('workspaces'),
     workflowId: v.id('workflows'),
     isPublished: v.boolean(),
   },
@@ -272,7 +272,7 @@ export const setPublished = mutation({
   handler: async (ctx, args) => {
     const workflow = await getMemberWorkflow(
       ctx,
-      args.workspaceName,
+      args.workspaceId,
       args.workflowId
     );
 
@@ -292,13 +292,13 @@ export const setPublished = mutation({
  * workflow id. */
 export const duplicate = mutation({
   args: {
-    workspaceName: v.string(),
+    workspaceId: v.id('workspaces'),
     workflowId: v.id('workflows'),
   },
   returns: v.id('workflows'),
   handler: async (ctx, args) => {
-    const workspace = await getWorkspaceByNameOrThrow(ctx, args.workspaceName);
-    const membership = await requireMember(ctx, workspace._id);
+    const workspace = await getWorkspaceByIdOrThrow(ctx, args.workspaceId);
+    const membership = await requireWriteAccess(ctx, workspace._id);
 
     const source = await ctx.db.get(args.workflowId);
     if (source === null || source.workspaceId !== workspace._id) {
@@ -331,14 +331,14 @@ export const duplicate = mutation({
  * new workflow id. */
 export const createFromTemplate = mutation({
   args: {
-    workspaceName: v.string(),
+    workspaceId: v.id('workspaces'),
     templateId: v.string(),
     folderId: v.optional(v.id('folders')),
   },
   returns: v.id('workflows'),
   handler: async (ctx, args) => {
-    const workspace = await getWorkspaceByNameOrThrow(ctx, args.workspaceName);
-    const membership = await requireMember(ctx, workspace._id);
+    const workspace = await getWorkspaceByIdOrThrow(ctx, args.workspaceId);
+    const membership = await requireWriteAccess(ctx, workspace._id);
 
     if (args.folderId !== undefined) {
       const folder = await ctx.db.get(args.folderId);
@@ -380,7 +380,7 @@ export const createFromTemplate = mutation({
  * is omitted. */
 export const move = mutation({
   args: {
-    workspaceName: v.string(),
+    workspaceId: v.id('workspaces'),
     workflowId: v.id('workflows'),
     folderId: v.optional(v.id('folders')),
   },
@@ -388,7 +388,7 @@ export const move = mutation({
   handler: async (ctx, args) => {
     const workflow = await getMemberWorkflow(
       ctx,
-      args.workspaceName,
+      args.workspaceId,
       args.workflowId
     );
 
@@ -443,7 +443,7 @@ async function insertWorkflowVersion(
 
 export const updateCanvas = mutation({
   args: {
-    workspaceName: v.string(),
+    workspaceId: v.id('workspaces'),
     workflowId: v.id('workflows'),
     canvas: workflowCanvasValidator,
   },
@@ -451,7 +451,7 @@ export const updateCanvas = mutation({
   handler: async (ctx, args) => {
     const workflow = await getMemberWorkflow(
       ctx,
-      args.workspaceName,
+      args.workspaceId,
       args.workflowId
     );
     await ctx.db.patch(workflow._id, {
@@ -467,7 +467,7 @@ export const updateCanvas = mutation({
  * since the latest version. */
 export const saveVersion = mutation({
   args: {
-    workspaceName: v.string(),
+    workspaceId: v.id('workspaces'),
     workflowId: v.id('workflows'),
     name: v.optional(v.string()),
   },
@@ -475,7 +475,7 @@ export const saveVersion = mutation({
   handler: async (ctx, args) => {
     const workflow = await getMemberWorkflow(
       ctx,
-      args.workspaceName,
+      args.workspaceId,
       args.workflowId
     );
     const userId = await requireUserId(ctx);
@@ -527,10 +527,10 @@ const workflowVersionValidator = v.object({
 
 /** The saved versions of a workflow's canvas, newest first. */
 export const listWorkflowVersions = query({
-  args: { workspaceName: v.string(), workflowId: v.id('workflows') },
+  args: { workspaceId: v.id('workspaces'), workflowId: v.id('workflows') },
   returns: v.array(workflowVersionValidator),
   handler: async (ctx, args) => {
-    const workspace = await getMemberWorkspaceByName(ctx, args.workspaceName);
+    const workspace = await getMemberWorkspaceById(ctx, args.workspaceId);
     if (workspace === null) {
       return [];
     }
@@ -576,13 +576,13 @@ export const listWorkflowVersions = query({
  * Returns the restored canvas. */
 export const restoreVersion = mutation({
   args: {
-    workspaceName: v.string(),
+    workspaceId: v.id('workspaces'),
     versionId: v.id('workflowVersions'),
   },
   returns: workflowCanvasValidator,
   handler: async (ctx, args) => {
-    const workspace = await getWorkspaceByNameOrThrow(ctx, args.workspaceName);
-    const membership = await requireMember(ctx, workspace._id);
+    const workspace = await getWorkspaceByIdOrThrow(ctx, args.workspaceId);
+    const membership = await requireWriteAccess(ctx, workspace._id);
 
     const version = await ctx.db.get(args.versionId);
     if (version === null) {
@@ -635,10 +635,10 @@ function webhookUrlFor(token: string) {
 
 /** The workflow's inbound webhook URL, or null until a member enables it. */
 export const webhookUrl = query({
-  args: { workspaceName: v.string(), workflowId: v.id('workflows') },
+  args: { workspaceId: v.id('workspaces'), workflowId: v.id('workflows') },
   returns: v.union(v.null(), v.string()),
   handler: async (ctx, args) => {
-    const workspace = await getMemberWorkspaceByName(ctx, args.workspaceName);
+    const workspace = await getMemberWorkspaceById(ctx, args.workspaceId);
     if (workspace === null) {
       return null;
     }
@@ -657,12 +657,12 @@ export const webhookUrl = query({
 /** Enables the workflow's webhook, minting a token on first use. Idempotent —
  * returns the (existing or new) URL. */
 export const ensureWebhook = mutation({
-  args: { workspaceName: v.string(), workflowId: v.id('workflows') },
+  args: { workspaceId: v.id('workspaces'), workflowId: v.id('workflows') },
   returns: v.string(),
   handler: async (ctx, args) => {
     const workflow = await getMemberWorkflow(
       ctx,
-      args.workspaceName,
+      args.workspaceId,
       args.workflowId
     );
     let token = workflow.webhookToken;
@@ -676,12 +676,12 @@ export const ensureWebhook = mutation({
 
 /** Rotates the webhook token, invalidating the old URL. */
 export const regenerateWebhook = mutation({
-  args: { workspaceName: v.string(), workflowId: v.id('workflows') },
+  args: { workspaceId: v.id('workspaces'), workflowId: v.id('workflows') },
   returns: v.string(),
   handler: async (ctx, args) => {
     const workflow = await getMemberWorkflow(
       ctx,
-      args.workspaceName,
+      args.workspaceId,
       args.workflowId
     );
     const token = crypto.randomUUID();
@@ -693,16 +693,16 @@ export const regenerateWebhook = mutation({
 /** The other workflows in this workspace, for the chain picker — everything
  * except the current workflow. Just id + name. */
 export const otherWorkflows = query({
-  args: { workspaceName: v.string(), workflowId: v.id('workflows') },
+  args: { workspaceId: v.id('workspaces'), workflowId: v.id('workflows') },
   returns: v.array(v.object({ _id: v.id('workflows'), name: v.string() })),
   handler: async (ctx, args) => {
-    const workspace = await getMemberWorkspaceByName(ctx, args.workspaceName);
+    const workspace = await getMemberWorkspaceById(ctx, args.workspaceId);
     if (workspace === null) {
       return [];
     }
     const rows = await ctx.db
       .query('workflows')
-      .withIndex('workspaceName', (q) => q.eq('workspaceId', workspace._id))
+      .withIndex('workspaceId', (q) => q.eq('workspaceId', workspace._id))
       .collect();
     return rows
       .filter((row) => row._id !== args.workflowId)
@@ -715,7 +715,7 @@ export const otherWorkflows = query({
  * workflow in the same workspace (and not this workflow itself). */
 export const setChain = mutation({
   args: {
-    workspaceName: v.string(),
+    workspaceId: v.id('workspaces'),
     workflowId: v.id('workflows'),
     chainWorkflowIds: v.array(v.id('workflows')),
   },
@@ -723,7 +723,7 @@ export const setChain = mutation({
   handler: async (ctx, args) => {
     const workflow = await getMemberWorkflow(
       ctx,
-      args.workspaceName,
+      args.workspaceId,
       args.workflowId
     );
     for (const id of args.chainWorkflowIds) {
@@ -795,12 +795,12 @@ export const byWebhookToken = internalQuery({
 });
 
 export const remove = mutation({
-  args: { workspaceName: v.string(), workflowId: v.id('workflows') },
+  args: { workspaceId: v.id('workspaces'), workflowId: v.id('workflows') },
   returns: v.null(),
   handler: async (ctx, args) => {
     const workflow = await getMemberWorkflow(
       ctx,
-      args.workspaceName,
+      args.workspaceId,
       args.workflowId
     );
 

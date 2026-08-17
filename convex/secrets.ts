@@ -7,8 +7,8 @@ import {
   query,
 } from './_generated/server';
 import {
-  getMemberWorkspaceByName,
-  getWorkspaceByNameOrThrow,
+  getMemberWorkspaceById,
+  getWorkspaceByIdOrThrow,
   requireAdmin,
   requireUserId,
 } from './workspaces';
@@ -29,10 +29,10 @@ const NAME_PATTERN = /^[A-Za-z0-9_.-]+$/;
 /** A workspace's secrets as metadata only — never the plaintext. Any member may
  * see which secrets exist and their masked preview. */
 export const list = query({
-  args: { workspaceName: v.string() },
+  args: { workspaceId: v.id('workspaces') },
   returns: v.array(secretMetadataValidator),
   handler: async (ctx, args) => {
-    const workspace = await getMemberWorkspaceByName(ctx, args.workspaceName);
+    const workspace = await getMemberWorkspaceById(ctx, args.workspaceId);
     if (workspace === null) {
       return [];
     }
@@ -57,13 +57,13 @@ export const list = query({
  * touches the database; only its last 4 chars are kept in the clear. */
 export const set = mutation({
   args: {
-    workspaceName: v.string(),
+    workspaceId: v.id('workspaces'),
     name: v.string(),
     value: v.string(),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const workspace = await getWorkspaceByNameOrThrow(ctx, args.workspaceName);
+    const workspace = await getWorkspaceByIdOrThrow(ctx, args.workspaceId);
     await requireAdmin(ctx, workspace._id);
     const userId = await requireUserId(ctx);
 
@@ -114,10 +114,10 @@ export const set = mutation({
 
 /** Deletes a secret. Admin-only. */
 export const remove = mutation({
-  args: { workspaceName: v.string(), name: v.string() },
+  args: { workspaceId: v.id('workspaces'), name: v.string() },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const workspace = await getWorkspaceByNameOrThrow(ctx, args.workspaceName);
+    const workspace = await getWorkspaceByIdOrThrow(ctx, args.workspaceId);
     await requireAdmin(ctx, workspace._id);
     const existing = await ctx.db
       .query('workspaceSecrets')

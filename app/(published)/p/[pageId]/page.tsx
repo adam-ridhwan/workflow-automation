@@ -37,7 +37,7 @@ export default async function PublishedPage({ params }: PublishedPageProps) {
 
   const fileOptions = await fetchQuery(
     api.pages.fileOptions,
-    { workspaceName: page.workspaceName },
+    { workspaceId: page.workspaceId },
     { token }
   );
 

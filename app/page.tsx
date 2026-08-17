@@ -17,7 +17,7 @@ export default function Home() {
     }
     const first = workspaces[0];
     if (first) {
-      router.replace(`/${encodeURIComponent(first.name)}`);
+      router.replace(`/workspace/${first._id}`);
     } else {
       router.replace('/create-workspace');
     }

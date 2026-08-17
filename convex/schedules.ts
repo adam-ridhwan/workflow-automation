@@ -8,9 +8,9 @@ import {
 } from './_generated/server';
 import { workflowCanvasValidator } from './canvas';
 import {
-  getMemberWorkspaceByName,
-  requireMember,
+  getMemberWorkspaceById,
   requireUserId,
+  requireWriteAccess,
 } from './workspaces';
 
 import type { Id } from './_generated/dataModel';
@@ -49,10 +49,10 @@ export type WorkflowScheduleWithWorkflow = Infer<
 /** Resolves the caller-visible workflow for a member, or null. */
 async function memberWorkflow(
   ctx: QueryCtx,
-  workspaceName: string,
+  workspaceId: Id<'workspaces'>,
   workflowId: Id<'workflows'>
 ) {
-  const workspace = await getMemberWorkspaceByName(ctx, workspaceName);
+  const workspace = await getMemberWorkspaceById(ctx, workspaceId);
   if (workspace === null) {
     return null;
   }
@@ -65,12 +65,12 @@ async function memberWorkflow(
 
 /** The schedule for a workflow, if one exists and the caller may see it. */
 export const getForWorkflow = query({
-  args: { workspaceName: v.string(), workflowId: v.id('workflows') },
+  args: { workspaceId: v.id('workspaces'), workflowId: v.id('workflows') },
   returns: v.union(v.null(), scheduleValidator),
   handler: async (ctx, args) => {
     const workflow = await memberWorkflow(
       ctx,
-      args.workspaceName,
+      args.workspaceId,
       args.workflowId
     );
     if (workflow === null) {
@@ -86,10 +86,10 @@ export const getForWorkflow = query({
 /** Every schedule in the workspace, with its workflow's name, for the
  * workspace-wide schedules overview. */
 export const listForWorkspace = query({
-  args: { workspaceName: v.string() },
+  args: { workspaceId: v.id('workspaces') },
   returns: v.array(scheduleWithWorkflowValidator),
   handler: async (ctx, args) => {
-    const workspace = await getMemberWorkspaceByName(ctx, args.workspaceName);
+    const workspace = await getMemberWorkspaceById(ctx, args.workspaceId);
     if (workspace === null) {
       return [];
     }
@@ -129,17 +129,18 @@ export const listForWorkspace = query({
 /** Member-check for the `set` action, returning the caller's id to record as
  * the schedule's owner. Throws if the caller can't run this workflow. */
 export const assertMemberForSchedule = internalQuery({
-  args: { workspaceName: v.string(), workflowId: v.id('workflows') },
+  args: { workspaceId: v.id('workspaces'), workflowId: v.id('workflows') },
   returns: v.id('users'),
   handler: async (ctx, args) => {
     const workflow = await memberWorkflow(
       ctx,
-      args.workspaceName,
+      args.workspaceId,
       args.workflowId
     );
     if (workflow === null) {
       throw new ConvexError('Workflow not found.');
     }
+    await requireWriteAccess(ctx, workflow.workspaceId);
     return await requireUserId(ctx);
   },
 });
@@ -184,14 +185,14 @@ export const upsert = internalMutation({
 
 /** Removes a workflow's schedule entirely. */
 export const remove = mutation({
-  args: { workspaceName: v.string(), workflowId: v.id('workflows') },
+  args: { workspaceId: v.id('workspaces'), workflowId: v.id('workflows') },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const workspace = await getMemberWorkspaceByName(ctx, args.workspaceName);
+    const workspace = await getMemberWorkspaceById(ctx, args.workspaceId);
     if (workspace === null) {
       throw new ConvexError('Workspace not found.');
     }
-    await requireMember(ctx, workspace._id);
+    await requireWriteAccess(ctx, workspace._id);
     const existing = await ctx.db
       .query('workflowSchedules')
       .withIndex('workflow', (q) => q.eq('workflowId', args.workflowId))
@@ -227,9 +228,7 @@ export const listDue = internalQuery({
   handler: async (ctx, args) => {
     return await ctx.db
       .query('workflowSchedules')
-      .withIndex('due', (q) =>
-        q.eq('enabled', true).lte('nextRunAt', args.now)
-      )
+      .withIndex('due', (q) => q.eq('enabled', true).lte('nextRunAt', args.now))
       .take(100);
   },
 });

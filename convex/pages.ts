@@ -6,10 +6,10 @@ import { pageLayoutValidator } from './pageLayout';
 import { resolveUserImageUrl } from './users';
 import {
   getMembership,
-  getMemberWorkspaceByName,
-  getWorkspaceByNameOrThrow,
-  requireMember,
+  getMemberWorkspaceById,
+  getWorkspaceByIdOrThrow,
   requireUserId,
+  requireWriteAccess,
 } from './workspaces';
 
 import type { Id } from './_generated/dataModel';
@@ -42,11 +42,11 @@ const EMPTY_LAYOUT = { components: [], version: 1 };
 
 async function getMemberPage(
   ctx: MutationCtx,
-  workspaceName: string,
+  workspaceId: Id<'workspaces'>,
   pageId: Id<'pages'>
 ) {
-  const workspace = await getWorkspaceByNameOrThrow(ctx, workspaceName);
-  await requireMember(ctx, workspace._id);
+  const workspace = await getWorkspaceByIdOrThrow(ctx, workspaceId);
+  await requireWriteAccess(ctx, workspace._id);
 
   const page = await ctx.db.get(pageId);
   if (page === null || page.workspaceId !== workspace._id) {
@@ -79,10 +79,10 @@ async function nextAvailablePageName(
 }
 
 export const get = query({
-  args: { workspaceName: v.string(), pageId: v.id('pages') },
+  args: { workspaceId: v.id('workspaces'), pageId: v.id('pages') },
   returns: v.union(v.null(), pageValidator),
   handler: async (ctx, args) => {
-    const workspace = await getMemberWorkspaceByName(ctx, args.workspaceName);
+    const workspace = await getMemberWorkspaceById(ctx, args.workspaceId);
     if (workspace === null) {
       return null;
     }
@@ -92,9 +92,7 @@ export const get = query({
       return null;
     }
     const owner = await ctx.db.get(page.ownerId);
-    const workflow = page.workflowId
-      ? await ctx.db.get(page.workflowId)
-      : null;
+    const workflow = page.workflowId ? await ctx.db.get(page.workflowId) : null;
     return {
       ...page,
       isPublished: page.isPublished ?? false,
@@ -110,13 +108,13 @@ export const get = query({
 /** Publish or unpublish the page. Same member-gated logic as workflows. */
 export const setPublished = mutation({
   args: {
-    workspaceName: v.string(),
+    workspaceId: v.id('workspaces'),
     pageId: v.id('pages'),
     isPublished: v.boolean(),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const page = await getMemberPage(ctx, args.workspaceName, args.pageId);
+    const page = await getMemberPage(ctx, args.workspaceId, args.pageId);
     await ctx.db.patch(page._id, {
       isPublished: args.isPublished,
       updatedAt: Date.now(),
@@ -128,7 +126,7 @@ export const setPublished = mutation({
 const publishedPageValidator = v.object({
   _id: v.id('pages'),
   name: v.string(),
-  workspaceName: v.string(),
+  workspaceId: v.id('workspaces'),
   workflowId: v.optional(v.id('workflows')),
   layout: pageLayoutValidator,
 });
@@ -159,7 +157,7 @@ export const getPublished = query({
     return {
       _id: page._id,
       name: page.name,
-      workspaceName: workspace.name,
+      workspaceId: workspace._id,
       workflowId: page.workflowId,
       layout: page.layout,
     };
@@ -168,12 +166,12 @@ export const getPublished = query({
 
 export const list = query({
   args: {
-    workspaceName: v.string(),
+    workspaceId: v.id('workspaces'),
     folderId: v.optional(v.id('folders')),
   },
   returns: v.array(pageValidator),
   handler: async (ctx, args) => {
-    const workspace = await getMemberWorkspaceByName(ctx, args.workspaceName);
+    const workspace = await getMemberWorkspaceById(ctx, args.workspaceId);
     if (workspace === null) {
       return [];
     }
@@ -228,10 +226,10 @@ export const list = query({
 /** Minimal id+name of every workflow in the workspace, for the page's workflow
  * picker (the regular workflows list is folder-scoped). */
 export const workflowOptions = query({
-  args: { workspaceName: v.string() },
+  args: { workspaceId: v.id('workspaces') },
   returns: v.array(v.object({ _id: v.id('workflows'), name: v.string() })),
   handler: async (ctx, args) => {
-    const workspace = await getMemberWorkspaceByName(ctx, args.workspaceName);
+    const workspace = await getMemberWorkspaceById(ctx, args.workspaceId);
     if (workspace === null) {
       return [];
     }
@@ -249,10 +247,10 @@ export const workflowOptions = query({
 /** Minimal id+name of every ready (indexed) file in the workspace, for a page's
  * file-input picker. */
 export const fileOptions = query({
-  args: { workspaceName: v.string() },
+  args: { workspaceId: v.id('workspaces') },
   returns: v.array(v.object({ _id: v.id('files'), name: v.string() })),
   handler: async (ctx, args) => {
-    const workspace = await getMemberWorkspaceByName(ctx, args.workspaceName);
+    const workspace = await getMemberWorkspaceById(ctx, args.workspaceId);
     if (workspace === null) {
       return [];
     }
@@ -270,14 +268,14 @@ export const fileOptions = query({
 
 export const create = mutation({
   args: {
-    workspaceName: v.string(),
+    workspaceId: v.id('workspaces'),
     name: v.string(),
     folderId: v.optional(v.id('folders')),
   },
   returns: v.id('pages'),
   handler: async (ctx, args) => {
-    const workspace = await getWorkspaceByNameOrThrow(ctx, args.workspaceName);
-    const membership = await requireMember(ctx, workspace._id);
+    const workspace = await getWorkspaceByIdOrThrow(ctx, args.workspaceId);
+    const membership = await requireWriteAccess(ctx, workspace._id);
 
     if (args.folderId !== undefined) {
       const folder = await ctx.db.get(args.folderId);
@@ -316,13 +314,13 @@ export const create = mutation({
 
 export const rename = mutation({
   args: {
-    workspaceName: v.string(),
+    workspaceId: v.id('workspaces'),
     pageId: v.id('pages'),
     name: v.string(),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const page = await getMemberPage(ctx, args.workspaceName, args.pageId);
+    const page = await getMemberPage(ctx, args.workspaceId, args.pageId);
     const name = args.name.trim();
     if (name.length === 0) {
       throw new ConvexError('Page name is required.');
@@ -347,10 +345,10 @@ export const rename = mutation({
 });
 
 export const remove = mutation({
-  args: { workspaceName: v.string(), pageId: v.id('pages') },
+  args: { workspaceId: v.id('workspaces'), pageId: v.id('pages') },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const page = await getMemberPage(ctx, args.workspaceName, args.pageId);
+    const page = await getMemberPage(ctx, args.workspaceId, args.pageId);
     await ctx.db.delete(page._id);
     return null;
   },
@@ -360,13 +358,13 @@ export const remove = mutation({
  * Verifies the destination folder belongs to the workspace. */
 export const move = mutation({
   args: {
-    workspaceName: v.string(),
+    workspaceId: v.id('workspaces'),
     pageId: v.id('pages'),
     folderId: v.optional(v.id('folders')),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const page = await getMemberPage(ctx, args.workspaceName, args.pageId);
+    const page = await getMemberPage(ctx, args.workspaceId, args.pageId);
     if (args.folderId !== undefined) {
       const folder = await ctx.db.get(args.folderId);
       if (folder === null || folder.workspaceId !== page.workspaceId) {
@@ -385,11 +383,11 @@ export const move = mutation({
 });
 
 export const duplicate = mutation({
-  args: { workspaceName: v.string(), pageId: v.id('pages') },
+  args: { workspaceId: v.id('workspaces'), pageId: v.id('pages') },
   returns: v.id('pages'),
   handler: async (ctx, args) => {
-    const source = await getMemberPage(ctx, args.workspaceName, args.pageId);
-    const membership = await requireMember(ctx, source.workspaceId);
+    const source = await getMemberPage(ctx, args.workspaceId, args.pageId);
+    const membership = await requireWriteAccess(ctx, source.workspaceId);
     const name = await nextAvailablePageName(
       ctx,
       source.workspaceId,
@@ -410,13 +408,13 @@ export const duplicate = mutation({
 /** Persist the page's component layout. Called on every structural edit. */
 export const updateLayout = mutation({
   args: {
-    workspaceName: v.string(),
+    workspaceId: v.id('workspaces'),
     pageId: v.id('pages'),
     layout: pageLayoutValidator,
   },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const page = await getMemberPage(ctx, args.workspaceName, args.pageId);
+    const page = await getMemberPage(ctx, args.workspaceId, args.pageId);
     await ctx.db.patch(page._id, {
       layout: args.layout,
       updatedAt: Date.now(),
@@ -429,13 +427,13 @@ export const updateLayout = mutation({
  * workflow belongs to the same workspace. */
 export const setWorkflow = mutation({
   args: {
-    workspaceName: v.string(),
+    workspaceId: v.id('workspaces'),
     pageId: v.id('pages'),
     workflowId: v.union(v.id('workflows'), v.null()),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const page = await getMemberPage(ctx, args.workspaceName, args.pageId);
+    const page = await getMemberPage(ctx, args.workspaceId, args.pageId);
     if (args.workflowId !== null) {
       const workflow = await ctx.db.get(args.workflowId);
       if (workflow === null || workflow.workspaceId !== page.workspaceId) {

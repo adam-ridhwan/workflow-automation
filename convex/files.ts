@@ -11,9 +11,9 @@ import {
 } from './_generated/server';
 import { resolveUserImageUrl } from './users';
 import {
-  getMemberWorkspaceByName,
-  getWorkspaceByNameOrThrow,
-  requireMember,
+  getMemberWorkspaceById,
+  getWorkspaceByIdOrThrow,
+  requireWriteAccess,
 } from './workspaces';
 
 import type { Doc, Id } from './_generated/dataModel';
@@ -61,11 +61,11 @@ const STALL_TIMEOUT_MS = 10 * 60 * 1000;
 
 async function getMemberFile(
   ctx: MutationCtx,
-  workspaceName: string,
+  workspaceId: Id<'workspaces'>,
   fileId: Id<'files'>
 ) {
-  const workspace = await getWorkspaceByNameOrThrow(ctx, workspaceName);
-  await requireMember(ctx, workspace._id);
+  const workspace = await getWorkspaceByIdOrThrow(ctx, workspaceId);
+  await requireWriteAccess(ctx, workspace._id);
 
   const file = await ctx.db.get(fileId);
   if (file === null || file.workspaceId !== workspace._id) {
@@ -101,10 +101,10 @@ async function toClientFile(
 }
 
 export const get = query({
-  args: { workspaceName: v.string(), fileId: v.id('files') },
+  args: { workspaceId: v.id('workspaces'), fileId: v.id('files') },
   returns: v.union(v.null(), fileValidator),
   handler: async (ctx, args) => {
-    const workspace = await getMemberWorkspaceByName(ctx, args.workspaceName);
+    const workspace = await getMemberWorkspaceById(ctx, args.workspaceId);
     if (workspace === null) {
       return null;
     }
@@ -126,7 +126,7 @@ export const get = query({
  * running — so the page can show a "running in the background" hint and refresh
  * once the run replaces the file (the URL changes with the new blob). */
 export const view = query({
-  args: { workspaceName: v.string(), fileId: v.id('files') },
+  args: { workspaceId: v.id('workspaces'), fileId: v.id('files') },
   returns: v.union(
     v.null(),
     v.object({
@@ -138,7 +138,7 @@ export const view = query({
     })
   ),
   handler: async (ctx, args) => {
-    const workspace = await getMemberWorkspaceByName(ctx, args.workspaceName);
+    const workspace = await getMemberWorkspaceById(ctx, args.workspaceId);
     if (workspace === null) {
       return null;
     }
@@ -190,12 +190,12 @@ export const view = query({
  * omitted. */
 export const list = query({
   args: {
-    workspaceName: v.string(),
+    workspaceId: v.id('workspaces'),
     folderId: v.optional(v.id('folders')),
   },
   returns: v.array(fileValidator),
   handler: async (ctx, args) => {
-    const workspace = await getMemberWorkspaceByName(ctx, args.workspaceName);
+    const workspace = await getMemberWorkspaceById(ctx, args.workspaceId);
     if (workspace === null) {
       return [];
     }
@@ -311,11 +311,11 @@ export const createFromRun = internalMutation({
 /** A short-lived URL the client POSTs raw bytes to (a whole file, or one chunk
  * of a large file); the response yields the `storageId` of the stored blob. */
 export const generateUploadUrl = mutation({
-  args: { workspaceName: v.string() },
+  args: { workspaceId: v.id('workspaces') },
   returns: v.string(),
   handler: async (ctx, args) => {
-    const workspace = await getWorkspaceByNameOrThrow(ctx, args.workspaceName);
-    await requireMember(ctx, workspace._id);
+    const workspace = await getWorkspaceByIdOrThrow(ctx, args.workspaceId);
+    await requireWriteAccess(ctx, workspace._id);
     return await ctx.storage.generateUploadUrl();
   },
 });
@@ -325,7 +325,7 @@ export const generateUploadUrl = mutation({
  * client reports progress against. */
 export const startUpload = mutation({
   args: {
-    workspaceName: v.string(),
+    workspaceId: v.id('workspaces'),
     name: v.string(),
     size: v.number(),
     contentType: v.string(),
@@ -333,8 +333,8 @@ export const startUpload = mutation({
   },
   returns: v.id('files'),
   handler: async (ctx, args) => {
-    const workspace = await getWorkspaceByNameOrThrow(ctx, args.workspaceName);
-    const membership = await requireMember(ctx, workspace._id);
+    const workspace = await getWorkspaceByIdOrThrow(ctx, args.workspaceId);
+    const membership = await requireWriteAccess(ctx, workspace._id);
 
     if (args.folderId !== undefined) {
       const folder = await ctx.db.get(args.folderId);
@@ -380,13 +380,13 @@ export const startUpload = mutation({
  * moved past `uploading`, so late updates can't clobber a finished file. */
 export const setUploadProgress = mutation({
   args: {
-    workspaceName: v.string(),
+    workspaceId: v.id('workspaces'),
     fileId: v.id('files'),
     progress: v.number(),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const file = await getMemberFile(ctx, args.workspaceName, args.fileId);
+    const file = await getMemberFile(ctx, args.workspaceId, args.fileId);
     if (file.status !== 'uploading') {
       return null;
     }
@@ -401,13 +401,13 @@ export const setUploadProgress = mutation({
 /** Records one uploaded chunk blob against a chunked upload, in order. */
 export const addChunk = mutation({
   args: {
-    workspaceName: v.string(),
+    workspaceId: v.id('workspaces'),
     fileId: v.id('files'),
     storageId: v.id('_storage'),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const file = await getMemberFile(ctx, args.workspaceName, args.fileId);
+    const file = await getMemberFile(ctx, args.workspaceId, args.fileId);
     if (file.status !== 'uploading') {
       return null;
     }
@@ -438,13 +438,13 @@ async function beginIndexing(ctx: MutationCtx, fileId: Id<'files'>) {
  * moves to `assembling` and schedules server-side reassembly. */
 export const finishUpload = mutation({
   args: {
-    workspaceName: v.string(),
+    workspaceId: v.id('workspaces'),
     fileId: v.id('files'),
     storageId: v.optional(v.id('_storage')),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const file = await getMemberFile(ctx, args.workspaceName, args.fileId);
+    const file = await getMemberFile(ctx, args.workspaceId, args.fileId);
     if (file.status !== 'uploading') {
       return null;
     }
@@ -476,10 +476,10 @@ export const finishUpload = mutation({
 /** Abandons an in-flight upload (client error/abort): removes the row and its
  * chunk blobs. */
 export const cancelUpload = mutation({
-  args: { workspaceName: v.string(), fileId: v.id('files') },
+  args: { workspaceId: v.id('workspaces'), fileId: v.id('files') },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const file = await getMemberFile(ctx, args.workspaceName, args.fileId);
+    const file = await getMemberFile(ctx, args.workspaceId, args.fileId);
     if (file.status !== 'uploading' && file.status !== 'assembling') {
       return null;
     }
@@ -619,13 +619,13 @@ export const cleanupStalled = internalMutation({
 
 export const rename = mutation({
   args: {
-    workspaceName: v.string(),
+    workspaceId: v.id('workspaces'),
     fileId: v.id('files'),
     name: v.string(),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const file = await getMemberFile(ctx, args.workspaceName, args.fileId);
+    const file = await getMemberFile(ctx, args.workspaceId, args.fileId);
 
     const name = args.name.trim();
     if (name.length === 0) {
@@ -643,13 +643,13 @@ export const rename = mutation({
  * omitted. */
 export const move = mutation({
   args: {
-    workspaceName: v.string(),
+    workspaceId: v.id('workspaces'),
     fileId: v.id('files'),
     folderId: v.optional(v.id('folders')),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const file = await getMemberFile(ctx, args.workspaceName, args.fileId);
+    const file = await getMemberFile(ctx, args.workspaceId, args.fileId);
 
     if (args.folderId !== undefined) {
       const folder = await ctx.db.get(args.folderId);
@@ -673,10 +673,10 @@ export const move = mutation({
 });
 
 export const remove = mutation({
-  args: { workspaceName: v.string(), fileId: v.id('files') },
+  args: { workspaceId: v.id('workspaces'), fileId: v.id('files') },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const file = await getMemberFile(ctx, args.workspaceName, args.fileId);
+    const file = await getMemberFile(ctx, args.workspaceId, args.fileId);
     // Clean up the blob and any not-yet-assembled chunk blobs.
     if (file.storageId) {
       await ctx.storage.delete(file.storageId);

@@ -46,8 +46,8 @@ export function CreateWorkspaceForm() {
 
     setSubmitting(true);
     try {
-      await createWorkspace({ name });
-      router.push(`/${encodeURIComponent(name)}`);
+      const workspaceId = await createWorkspace({ name });
+      router.push(`/workspace/${workspaceId}`);
     } catch (err) {
       if (err instanceof ConvexError && typeof err.data === 'string') {
         setError(err.data);
@@ -87,7 +87,7 @@ export function CreateWorkspaceForm() {
           </Button>
           {firstWorkspace && (
             <Link
-              href={`/${encodeURIComponent(firstWorkspace.name)}`}
+              href={`/workspace/${firstWorkspace._id}`}
               className='text-muted-foreground hover:text-foreground flex
                 items-center justify-center gap-1 text-sm underline-offset-4
                 hover:underline'

@@ -26,14 +26,16 @@ export default defineSchema({
     name: v.string(),
     adminId: v.id('users'),
     imageId: v.optional(v.id('_storage')),
-  })
-    .index('adminId', ['adminId'])
-    .index('name', ['name']),
+  }).index('adminId', ['adminId']),
 
   workspaceMembers: defineTable({
     workspaceId: v.id('workspaces'),
     userId: v.id('users'),
-    role: v.union(v.literal('admin'), v.literal('collaborator')),
+    role: v.union(
+      v.literal('admin'),
+      v.literal('collaborator'),
+      v.literal('viewer')
+    ),
   })
     .index('workspaceId', ['workspaceId'])
     .index('userId', ['userId'])
@@ -44,11 +46,7 @@ export default defineSchema({
   folders: defineTable({
     workspaceId: v.id('workspaces'),
     name: v.string(),
-    kind: v.union(
-      v.literal('workflow'),
-      v.literal('file'),
-      v.literal('page')
-    ),
+    kind: v.union(v.literal('workflow'), v.literal('file'), v.literal('page')),
     parentId: v.optional(v.id('folders')),
     createdBy: v.id('users'),
   })

@@ -7,7 +7,12 @@ import { getAuthUserId } from '@convex-dev/auth/server';
 import { ConvexError, Infer, v } from 'convex/values';
 
 import { internal } from './_generated/api';
-import { internalMutation, mutation, query } from './_generated/server';
+import {
+  internalMutation,
+  internalQuery,
+  mutation,
+  query,
+} from './_generated/server';
 import { resolveUserImageUrl } from './users';
 
 import type { Doc, Id } from './_generated/dataModel';
@@ -29,7 +34,11 @@ const memberValidator = v.object({
   name: v.string(),
   email: v.string(),
   imageUrl: v.union(v.null(), v.string()),
-  role: v.union(v.literal('admin'), v.literal('collaborator')),
+  role: v.union(
+    v.literal('admin'),
+    v.literal('collaborator'),
+    v.literal('viewer')
+  ),
 });
 
 export type WorkspaceMember = Infer<typeof memberValidator>;
@@ -78,6 +87,30 @@ export async function requireMember(
   return membership;
 }
 
+/** Throws unless the signed-in user is a member who can make changes
+ * (admins and collaborators). Viewers get read-only access. */
+export async function requireWriteAccess(
+  ctx: QueryCtx | MutationCtx,
+  workspaceId: Id<'workspaces'>
+) {
+  const membership = await requireMember(ctx, workspaceId);
+  if (membership.role === 'viewer') {
+    throw new ConvexError('Viewers have read-only access to this workspace.');
+  }
+  return membership;
+}
+
+/** Internal write-access gate for actions, which can't call the ctx helpers
+ * directly. Throws unless the caller is a member who can make changes. */
+export const assertWriteAccessById = internalQuery({
+  args: { workspaceId: v.id('workspaces') },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    await requireWriteAccess(ctx, args.workspaceId);
+    return null;
+  },
+});
+
 /** Throws unless the signed-in user is the admin of the workspace. */
 export async function requireAdmin(
   ctx: QueryCtx | MutationCtx,
@@ -90,38 +123,29 @@ export async function requireAdmin(
   return membership;
 }
 
-/** Resolves a workspace by name; null unless the signed-in user is a
- * member. */
-export async function getMemberWorkspaceByName(
+/** Resolves a workspace by id; null unless the signed-in user is a member.
+ * Workspaces are addressed by id (the `/workspace/{workspaceId}` route), so
+ * names carry no uniqueness and are never used to look a workspace up. */
+export async function getMemberWorkspaceById(
   ctx: QueryCtx | MutationCtx,
-  workspaceName: string
+  workspaceId: Id<'workspaces'>
 ) {
   const userId = await getAuthUserId(ctx);
   if (userId === null) {
     return null;
   }
-  const workspace = await ctx.db
-    .query('workspaces')
-    .withIndex('name', (q) => q.eq('name', workspaceName))
-    .unique();
-  if (workspace === null) {
-    return null;
-  }
-  const membership = await getMembership(ctx, workspace._id, userId);
+  const membership = await getMembership(ctx, workspaceId, userId);
   if (membership === null) {
     return null;
   }
-  return workspace;
+  return await ctx.db.get(workspaceId);
 }
 
-export async function getWorkspaceByNameOrThrow(
+export async function getWorkspaceByIdOrThrow(
   ctx: QueryCtx | MutationCtx,
-  workspaceName: string
+  workspaceId: Id<'workspaces'>
 ) {
-  const workspace = await ctx.db
-    .query('workspaces')
-    .withIndex('name', (q) => q.eq('name', workspaceName))
-    .unique();
+  const workspace = await ctx.db.get(workspaceId);
   if (workspace === null) {
     throw new ConvexError('Workspace not found.');
   }
@@ -137,13 +161,8 @@ export const create = mutation({
     if (!validateWorkspaceName(name)) {
       throw new ConvexError(WORKSPACE_NAME_REQUIREMENTS);
     }
-    const existing = await ctx.db
-      .query('workspaces')
-      .withIndex('name', (q) => q.eq('name', name))
-      .unique();
-    if (existing !== null) {
-      throw new ConvexError('This workspace name is taken.');
-    }
+    // Workspaces are addressed by id, so names need not be unique — duplicates
+    // across accounts (or even the same account) are allowed.
     const workspaceId = await ctx.db.insert('workspaces', {
       name,
       adminId: userId,
@@ -157,23 +176,20 @@ export const create = mutation({
   },
 });
 
-export const getByName = query({
-  args: { name: v.string() },
+export const get = query({
+  args: { workspaceId: v.id('workspaces') },
   returns: v.union(v.null(), workspaceValidator),
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
       return null;
     }
-    const workspace = await ctx.db
-      .query('workspaces')
-      .withIndex('name', (q) => q.eq('name', args.name))
-      .unique();
-    if (workspace === null) {
+    const membership = await getMembership(ctx, args.workspaceId, userId);
+    if (membership === null) {
       return null;
     }
-    const membership = await getMembership(ctx, workspace._id, userId);
-    if (membership === null) {
+    const workspace = await ctx.db.get(args.workspaceId);
+    if (workspace === null) {
       return null;
     }
     return await withImageUrl(ctx, workspace);
@@ -204,27 +220,20 @@ export const list = query({
 });
 
 export const members = query({
-  args: { workspaceName: v.string() },
+  args: { workspaceId: v.id('workspaces') },
   returns: v.array(memberValidator),
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
       return [];
     }
-    const workspace = await ctx.db
-      .query('workspaces')
-      .withIndex('name', (q) => q.eq('name', args.workspaceName))
-      .unique();
-    if (workspace === null) {
-      return [];
-    }
-    const membership = await getMembership(ctx, workspace._id, userId);
+    const membership = await getMembership(ctx, args.workspaceId, userId);
     if (membership === null) {
       return [];
     }
     const rows = await ctx.db
       .query('workspaceMembers')
-      .withIndex('workspaceId', (q) => q.eq('workspaceId', workspace._id))
+      .withIndex('workspaceId', (q) => q.eq('workspaceId', args.workspaceId))
       .collect();
     const result: WorkspaceMember[] = [];
     for (const row of rows) {
@@ -244,11 +253,14 @@ export const members = query({
 });
 
 export const addMember = mutation({
-  args: { workspaceName: v.string(), email: v.string() },
+  args: {
+    workspaceId: v.id('workspaces'),
+    email: v.string(),
+    role: v.optional(v.union(v.literal('collaborator'), v.literal('viewer'))),
+  },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const workspace = await getWorkspaceByNameOrThrow(ctx, args.workspaceName);
-    await requireAdmin(ctx, workspace._id);
+    await requireAdmin(ctx, args.workspaceId);
 
     const email = args.email.trim();
     const user = await ctx.db
@@ -259,41 +271,61 @@ export const addMember = mutation({
       throw new ConvexError('No account found with this email.');
     }
 
-    const existing = await getMembership(ctx, workspace._id, user._id);
+    const existing = await getMembership(ctx, args.workspaceId, user._id);
     if (existing !== null) {
       throw new ConvexError('This user is already a member.');
     }
 
     await ctx.db.insert('workspaceMembers', {
-      workspaceId: workspace._id,
+      workspaceId: args.workspaceId,
       userId: user._id,
-      role: 'collaborator',
+      role: args.role ?? 'collaborator',
     });
     return null;
   },
 });
 
+/** Admin-only: change an existing member's role. The workspace owner's role
+ * can't be changed (so an admin can never lock themselves out). */
+export const setMemberRole = mutation({
+  args: {
+    workspaceId: v.id('workspaces'),
+    userId: v.id('users'),
+    role: v.union(
+      v.literal('admin'),
+      v.literal('collaborator'),
+      v.literal('viewer')
+    ),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const workspace = await getWorkspaceByIdOrThrow(ctx, args.workspaceId);
+    await requireAdmin(ctx, workspace._id);
+    if (args.userId === workspace.adminId) {
+      throw new ConvexError("You can't change the workspace owner's role.");
+    }
+    const membership = await getMembership(ctx, workspace._id, args.userId);
+    if (membership === null) {
+      throw new ConvexError('This user is not a member of the workspace.');
+    }
+    await ctx.db.patch(membership._id, { role: args.role });
+    return null;
+  },
+});
+
 export const rename = mutation({
-  args: { workspaceName: v.string(), name: v.string() },
+  args: { workspaceId: v.id('workspaces'), name: v.string() },
   returns: v.string(),
   handler: async (ctx, args) => {
-    const workspace = await getWorkspaceByNameOrThrow(ctx, args.workspaceName);
+    const workspace = await getWorkspaceByIdOrThrow(ctx, args.workspaceId);
     await requireAdmin(ctx, workspace._id);
 
     const name = slugify(args.name);
     if (!validateWorkspaceName(name)) {
       throw new ConvexError(WORKSPACE_NAME_REQUIREMENTS);
     }
-    if (name === workspace.name) {
-      return name;
-    }
-    const existing = await ctx.db
-      .query('workspaces')
-      .withIndex('name', (q) => q.eq('name', name))
-      .unique();
-    if (existing !== null) {
-      throw new ConvexError('This workspace name is taken.');
-    }
+    // Names aren't unique (the workspace is addressed by id), so renaming to an
+    // already-used name is fine.
     await ctx.db.patch(workspace._id, { name });
     return name;
   },
@@ -309,10 +341,10 @@ export const generateLogoUploadUrl = mutation({
 });
 
 export const setLogo = mutation({
-  args: { workspaceName: v.string(), storageId: v.id('_storage') },
+  args: { workspaceId: v.id('workspaces'), storageId: v.id('_storage') },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const workspace = await getWorkspaceByNameOrThrow(ctx, args.workspaceName);
+    const workspace = await getWorkspaceByIdOrThrow(ctx, args.workspaceId);
     await requireAdmin(ctx, workspace._id);
 
     if (workspace.imageId) {
@@ -324,10 +356,10 @@ export const setLogo = mutation({
 });
 
 export const remove = mutation({
-  args: { workspaceName: v.string() },
+  args: { workspaceId: v.id('workspaces') },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const workspace = await getWorkspaceByNameOrThrow(ctx, args.workspaceName);
+    const workspace = await getWorkspaceByIdOrThrow(ctx, args.workspaceId);
     await requireAdmin(ctx, workspace._id);
 
     // Remove memberships and the workspace doc now so it disappears from every

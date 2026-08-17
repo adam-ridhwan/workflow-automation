@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { PageComponentView } from '@/app/(app)/[workspaceName]/page/[pageId]/_components/page-component-view';
-import { isInputComponent } from '@/app/(app)/[workspaceName]/page/[pageId]/_constants/page-component-meta';
+import { PageComponentView } from '@/app/(app)/workspace/[workspaceId]/page/[pageId]/_components/page-component-view';
+import { isInputComponent } from '@/app/(app)/workspace/[workspaceId]/page/[pageId]/_constants/page-component-meta';
 import { toast } from '@/components/ui/toast';
 import { api } from '@/convex/_generated/api';
 import { errorMessage } from '@/lib/error-message';
@@ -17,7 +17,7 @@ type PublishedPageViewProps = {
   page: {
     _id: string;
     name: string;
-    workspaceName: string;
+    workspaceId: Id<'workspaces'>;
     workflowId?: Id<'workflows'>;
     layout: { components: PageComponentData[]; version: number };
   };
@@ -50,7 +50,7 @@ export function PublishedPageView({ page, fileOptions }: PublishedPageViewProps)
     setRunning(true);
     try {
       const result = await runForPage({
-        workspaceName: page.workspaceName,
+        workspaceId: page.workspaceId,
         workflowId,
         runtimeInputs,
       });

@@ -10,7 +10,7 @@ import {
 } from './_generated/server';
 import { workflowCanvasValidator } from './canvas';
 import { resolveUserImageUrl } from './users';
-import { getMemberWorkspaceByName } from './workspaces';
+import { getMemberWorkspaceById, requireWriteAccess } from './workspaces';
 
 import type { Id } from './_generated/dataModel';
 import type { QueryCtx } from './_generated/server';
@@ -102,10 +102,10 @@ function outcomeMessage(
 
 /** A workflow's runs, newest first. */
 export const list = query({
-  args: { workspaceName: v.string(), workflowId: v.id('workflows') },
+  args: { workspaceId: v.id('workspaces'), workflowId: v.id('workflows') },
   returns: v.array(runHistoryValidator),
   handler: async (ctx, args) => {
-    const workspace = await getMemberWorkspaceByName(ctx, args.workspaceName);
+    const workspace = await getMemberWorkspaceById(ctx, args.workspaceId);
     if (workspace === null) {
       return [];
     }
@@ -133,13 +133,13 @@ export const list = query({
 /** A single run by id, member-checked. */
 export const get = query({
   args: {
-    workspaceName: v.string(),
+    workspaceId: v.id('workspaces'),
     workflowId: v.id('workflows'),
     runHistoryId: v.id('runHistory'),
   },
   returns: v.union(v.null(), runHistoryValidator),
   handler: async (ctx, args) => {
-    const workspace = await getMemberWorkspaceByName(ctx, args.workspaceName);
+    const workspace = await getMemberWorkspaceById(ctx, args.workspaceId);
     if (workspace === null) {
       return null;
     }
@@ -188,13 +188,13 @@ export const create = internalMutation({
  * remapping — which needs randomness — is required here in a mutation. */
 export const startRerun = mutation({
   args: {
-    workspaceName: v.string(),
+    workspaceId: v.id('workspaces'),
     workflowId: v.id('workflows'),
     fromRunHistoryId: v.id('runHistory'),
   },
   returns: v.id('runHistory'),
   handler: async (ctx, args) => {
-    const workspace = await getMemberWorkspaceByName(ctx, args.workspaceName);
+    const workspace = await getMemberWorkspaceById(ctx, args.workspaceId);
     if (workspace === null) {
       throw new ConvexError('Workspace not found.');
     }
@@ -202,6 +202,7 @@ export const startRerun = mutation({
     if (workflow === null || workflow.workspaceId !== workspace._id) {
       throw new ConvexError('Workflow not found.');
     }
+    await requireWriteAccess(ctx, workspace._id);
     if (!workflow.isPublished) {
       throw new ConvexError('Publish this workflow before running it.');
     }
@@ -233,10 +234,10 @@ export const startRerun = mutation({
 /** Requests that the workflow's latest running run stop. The executor checks
  * this between nodes. */
 export const stopRun = mutation({
-  args: { workspaceName: v.string(), workflowId: v.id('workflows') },
+  args: { workspaceId: v.id('workspaces'), workflowId: v.id('workflows') },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const workspace = await getMemberWorkspaceByName(ctx, args.workspaceName);
+    const workspace = await getMemberWorkspaceById(ctx, args.workspaceId);
     if (workspace === null) {
       throw new ConvexError('Workspace not found.');
     }
@@ -244,6 +245,7 @@ export const stopRun = mutation({
     if (workflow === null || workflow.workspaceId !== workspace._id) {
       throw new ConvexError('Workflow not found.');
     }
+    await requireWriteAccess(ctx, workspace._id);
     // The newest run is the one currently executing, if any.
     const latest = await ctx.db
       .query('runHistory')

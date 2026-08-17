@@ -3,9 +3,9 @@ import { ConvexError, Infer, v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import { resolveUserImageUrl } from './users';
 import {
-  getMemberWorkspaceByName,
-  getWorkspaceByNameOrThrow,
-  requireMember,
+  getMemberWorkspaceById,
+  getWorkspaceByIdOrThrow,
+  requireWriteAccess,
 } from './workspaces';
 
 import type { Doc, Id } from './_generated/dataModel';
@@ -37,11 +37,11 @@ export type Folder = Infer<typeof folderValidator>;
 
 async function getMemberFolder(
   ctx: MutationCtx,
-  workspaceName: string,
+  workspaceId: Id<'workspaces'>,
   folderId: Id<'folders'>
 ) {
-  const workspace = await getWorkspaceByNameOrThrow(ctx, workspaceName);
-  await requireMember(ctx, workspace._id);
+  const workspace = await getWorkspaceByIdOrThrow(ctx, workspaceId);
+  await requireWriteAccess(ctx, workspace._id);
 
   const folder = await ctx.db.get(folderId);
   if (folder === null || folder.workspaceId !== workspace._id) {
@@ -51,10 +51,10 @@ async function getMemberFolder(
 }
 
 export const get = query({
-  args: { workspaceName: v.string(), folderId: v.id('folders') },
+  args: { workspaceId: v.id('workspaces'), folderId: v.id('folders') },
   returns: v.union(v.null(), folderValidator),
   handler: async (ctx, args) => {
-    const workspace = await getMemberWorkspaceByName(ctx, args.workspaceName);
+    const workspace = await getMemberWorkspaceById(ctx, args.workspaceId);
     if (workspace === null) {
       return null;
     }
@@ -83,10 +83,10 @@ export type FolderPathSegment = Infer<typeof folderPathSegmentValidator>;
  * folder itself. Null when the folder does not exist or the signed-in user
  * is not a member of the workspace. */
 export const path = query({
-  args: { workspaceName: v.string(), folderId: v.id('folders') },
+  args: { workspaceId: v.id('workspaces'), folderId: v.id('folders') },
   returns: v.union(v.null(), v.array(folderPathSegmentValidator)),
   handler: async (ctx, args) => {
-    const workspace = await getMemberWorkspaceByName(ctx, args.workspaceName);
+    const workspace = await getMemberWorkspaceById(ctx, args.workspaceId);
     if (workspace === null) {
       return null;
     }
@@ -111,13 +111,13 @@ export const path = query({
  * is omitted. Scoped to one tree (`workflow` or `file`). */
 export const list = query({
   args: {
-    workspaceName: v.string(),
+    workspaceId: v.id('workspaces'),
     kind: folderKindValidator,
     parentId: v.optional(v.id('folders')),
   },
   returns: v.array(folderValidator),
   handler: async (ctx, args) => {
-    const workspace = await getMemberWorkspaceByName(ctx, args.workspaceName);
+    const workspace = await getMemberWorkspaceById(ctx, args.workspaceId);
     if (workspace === null) {
       return [];
     }
@@ -159,15 +159,15 @@ export const list = query({
 
 export const create = mutation({
   args: {
-    workspaceName: v.string(),
+    workspaceId: v.id('workspaces'),
     kind: folderKindValidator,
     name: v.string(),
     parentId: v.optional(v.id('folders')),
   },
   returns: v.id('folders'),
   handler: async (ctx, args) => {
-    const workspace = await getWorkspaceByNameOrThrow(ctx, args.workspaceName);
-    const membership = await requireMember(ctx, workspace._id);
+    const workspace = await getWorkspaceByIdOrThrow(ctx, args.workspaceId);
+    const membership = await requireWriteAccess(ctx, workspace._id);
 
     if (args.parentId !== undefined) {
       const parent = await ctx.db.get(args.parentId);
@@ -210,7 +210,7 @@ export const create = mutation({
 
 export const rename = mutation({
   args: {
-    workspaceName: v.string(),
+    workspaceId: v.id('workspaces'),
     folderId: v.id('folders'),
     name: v.string(),
   },
@@ -218,7 +218,7 @@ export const rename = mutation({
   handler: async (ctx, args) => {
     const folder = await getMemberFolder(
       ctx,
-      args.workspaceName,
+      args.workspaceId,
       args.folderId
     );
 
@@ -251,7 +251,7 @@ export const rename = mutation({
  * `parentId` is omitted. */
 export const move = mutation({
   args: {
-    workspaceName: v.string(),
+    workspaceId: v.id('workspaces'),
     folderId: v.id('folders'),
     parentId: v.optional(v.id('folders')),
   },
@@ -259,7 +259,7 @@ export const move = mutation({
   handler: async (ctx, args) => {
     const folder = await getMemberFolder(
       ctx,
-      args.workspaceName,
+      args.workspaceId,
       args.folderId
     );
     if (folder.parentId === args.parentId) {
@@ -312,12 +312,12 @@ export const move = mutation({
 });
 
 export const remove = mutation({
-  args: { workspaceName: v.string(), folderId: v.id('folders') },
+  args: { workspaceId: v.id('workspaces'), folderId: v.id('folders') },
   returns: v.null(),
   handler: async (ctx, args) => {
     const folder = await getMemberFolder(
       ctx,
-      args.workspaceName,
+      args.workspaceId,
       args.folderId
     );
 

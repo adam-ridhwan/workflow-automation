@@ -1,7 +1,7 @@
 import { Infer, v } from 'convex/values';
 
 import { internalMutation, query } from './_generated/server';
-import { getMemberWorkspaceByName } from './workspaces';
+import { getMemberWorkspaceById } from './workspaces';
 
 export const nodeStatusValidator = v.union(
   v.literal('running'),
@@ -21,10 +21,10 @@ const runValidator = v.object({
 
 /** The latest run of a workflow; live-updates while a run executes. */
 export const get = query({
-  args: { workspaceName: v.string(), workflowId: v.id('workflows') },
+  args: { workspaceId: v.id('workspaces'), workflowId: v.id('workflows') },
   returns: v.union(v.null(), runValidator),
   handler: async (ctx, args) => {
-    const workspace = await getMemberWorkspaceByName(ctx, args.workspaceName);
+    const workspace = await getMemberWorkspaceById(ctx, args.workspaceId);
     if (workspace === null) {
       return null;
     }
@@ -167,13 +167,13 @@ export const setNodeStatus = internalMutation({
  * one subscription that updates as any workflow starts, queues, or finishes.
  * Workflows with no active run are omitted. */
 export const phasesByWorkspace = query({
-  args: { workspaceName: v.string() },
+  args: { workspaceId: v.id('workspaces') },
   returns: v.record(
     v.string(),
     v.union(v.literal('scheduled'), v.literal('running'))
   ),
   handler: async (ctx, args) => {
-    const workspace = await getMemberWorkspaceByName(ctx, args.workspaceName);
+    const workspace = await getMemberWorkspaceById(ctx, args.workspaceId);
     if (workspace === null) {
       return {};
     }
