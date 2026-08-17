@@ -16,7 +16,9 @@ import {
   PASSWORD_REQUIREMENTS,
   validatePassword,
 } from '@/lib/validate-password';
+import { api } from '@/convex/_generated/api';
 import { useAuthActions } from '@convex-dev/auth/react';
+import { useConvex } from 'convex/react';
 import { SiGoogle } from '@icons-pack/react-simple-icons';
 import { ConvexError } from 'convex/values';
 import Link from 'next/link';
@@ -27,6 +29,7 @@ export function SignupForm({
   ...props
 }: React.ComponentProps<'div'>) {
   const { signIn } = useAuthActions();
+  const convex = useConvex();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
@@ -55,8 +58,17 @@ export function SignupForm({
 
     setSubmitting(true);
     try {
+      // Warn early if this email already has an account, rather than failing
+      // mid-sign-up.
+      const email = String(formData.get('email') ?? '').trim();
+      const exists = await convex.query(api.users.emailExists, { email });
+      if (exists) {
+        setError('An account with this email already exists. Sign in instead.');
+        setSubmitting(false);
+        return;
+      }
       await signIn('password', formData);
-      router.push('/create-workspace');
+      router.push('/');
     } catch (err) {
       if (err instanceof ConvexError && typeof err.data === 'string') {
         setError(err.data);

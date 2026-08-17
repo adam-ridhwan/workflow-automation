@@ -114,3 +114,17 @@ export const removeAvatar = mutation({
     return null;
   },
 });
+
+/** Whether an account already exists for this email. Used by the sign-up form
+ * to warn before attempting a duplicate password sign-up. */
+export const emailExists = query({
+  args: { email: v.string() },
+  returns: v.boolean(),
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query('users')
+      .withIndex('email', (q) => q.eq('email', args.email.trim()))
+      .first();
+    return user !== null;
+  },
+});
