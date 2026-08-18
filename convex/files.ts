@@ -150,7 +150,7 @@ export const view = query({
       ? await ctx.storage.getUrl(file.storageId)
       : null;
 
-    // Is a workflow whose FILE_OUTPUT node targets this file name currently
+    // Is a workflow whose CREATE_FILE node targets this file name currently
     // running? Its `runs` doc has `phase: 'running'` for the run's duration.
     const workflows = await ctx.db
       .query('workflows')
@@ -160,7 +160,7 @@ export const view = query({
     for (const workflow of workflows) {
       const writesThisFile = Object.values(workflow.canvas.nodes).some(
         (node) =>
-          findNodeSpec(node.node_uid)?.node_info.node_type === 'FILE_OUTPUT' &&
+          findNodeSpec(node.node_uid)?.node_info.node_type === 'CREATE_FILE' &&
           String(getArgumentValue(node, 'filename') ?? '').trim() === file.name
       );
       if (!writesThisFile) {
@@ -248,7 +248,7 @@ export const contentForRun = internalQuery({
   },
 });
 
-/** Records a file produced by a workflow run (a FILE_OUTPUT node): the blob is
+/** Records a file produced by a workflow run (a CREATE_FILE node): the blob is
  * already stored, so this just inserts a ready `indexed` row in the workflow's
  * workspace, owned by the workflow owner. Deletes the orphan blob if the
  * workflow vanished. */

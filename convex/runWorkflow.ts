@@ -69,7 +69,7 @@ function contentTypeForName(name: string): string {
   }
 }
 
-/** Builds the writer passed to `executeCanvas` for FILE_OUTPUT nodes: stores the
+/** Builds the writer passed to `executeCanvas` for CREATE_FILE nodes: stores the
  * text as a blob and records a file in the workflow's workspace. */
 function makeFileWriter(
   ctx: ActionCtx,
@@ -768,7 +768,7 @@ async function executeCanvas(
           output = await runLlmNode(node, inputsByType, getSecret);
           break;
 
-        case 'FILE_OUTPUT': {
+        case 'CREATE_FILE': {
           const filename =
             String(getArgumentValue(node, 'filename') ?? 'output.txt').trim() ||
             'output.txt';

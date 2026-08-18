@@ -11,7 +11,7 @@ const TYPE_LABELS: Record<string, string> = {
   LLM: 'LLM',
   DISPLAY: 'Display',
   LOG: 'Log',
-  FILE_OUTPUT: 'File output',
+  CREATE_FILE: 'File output',
 };
 
 /** A short, human-friendly name for a workflow node, preferring an author-set

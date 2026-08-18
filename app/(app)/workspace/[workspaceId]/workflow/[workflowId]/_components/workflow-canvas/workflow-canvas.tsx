@@ -14,6 +14,7 @@ import { useAutoVersion } from '../../_hooks/use-auto-version';
 import { useWorkflowRun } from '../../_hooks/use-workflow-run';
 import { WORKFLOW_EDGE, WORKFLOW_NODE } from '../../_lib/normalize';
 import { NODE_DIMENSIONS } from '../../_lib/organize-canvas-layout';
+import { canConnect } from '../../_lib/validate-workflow';
 import { useCanvasStore } from '../../_store/canvas-store';
 import { useWorkspaceParams } from '../../../../_hooks/use-workspace-params';
 import { CanvasPalette } from '../canvas-palette/canvas-palette';
@@ -116,6 +117,15 @@ export function WorkflowCanvas({ canvas }: WorkflowCanvasProps) {
     [onConnect, workspaceId, workflowId]
   );
 
+  // Enforce the node specs while dragging a connection, so edges that would
+  // violate a node's requirement (group compatibility, in/out edge caps) can't
+  // be drawn in the first place.
+  const isValidConnection = useCallback(
+    (connection: Connection | Edge<WorkflowEdgeData>) =>
+      canConnect(nodes, edges, connection),
+    [nodes, edges]
+  );
+
   const onNodeDragStop = useCallback(() => {
     saveWorkflow({ workspaceId, workflowId });
   }, [saveWorkflow, workspaceId, workflowId]);
@@ -191,6 +201,7 @@ export function WorkflowCanvas({ canvas }: WorkflowCanvasProps) {
               onNodesChange={onNodesChange}
               onEdgesChange={onEdgesChange}
               onConnect={handleConnect}
+              isValidConnection={isValidConnection}
               onNodeDragStop={onNodeDragStop}
               onInit={onInit}
               selectNodesOnDrag={false}

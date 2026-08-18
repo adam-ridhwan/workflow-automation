@@ -310,7 +310,7 @@ export const NODE_SPECS = {
     },
   },
   OUTPUT: {
-    FILE_OUTPUT: {
+    CREATE_FILE: {
       in_edge_arguments: [],
       node_arguments: [
         {
@@ -329,11 +329,11 @@ export const NODE_SPECS = {
       ],
       node_info: {
         node_group: 'OUTPUT',
-        node_type: 'FILE_OUTPUT',
+        node_type: 'CREATE_FILE',
         node_uid: 'N_011',
       },
       node_requirement: {
-        max_in_edges: 100,
+        max_in_edges: 1,
         max_out_edges: 0,
         min_in_edges: 1,
         min_out_edges: 0,
@@ -351,7 +351,7 @@ export const NODE_SPECS = {
         node_uid: 'N_008',
       },
       node_requirement: {
-        max_in_edges: 100,
+        max_in_edges: 1,
         max_out_edges: 0,
         min_in_edges: 1,
         min_out_edges: 0,
@@ -369,7 +369,7 @@ export const NODE_SPECS = {
         node_uid: 'N_009',
       },
       node_requirement: {
-        max_in_edges: 100,
+        max_in_edges: 1,
         max_out_edges: 0,
         min_in_edges: 1,
         min_out_edges: 0,

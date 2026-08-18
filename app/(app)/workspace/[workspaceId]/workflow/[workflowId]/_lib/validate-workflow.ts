@@ -2,7 +2,7 @@ import { findNodeSpec, getArgumentValue } from '@/lib/node-specs';
 
 import type { WorkflowEdgeData, WorkflowNodeData } from '@/convex/canvas';
 import type { NodeArgument } from '@/lib/node-specs';
-import type { Edge, Node } from '@xyflow/react';
+import type { Connection, Edge, Node } from '@xyflow/react';
 
 function plural(count: number, word: string) {
   return `${count} ${word}${count === 1 ? '' : 's'}`;
@@ -80,6 +80,65 @@ export function hasUnresolvedArguments(data: WorkflowNodeData): boolean {
     const value = getArgumentValue(data, argument.name);
     return value === undefined || value === null || value === '';
   });
+}
+
+/**
+ * Whether a prospective edge is allowed by the node specs — enforced live while
+ * the user drags a connection (ReactFlow's `isValidConnection`) so invalid edges
+ * can never be drawn. Rejects self-loops, duplicates, incompatible node groups,
+ * and connections that would exceed the source's `max_out_edges` or the target's
+ * `max_in_edges`. Nodes without a spec (e.g. the seeded start node) are
+ * unconstrained.
+ */
+export function canConnect(
+  nodes: Node<WorkflowNodeData>[],
+  edges: Edge<WorkflowEdgeData>[],
+  connection: Connection | Edge
+): boolean {
+  const { source, target } = connection;
+  if (!source || !target || source === target) {
+    return false;
+  }
+
+  const nodesById = new Map(nodes.map((node) => [node.id, node]));
+  const sourceNode = nodesById.get(source);
+  const targetNode = nodesById.get(target);
+  if (!sourceNode || !targetNode) {
+    return false;
+  }
+
+  const sourceSpec = findNodeSpec(sourceNode.data.node_uid);
+  const targetSpec = findNodeSpec(targetNode.data.node_uid);
+  if (!sourceSpec || !targetSpec) {
+    return true;
+  }
+
+  // No duplicate edge between the same two nodes.
+  if (edges.some((edge) => edge.source === source && edge.target === target)) {
+    return false;
+  }
+
+  // Group compatibility must hold in both directions.
+  const sourceGroup = sourceSpec.node_info.node_group;
+  const targetGroup = targetSpec.node_info.node_group;
+  if (
+    !targetSpec.node_requirement.valid_inputs.includes(sourceGroup) ||
+    !sourceSpec.node_requirement.valid_outputs.includes(targetGroup)
+  ) {
+    return false;
+  }
+
+  // Edge-count caps: adding this edge must not exceed either node's limit.
+  const targetInCount = edges.filter((edge) => edge.target === target).length;
+  if (targetInCount >= targetSpec.node_requirement.max_in_edges) {
+    return false;
+  }
+  const sourceOutCount = edges.filter((edge) => edge.source === source).length;
+  if (sourceOutCount >= sourceSpec.node_requirement.max_out_edges) {
+    return false;
+  }
+
+  return true;
 }
 
 /**

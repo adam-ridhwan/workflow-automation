@@ -11,6 +11,7 @@ import { CanvasHistoryService } from '../_lib/canvas-history';
 import { getHelperLines } from '../_lib/get-helper-lines';
 import { toCanvasData, WORKFLOW_EDGE, WORKFLOW_NODE } from '../_lib/normalize';
 import { organizeCanvasLayout } from '../_lib/organize-canvas-layout';
+import { canConnect } from '../_lib/validate-workflow';
 
 import type { Id } from '@/convex/_generated/dataModel';
 import type {
@@ -247,6 +248,11 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
     set({ edges: updated as Edge<WorkflowEdgeData>[] });
   },
   onConnect: (connection, target) => {
+    // Defense in depth: the canvas already gates this via isValidConnection,
+    // but never persist an edge that violates the node specs.
+    if (!canConnect(get().nodes, get().edges, connection)) {
+      return;
+    }
     const edge: Edge<WorkflowEdgeData> = {
       ...connection,
       id: crypto.randomUUID(),
