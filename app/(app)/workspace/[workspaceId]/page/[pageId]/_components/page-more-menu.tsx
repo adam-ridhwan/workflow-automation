@@ -69,7 +69,7 @@ export function PageMoreMenu() {
           <EllipsisVerticalIcon className='size-4' />
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent align='end' className='w-44'>
+        <DropdownMenuContent align='end'>
           {page.isPublished && (
             <>
               <DropdownMenuItem

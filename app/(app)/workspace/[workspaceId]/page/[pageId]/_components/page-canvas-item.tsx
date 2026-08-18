@@ -12,6 +12,7 @@ import {
   MIN_COMPONENT_W,
   snap,
 } from '../_constants/page-component-meta';
+import { clampResizeBox } from '../_lib/clamp-to-container';
 import { snapResizeBox } from '../_lib/snap-to-components';
 import { usePageStore } from '../_store/page-store';
 import { PageComponentView } from './page-component-view';
@@ -95,6 +96,14 @@ export function PageCanvasItem({ component, target }: PageCanvasItemProps) {
     return rects;
   }
 
+  // The build surface's inner size, for clamping resizes to the padding area.
+  function surfaceSize(): { w: number; h: number } | null {
+    const surface = document.querySelector('[data-page-surface]');
+    return surface
+      ? { w: surface.clientWidth, h: surface.clientHeight }
+      : null;
+  }
+
   function handleResizeStart(edges: ResizeEdges, e: React.PointerEvent) {
     e.stopPropagation();
     e.preventDefault();
@@ -136,7 +145,11 @@ export function PageCanvasItem({ component, target }: PageCanvasItemProps) {
         otherRects(),
         edges
       );
-      setLiveBox({ x: result.x, y: result.y, w: result.w, h: result.h });
+      const size = surfaceSize();
+      const box = size
+        ? clampResizeBox(result, edges, size)
+        : { x: result.x, y: result.y, w: result.w, h: result.h };
+      setLiveBox(box);
       setGuides(result.guideX, result.guideY);
     }
 
@@ -151,13 +164,20 @@ export function PageCanvasItem({ component, target }: PageCanvasItemProps) {
         edges
       );
       setLiveBox(null);
-      // Grid-snap the axis that didn't align-snap to a guide.
-      setBox(target, component.id, {
+      // Grid-snap the axis that didn't align-snap to a guide, then clamp so the
+      // resized box can't extend past the padding boundary.
+      const snapped = {
         x: result.guideX !== null ? result.x : snap(result.x),
         y: result.guideY !== null ? result.y : snap(result.y),
         w: result.guideX !== null ? result.w : snap(result.w),
         h: result.guideY !== null ? result.h : snap(result.h),
-      });
+      };
+      const size = surfaceSize();
+      setBox(
+        target,
+        component.id,
+        size ? clampResizeBox(snapped, edges, size) : snapped
+      );
     }
 
     window.addEventListener('pointermove', onMove);
@@ -167,11 +187,17 @@ export function PageCanvasItem({ component, target }: PageCanvasItemProps) {
   return (
     <div
       ref={setNodeRef}
-      {...listeners}
       {...attributes}
+      {...listeners}
+      onPointerDown={(e) => {
+        // Select on mouse down so the component becomes active immediately,
+        // before the drag threshold is crossed. Delegate to dnd-kit's own
+        // pointer-down handler afterwards so dragging still starts.
+        select(component.id);
+        listeners?.onPointerDown?.(e);
+      }}
       onClick={(e) => {
         e.stopPropagation();
-        select(component.id);
       }}
       style={{
         left,

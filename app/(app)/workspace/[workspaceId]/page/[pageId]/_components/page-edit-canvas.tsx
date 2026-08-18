@@ -1,5 +1,6 @@
 'use client';
 
+import { CONTAINER_PADDING } from '../_constants/page-component-meta';
 import { usePageStore } from '../_store/page-store';
 import { PageCanvasItem } from './page-canvas-item';
 
@@ -41,6 +42,26 @@ export function PageEditCanvas({ target, wrapperRef }: PageEditCanvasProps) {
           className='bg-background relative w-full max-w-5xl overflow-auto
             rounded-xl border'
         >
+          {/* Content-area boundary: gray lines at the padding inset that mark
+              the max width/height where components live. Each line spans the
+              full container and they cross at the four corners. */}
+          <div
+            className='bg-border pointer-events-none absolute inset-y-0 z-0 w-px'
+            style={{ left: CONTAINER_PADDING }}
+          />
+          <div
+            className='bg-border pointer-events-none absolute inset-y-0 z-0 w-px'
+            style={{ right: CONTAINER_PADDING }}
+          />
+          <div
+            className='bg-border pointer-events-none absolute inset-x-0 z-0 h-px'
+            style={{ top: CONTAINER_PADDING }}
+          />
+          <div
+            className='bg-border pointer-events-none absolute inset-x-0 z-0 h-px'
+            style={{ bottom: CONTAINER_PADDING }}
+          />
+
           {components.map((component) => (
             <PageCanvasItem
               key={component.id}

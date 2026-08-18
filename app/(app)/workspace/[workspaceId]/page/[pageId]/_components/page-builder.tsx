@@ -20,6 +20,7 @@ import {
   snap,
 } from '../_constants/page-component-meta';
 import { bindableNodes } from '../_lib/bindable-nodes';
+import { clampToContainer } from '../_lib/clamp-to-container';
 import { snapToComponents } from '../_lib/snap-to-components';
 import { usePageStore } from '../_store/page-store';
 import { useWorkspaceParams } from '../../../_hooks/use-workspace-params';
@@ -97,6 +98,13 @@ export function PageBuilder({
     return rects;
   };
 
+  // The build surface's inner size, used to keep components within the padding
+  // boundary. Null until the canvas has mounted.
+  const containerSize = () => {
+    const el = wrapperRef.current;
+    return el ? { w: el.clientWidth, h: el.clientHeight } : null;
+  };
+
   // Seed the store from the server-loaded page exactly once.
   const initialized = useRef(false);
   useEffect(() => {
@@ -164,10 +172,22 @@ export function PageBuilder({
         const component = store.components.find((c) => c.id === id);
         if (component) {
           e.preventDefault();
-          store.moveComponent(target, id, {
+          const next = {
             x: component.x + delta[0],
             y: component.y + delta[1],
-          });
+          };
+          const el = wrapperRef.current;
+          store.moveComponent(
+            target,
+            id,
+            el
+              ? clampToContainer(
+                  next,
+                  { w: component.w, h: component.h },
+                  { w: el.clientWidth, h: el.clientHeight }
+                )
+              : next
+          );
         }
       }
     }
@@ -216,10 +236,16 @@ export function PageBuilder({
     };
     const others = snapTargets(data.id);
     const result = snapToComponents(prospective, others);
+    // Keep the component within the padding boundary regardless of the drag.
+    const size = { w: activeComponent.w, h: activeComponent.h };
+    const bounds = containerSize();
+    const clamped = bounds
+      ? clampToContainer(result, size, bounds)
+      : result;
     return {
       ...transform,
-      x: transform.x + (result.x - prospective.x),
-      y: transform.y + (result.y - prospective.y),
+      x: transform.x + (clamped.x - prospective.x),
+      y: transform.y + (clamped.y - prospective.y),
     };
   };
 
@@ -279,10 +305,18 @@ export function PageBuilder({
       };
       const others = snapTargets(data.id);
       const result = snapToComponents(prospective, others);
-      moveComponent(target, data.id, {
+      const next = {
         x: result.guideX !== null ? result.x : snap(prospective.x),
         y: result.guideY !== null ? result.y : snap(prospective.y),
-      });
+      };
+      const bounds = containerSize();
+      moveComponent(
+        target,
+        data.id,
+        bounds
+          ? clampToContainer(next, { w: component.w, h: component.h }, bounds)
+          : next
+      );
       return;
     }
 
@@ -314,10 +348,17 @@ export function PageBuilder({
       }
       const scrollLeft = wrapperRef.current?.scrollLeft ?? 0;
       const scrollTop = wrapperRef.current?.scrollTop ?? 0;
-      addComponent(target, data.type, {
+      const dropped = {
         x: snap(pointerX - bounds.left + scrollLeft),
         y: snap(pointerY - bounds.top + scrollTop),
-      });
+      };
+      const size = PAGE_COMPONENT_META[data.type].defaultSize;
+      const innerBounds = containerSize();
+      addComponent(
+        target,
+        data.type,
+        innerBounds ? clampToContainer(dropped, size, innerBounds) : dropped
+      );
     }
   }
 
