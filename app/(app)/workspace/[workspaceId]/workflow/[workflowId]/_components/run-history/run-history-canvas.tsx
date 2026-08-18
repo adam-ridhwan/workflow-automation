@@ -86,6 +86,7 @@ export function RunHistoryCanvas({ run }: RunHistoryCanvasProps) {
               setSelectedNodeId(null);
             }}
             fitView
+            fitViewOptions={{ maxZoom: 1 }}
             proOptions={{ hideAttribution: true }}
           >
             <Background variant={BackgroundVariant.Dots} gap={50} size={1.5} />
