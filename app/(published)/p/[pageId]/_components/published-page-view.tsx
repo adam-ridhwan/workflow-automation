@@ -26,7 +26,10 @@ type PublishedPageViewProps = {
 
 /** Renders a published page's components in live/run mode, chrome-free. Same
  * runtime as the builder's Preview, but read from the published payload. */
-export function PublishedPageView({ page, fileOptions }: PublishedPageViewProps) {
+export function PublishedPageView({
+  page,
+  fileOptions,
+}: PublishedPageViewProps) {
   const runForPage = useAction(api.runWorkflow.runForPage);
   const [values, setValues] = useState<Record<string, string>>({});
   const [outputs, setOutputs] = useState<Record<string, string>>({});
@@ -56,7 +59,10 @@ export function PublishedPageView({ page, fileOptions }: PublishedPageViewProps)
       });
       setOutputs(result.outputs);
     } catch (error) {
-      toast.add({ type: 'error', title: errorMessage(error, 'The run failed.') });
+      toast.add({
+        type: 'error',
+        title: errorMessage(error, 'The run failed.'),
+      });
     } finally {
       setRunning(false);
     }

@@ -5,6 +5,7 @@ import { preloadQuery } from 'convex/nextjs';
 import { FilesView } from './_components/files-view';
 
 import type { Id } from '@/convex/_generated/dataModel';
+
 type FilesPageProps = {
   params: Promise<{ workspaceId: string }>;
 };
@@ -15,11 +16,7 @@ export default async function FilesPage({ params }: FilesPageProps) {
 
   const token = await convexAuthNextjsToken();
   const [preloadedFiles, preloadedFolders] = await Promise.all([
-    preloadQuery(
-      api.files.list,
-      { workspaceId: workspaceId },
-      { token }
-    ),
+    preloadQuery(api.files.list, { workspaceId: workspaceId }, { token }),
     preloadQuery(
       api.folders.list,
       { workspaceId: workspaceId, kind: 'file' },

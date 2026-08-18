@@ -78,9 +78,10 @@ export function LoginForm({
                     } catch (err) {
                       console.error('Google sign-in failed:', err);
                       setError(
-                        err instanceof ConvexError && typeof err.data === 'string'
+                        err instanceof ConvexError &&
+                          typeof err.data === 'string'
                           ? err.data
-                          : 'Google sign-in failed. Please try again.',
+                          : 'Google sign-in failed. Please try again.'
                       );
                       setGoogleSubmitting(false);
                     }

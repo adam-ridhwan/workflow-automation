@@ -1,11 +1,7 @@
 import { ConvexError, Infer, v } from 'convex/values';
 
+import { internalQuery, mutation, query } from './_generated/server';
 import { decryptSecret, encryptSecret } from './model/secretCrypto';
-import {
-  internalQuery,
-  mutation,
-  query,
-} from './_generated/server';
 import {
   getMemberWorkspaceById,
   getWorkspaceByIdOrThrow,

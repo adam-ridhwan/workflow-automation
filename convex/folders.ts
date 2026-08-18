@@ -216,11 +216,7 @@ export const rename = mutation({
   },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const folder = await getMemberFolder(
-      ctx,
-      args.workspaceId,
-      args.folderId
-    );
+    const folder = await getMemberFolder(ctx, args.workspaceId, args.folderId);
 
     const name = args.name.trim();
     if (name.length === 0) {
@@ -257,11 +253,7 @@ export const move = mutation({
   },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const folder = await getMemberFolder(
-      ctx,
-      args.workspaceId,
-      args.folderId
-    );
+    const folder = await getMemberFolder(ctx, args.workspaceId, args.folderId);
     if (folder.parentId === args.parentId) {
       return null;
     }
@@ -315,11 +307,7 @@ export const remove = mutation({
   args: { workspaceId: v.id('workspaces'), folderId: v.id('folders') },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const folder = await getMemberFolder(
-      ctx,
-      args.workspaceId,
-      args.folderId
-    );
+    const folder = await getMemberFolder(ctx, args.workspaceId, args.folderId);
 
     // Delete the folder, all of its descendant folders, and the entities
     // (workflows or files) inside them.

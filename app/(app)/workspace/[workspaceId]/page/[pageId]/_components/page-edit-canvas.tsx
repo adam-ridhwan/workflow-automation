@@ -46,19 +46,23 @@ export function PageEditCanvas({ target, wrapperRef }: PageEditCanvasProps) {
               the max width/height where components live. Each line spans the
               full container and they cross at the four corners. */}
           <div
-            className='bg-border pointer-events-none absolute inset-y-0 z-0 w-px'
+            className='bg-border pointer-events-none absolute inset-y-0 z-0
+              w-px'
             style={{ left: CONTAINER_PADDING }}
           />
           <div
-            className='bg-border pointer-events-none absolute inset-y-0 z-0 w-px'
+            className='bg-border pointer-events-none absolute inset-y-0 z-0
+              w-px'
             style={{ right: CONTAINER_PADDING }}
           />
           <div
-            className='bg-border pointer-events-none absolute inset-x-0 z-0 h-px'
+            className='bg-border pointer-events-none absolute inset-x-0 z-0
+              h-px'
             style={{ top: CONTAINER_PADDING }}
           />
           <div
-            className='bg-border pointer-events-none absolute inset-x-0 z-0 h-px'
+            className='bg-border pointer-events-none absolute inset-x-0 z-0
+              h-px'
             style={{ bottom: CONTAINER_PADDING }}
           />
 

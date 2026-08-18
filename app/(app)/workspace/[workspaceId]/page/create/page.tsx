@@ -59,7 +59,9 @@ export default function CreatePagePage() {
     <div className='min-h-0 flex-1 overflow-y-auto'>
       <div className='mx-auto flex w-full max-w-2xl flex-col gap-8 px-6 py-10'>
         <div className='flex flex-col gap-1'>
-          <h1 className='text-2xl font-semibold tracking-tight'>Create a page</h1>
+          <h1 className='text-2xl font-semibold tracking-tight'>
+            Create a page
+          </h1>
           <p className='text-muted-foreground text-sm'>
             A customizable page where you drop inputs, a run button, and output
             displays, then bind them to a workflow.

@@ -11,15 +11,15 @@ import {
   FieldSeparator,
 } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
+import { api } from '@/convex/_generated/api';
 import { cn } from '@/lib/cn';
 import {
   PASSWORD_REQUIREMENTS,
   validatePassword,
 } from '@/lib/validate-password';
-import { api } from '@/convex/_generated/api';
 import { useAuthActions } from '@convex-dev/auth/react';
-import { useConvex } from 'convex/react';
 import { SiGoogle } from '@icons-pack/react-simple-icons';
+import { useConvex } from 'convex/react';
 import { ConvexError } from 'convex/values';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';

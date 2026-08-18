@@ -56,9 +56,7 @@ function renderDragIcon(kind: DragData['kind']) {
   }
   if (kind === 'page') {
     return (
-      <LayoutTemplateIcon
-        className='text-muted-foreground size-3.5 shrink-0'
-      />
+      <LayoutTemplateIcon className='text-muted-foreground size-3.5 shrink-0' />
     );
   }
   return <WorkflowIcon className='text-muted-foreground size-3.5 shrink-0' />;

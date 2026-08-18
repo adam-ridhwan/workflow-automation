@@ -21,7 +21,10 @@ type PageWorkflowPickerProps = {
   options: WorkflowOption[];
 };
 
-export function PageWorkflowPicker({ target, options }: PageWorkflowPickerProps) {
+export function PageWorkflowPicker({
+  target,
+  options,
+}: PageWorkflowPickerProps) {
   const workflowId = usePageStore((s) => s.workflowId);
   const setWorkflowId = usePageStore((s) => s.setWorkflowId);
 

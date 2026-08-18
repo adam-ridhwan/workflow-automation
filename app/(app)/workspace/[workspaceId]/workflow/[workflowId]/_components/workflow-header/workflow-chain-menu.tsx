@@ -109,8 +109,8 @@ export function WorkflowChainMenu({
             onClick={() => {
               add(option._id);
             }}
-            className='hover:bg-accent flex w-full items-center gap-1.5 rounded-md
-              px-2 py-1 text-left text-[13px]'
+            className='hover:bg-accent flex w-full items-center gap-1.5
+              rounded-md px-2 py-1 text-left text-[13px]'
           >
             <PlusIcon className='text-muted-foreground size-3.5 shrink-0' />
             <span className='truncate'>{option.name}</span>
@@ -138,10 +138,10 @@ export function WorkflowChainMenu({
               <BlendIcon className='size-4' />
               {chainCount > 0 && (
                 <span
-                  className='bg-primary text-primary-foreground pointer-events-none
-                    absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center
-                    justify-center rounded-full px-1 text-[10px] leading-none
-                    font-medium tabular-nums'
+                  className='bg-primary text-primary-foreground
+                    pointer-events-none absolute -top-0.5 -right-0.5 flex h-4
+                    min-w-4 items-center justify-center rounded-full px-1
+                    text-[10px] leading-none font-medium tabular-nums'
                 >
                   {chainCount}
                 </span>

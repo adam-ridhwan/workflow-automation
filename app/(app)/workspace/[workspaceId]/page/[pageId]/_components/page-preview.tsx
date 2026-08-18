@@ -32,7 +32,10 @@ export function PagePreview({ workspaceId, fileOptions }: PagePreviewProps) {
 
   async function handleRun() {
     if (workflowId === undefined) {
-      toast.add({ type: 'error', title: 'Bind this page to a workflow first.' });
+      toast.add({
+        type: 'error',
+        title: 'Bind this page to a workflow first.',
+      });
       return;
     }
     // Map each bound input component's current value to the workflow node it
@@ -53,7 +56,10 @@ export function PagePreview({ workspaceId, fileOptions }: PagePreviewProps) {
       });
       setOutputs(result.outputs);
     } catch (error) {
-      toast.add({ type: 'error', title: errorMessage(error, 'The run failed.') });
+      toast.add({
+        type: 'error',
+        title: errorMessage(error, 'The run failed.'),
+      });
     } finally {
       setRunning(false);
     }
@@ -65,7 +71,7 @@ export function PagePreview({ workspaceId, fileOptions }: PagePreviewProps) {
   }
 
   return (
-    <div className='min-h-0 flex-1 overflow-auto bg-background'>
+    <div className='bg-background min-h-0 flex-1 overflow-auto'>
       <div className='relative mx-auto min-h-full w-full max-w-5xl'>
         {components.map((component) => {
           const isInput = isInputComponent(component.type);

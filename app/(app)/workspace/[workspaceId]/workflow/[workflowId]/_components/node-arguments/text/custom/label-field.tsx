@@ -21,7 +21,12 @@ type LabelFieldProps = {
 /** The TEXT_INPUT `label` argument: a name an LLM prompt can target as
  * `{{label}}`. Flags inline when the label collides with another text input's,
  * so duplicates are caught before the run-button validation does. */
-export function LabelField({ fieldId, nodeId, data, argument }: LabelFieldProps) {
+export function LabelField({
+  fieldId,
+  nodeId,
+  data,
+  argument,
+}: LabelFieldProps) {
   const { workspaceId, workflowId } = useWorkspaceParams();
   const isRunning = useCanvasStore((s) => s.runPhase !== 'idle');
   const nodes = useCanvasStore((s) => s.nodes);

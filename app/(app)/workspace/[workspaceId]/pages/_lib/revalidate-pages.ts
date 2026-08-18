@@ -2,9 +2,9 @@
 
 import { revalidatePath } from 'next/cache';
 
+import type { Id } from '@/convex/_generated/dataModel';
 import type { Folder } from '@/convex/folders';
 
-import type { Id } from '@/convex/_generated/dataModel';
 /** Invalidate the server-rendered pages list (root, and the containing folder
  * when given) so a newly created page appears when the user returns to it after
  * jumping straight to the builder. */

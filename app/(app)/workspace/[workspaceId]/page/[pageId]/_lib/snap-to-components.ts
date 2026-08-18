@@ -1,4 +1,7 @@
-import { MIN_COMPONENT_H, MIN_COMPONENT_W } from '../_constants/page-component-meta';
+import {
+  MIN_COMPONENT_H,
+  MIN_COMPONENT_W,
+} from '../_constants/page-component-meta';
 
 export type Rect = {
   x: number;

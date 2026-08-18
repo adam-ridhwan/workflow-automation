@@ -35,7 +35,8 @@ export default async function FilesFolderBreadcrumbPage({
     return null;
   }
 
-  const folderHref = (id: string) => `/workspace/${workspaceId}/files/folder/${id}`;
+  const folderHref = (id: string) =>
+    `/workspace/${workspaceId}/files/folder/${id}`;
 
   // Deep trails collapse like Chrome's: keep the last two segments and tuck
   // the rest behind an ellipsis menu.

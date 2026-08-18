@@ -1,7 +1,5 @@
 'use client';
 
-import type { Id } from '@/convex/_generated/dataModel';
-
 import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -25,6 +23,7 @@ import { useParams, useRouter } from 'next/navigation';
 
 import { CreateWorkspaceDialog } from './create-workspace-dialog';
 
+import type { Id } from '@/convex/_generated/dataModel';
 import type { Workspace } from '@/convex/workspaces';
 
 type WorkspaceSwitcherProps = {
@@ -130,9 +129,7 @@ export function WorkspaceSwitcher({ workspaces }: WorkspaceSwitcherProps) {
             <DropdownMenuGroup>
               <DropdownMenuItem
                 render={
-                  <Link
-                    href={`/workspace/${activeWorkspace._id}/settings`}
-                  />
+                  <Link href={`/workspace/${activeWorkspace._id}/settings`} />
                 }
                 nativeButton={false}
                 className='gap-2 p-2'
@@ -144,9 +141,7 @@ export function WorkspaceSwitcher({ workspaces }: WorkspaceSwitcherProps) {
                   <Settings className='size-3.5' />
                 </div>
 
-                <div className='font-medium'>
-                  Workspace settings
-                </div>
+                <div className='font-medium'>Workspace settings</div>
               </DropdownMenuItem>
             </DropdownMenuGroup>
 
@@ -164,9 +159,7 @@ export function WorkspaceSwitcher({ workspaces }: WorkspaceSwitcherProps) {
                   <PlusIcon className='size-4' />
                 </div>
 
-                <div className='font-medium'>
-                  Add workspace
-                </div>
+                <div className='font-medium'>Add workspace</div>
               </DropdownMenuItem>
             </DropdownMenuGroup>
           </DropdownMenuContent>

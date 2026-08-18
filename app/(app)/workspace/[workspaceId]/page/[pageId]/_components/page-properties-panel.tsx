@@ -18,8 +18,8 @@ import { CopyIcon, Trash2Icon } from 'lucide-react';
 import { PAGE_COMPONENT_META } from '../_constants/page-component-meta';
 import { usePageStore } from '../_store/page-store';
 
-import type { Id } from '@/convex/_generated/dataModel';
 import type { NodeOption } from '../_lib/bindable-nodes';
+import type { Id } from '@/convex/_generated/dataModel';
 
 const NO_BINDING = '__none__';
 
@@ -119,9 +119,14 @@ export function PagePropertiesPanel({
   }
 
   return (
-    <div className='absolute top-4 right-4 bottom-4 z-10 flex w-72' data-page-panel>
+    <div
+      className='absolute top-4 right-4 bottom-4 z-10 flex w-72'
+      data-page-panel
+    >
       <Card className='flex min-h-0 flex-1 flex-col gap-0 overflow-hidden p-0'>
-        <div className='flex h-11 items-center justify-between gap-2 border-b px-3'>
+        <div
+          className='flex h-11 items-center justify-between gap-2 border-b px-3'
+        >
           <span className='text-sm font-medium'>{meta.label}</span>
           <div className='flex items-center gap-0.5'>
             <Button

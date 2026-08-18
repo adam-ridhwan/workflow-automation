@@ -1,7 +1,5 @@
 'use client';
 
-import type { Id } from '@/convex/_generated/dataModel';
-
 import { useState } from 'react';
 import {
   AlertDialog,
@@ -34,12 +32,11 @@ import { toast } from '@/components/ui/toast';
 import { api } from '@/convex/_generated/api';
 import { errorMessage } from '@/lib/error-message';
 import { formatTime } from '@/lib/format-time';
-import {
-  PROVIDER_SECRETS,
-  providerSecretLabel,
-} from '@/lib/provider-secrets';
+import { PROVIDER_SECRETS, providerSecretLabel } from '@/lib/provider-secrets';
 import { useMutation, useQuery } from 'convex/react';
 import { KeyRoundIcon, Loader2Icon, Trash2Icon } from 'lucide-react';
+
+import type { Id } from '@/convex/_generated/dataModel';
 
 type SecretsManagerProps = {
   workspaceId: Id<'workspaces'>;

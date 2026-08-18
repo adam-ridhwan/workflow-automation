@@ -88,10 +88,7 @@ export function PageComponentView({
       const alt = propString(component, 'alt');
       if (!url) {
         return (
-          <div
-            className='bg-muted/40 text-muted-foreground flex h-full w-full
-              items-center justify-center rounded-lg border text-xs'
-          >
+          <div className='bg-muted/40 text-muted-foreground flex h-full w-full items-center justify-center rounded-lg border text-xs'>
             Set an image URL
           </div>
         );
@@ -257,8 +254,7 @@ export function PageComponentView({
           <Label className='text-xs'>{label}</Label>
           <div
             className={cn(
-              `bg-muted/40 min-h-0 flex-1 overflow-y-auto rounded-lg border p-3
-              text-sm`,
+              `bg-muted/40 min-h-0 flex-1 overflow-y-auto rounded-lg border p-3 text-sm`,
               !hasOutput && 'text-muted-foreground flex items-center'
             )}
           >

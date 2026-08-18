@@ -239,9 +239,7 @@ export function PageBuilder({
     // Keep the component within the padding boundary regardless of the drag.
     const size = { w: activeComponent.w, h: activeComponent.h };
     const bounds = containerSize();
-    const clamped = bounds
-      ? clampToContainer(result, size, bounds)
-      : result;
+    const clamped = bounds ? clampToContainer(result, size, bounds) : result;
     return {
       ...transform,
       x: transform.x + (clamped.x - prospective.x),

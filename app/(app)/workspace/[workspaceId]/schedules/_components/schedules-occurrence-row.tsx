@@ -1,12 +1,11 @@
 'use client';
 
+import { describeCron } from '@/lib/cron';
 import { WorkflowIcon } from 'lucide-react';
 
+import { formatTimeOfDay } from '../_lib/occurrences';
 import { resourceRowComposer } from '../../_components/resource-row-composer';
 import { useWorkspaceParams } from '../../_hooks/use-workspace-params';
-import { formatTimeOfDay } from '../_lib/occurrences';
-
-import { describeCron } from '@/lib/cron';
 
 import type { Occurrence } from '../_lib/occurrences';
 
@@ -39,7 +38,9 @@ export function SchedulesOccurrenceRow({
           subtitle={describeCron(occurrence.cron)}
           href={`/workspace/${workspaceId}/workflow/${occurrence.workflowId}/canvas`}
         />
-        <OccurrenceRow.Cell className='text-muted-foreground text-xs tabular-nums'>
+        <OccurrenceRow.Cell
+          className='text-muted-foreground text-xs tabular-nums'
+        >
           {formatTimeOfDay(occurrence.at)}
         </OccurrenceRow.Cell>
         <OccurrenceRow.Cell className='text-muted-foreground text-xs'>

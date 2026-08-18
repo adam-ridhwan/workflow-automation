@@ -26,9 +26,9 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
+import { revalidatePages } from '../_lib/revalidate-pages';
 import { resourceRowComposer } from '../../_components/resource-row-composer';
 import { useWorkspaceParams } from '../../_hooks/use-workspace-params';
-import { revalidatePages } from '../_lib/revalidate-pages';
 
 import type { Page } from '@/convex/pages';
 
@@ -69,7 +69,9 @@ export function PagesTableRow({ page, onDelete }: PagesTableRowProps) {
       stopRename();
       router.refresh();
     } catch (err) {
-      setRenameError(errorMessage(err, 'Could not rename page. Please try again.'));
+      setRenameError(
+        errorMessage(err, 'Could not rename page. Please try again.')
+      );
     }
   }
 
@@ -92,7 +94,9 @@ export function PagesTableRow({ page, onDelete }: PagesTableRowProps) {
       >
         <PageRow.NameCell
           icon={
-            <LayoutTemplateIcon className='text-muted-foreground size-4 shrink-0' />
+            <LayoutTemplateIcon
+              className='text-muted-foreground size-4 shrink-0'
+            />
           }
           name={page.name}
           href={`/workspace/${workspaceId}/page/${page._id}`}

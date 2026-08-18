@@ -99,9 +99,7 @@ export function PageCanvasItem({ component, target }: PageCanvasItemProps) {
   // The build surface's inner size, for clamping resizes to the padding area.
   function surfaceSize(): { w: number; h: number } | null {
     const surface = document.querySelector('[data-page-surface]');
-    return surface
-      ? { w: surface.clientWidth, h: surface.clientHeight }
-      : null;
+    return surface ? { w: surface.clientWidth, h: surface.clientHeight } : null;
   }
 
   function handleResizeStart(edges: ResizeEdges, e: React.PointerEvent) {

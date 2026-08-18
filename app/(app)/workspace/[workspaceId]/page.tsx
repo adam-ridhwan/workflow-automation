@@ -1,4 +1,3 @@
-import type { Id } from '@/convex/_generated/dataModel';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { api } from '@/convex/_generated/api';
 import { cn } from '@/lib/cn';
@@ -15,6 +14,8 @@ import Link from 'next/link';
 
 import { OverviewRunsChart } from './_components/overview-runs-chart';
 import { OverviewStatCard } from './_components/overview-stat-card';
+
+import type { Id } from '@/convex/_generated/dataModel';
 
 type WorkspacePageProps = {
   params: Promise<{ workspaceId: string }>;
@@ -44,11 +45,7 @@ export default async function WorkspacePage({ params }: WorkspacePageProps) {
 
   const token = await convexAuthNextjsToken();
   const [overview, runsSeries] = await Promise.all([
-    fetchQuery(
-      api.overview.get,
-      { workspaceId: workspaceId },
-      { token }
-    ),
+    fetchQuery(api.overview.get, { workspaceId: workspaceId }, { token }),
     fetchQuery(
       api.overview.runsSeries,
       { workspaceId: workspaceId },

@@ -19,20 +19,20 @@ standalone URL.
 
 ## Features
 
-| Area | What it does | Route |
-| --- | --- | --- |
-| **Workspaces** | Multi-tenant workspaces with members and roles (owner / editor / viewer). Overview dashboard with run stats and a runs-over-time chart. | `/workspace/[workspaceId]` |
-| **Folders** | Nested organization, scoped per resource kind (`workflow` / `file` / `page`), with drag-and-drop. | — |
-| **Workflow canvas** | Visual node editor (React Flow) with a node palette, auto-layout (Dagre), undo/redo, client-side validation, and version history (auto / manual / restored snapshots). | `/workspace/[workspaceId]/workflow/[workflowId]/canvas` |
-| **Nodes** | **Input:** Text, File (picks a workspace file), Webhook. **Model:** LLM (provider + model + prompt/system + max tokens). **Output:** File, Display, Log. | see `lib/node-specs.ts` |
-| **Runs & history** | Live per-node run state streamed onto the canvas as it executes, plus a permanent snapshot per run. Runs can be stopped mid-flight. | `/workspace/[workspaceId]/workflow/[workflowId]/run-history/[id]` |
-| **AI / LLM nodes** | Prompt templating substitutes `{{text_input}}`, `{{file}}`, `{{webhook}}`, `{{input}}` tokens with upstream node outputs, then calls the provider. | `convex/runWorkflow.ts` |
+| Area                     | What it does                                                                                                                                                                                                 | Route                                                               |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------- |
+| **Workspaces**           | Multi-tenant workspaces with members and roles (owner / editor / viewer). Overview dashboard with run stats and a runs-over-time chart.                                                                      | `/workspace/[workspaceId]`                                          |
+| **Folders**              | Nested organization, scoped per resource kind (`workflow` / `file` / `page`), with drag-and-drop.                                                                                                            | —                                                                   |
+| **Workflow canvas**      | Visual node editor (React Flow) with a node palette, auto-layout (Dagre), undo/redo, client-side validation, and version history (auto / manual / restored snapshots).                                       | `/workspace/[workspaceId]/workflow/[workflowId]/canvas`             |
+| **Nodes**                | **Input:** Text, File (picks a workspace file), Webhook. **Model:** LLM (provider + model + prompt/system + max tokens). **Output:** File, Display, Log.                                                     | see `lib/node-specs.ts`                                             |
+| **Runs & history**       | Live per-node run state streamed onto the canvas as it executes, plus a permanent snapshot per run. Runs can be stopped mid-flight.                                                                          | `/workspace/[workspaceId]/workflow/[workflowId]/run-history/[id]`   |
+| **AI / LLM nodes**       | Prompt templating substitutes `{{text_input}}`, `{{file}}`, `{{webhook}}`, `{{input}}` tokens with upstream node outputs, then calls the provider.                                                           | `convex/runWorkflow.ts`                                             |
 | **Pages (page builder)** | Free-positioned drag-and-drop UI (inputs, button, output, text/heading/image, etc.) bound to a single workflow's input/output nodes. Fill inputs + press the button to run. Publishable at a standalone URL. | `/workspace/[workspaceId]/page/[pageId]` · published: `/p/[pageId]` |
-| **Files** | Chunked uploads reassembled in Convex storage with a status pipeline (`uploading → assembling → processing → indexed`). Feed `FILE_INPUT` nodes and produced by `FILE_OUTPUT` nodes. | `/workspace/[workspaceId]/files` |
-| **Schedules (cron)** | Per-workflow cron + IANA timezone. A single every-minute Convex cron dispatches all due schedules. | `/workspace/[workspaceId]/schedules` |
-| **Templates** | Ready-to-run starter workflows: Summarize text, Translate to French, Sentiment analysis, Draft & refine, CSV → JSON, Extract action items. | `lib/workflow-templates.ts` |
-| **Secrets** | Per-workspace, AES-256-GCM encrypted API keys (only name + last-4 exposed). | `/workspace/[workspaceId]/settings` |
-| **Auth** | Email/password + Google sign-in, one account per email. | `/signin` · `/signup` |
+| **Files**                | Chunked uploads reassembled in Convex storage with a status pipeline (`uploading → assembling → processing → indexed`). Feed `FILE_INPUT` nodes and produced by `FILE_OUTPUT` nodes.                         | `/workspace/[workspaceId]/files`                                    |
+| **Schedules (cron)**     | Per-workflow cron + IANA timezone. A single every-minute Convex cron dispatches all due schedules.                                                                                                           | `/workspace/[workspaceId]/schedules`                                |
+| **Templates**            | Ready-to-run starter workflows: Summarize text, Translate to French, Sentiment analysis, Draft & refine, CSV → JSON, Extract action items.                                                                   | `lib/workflow-templates.ts`                                         |
+| **Secrets**              | Per-workspace, AES-256-GCM encrypted API keys (only name + last-4 exposed).                                                                                                                                  | `/workspace/[workspaceId]/settings`                                 |
+| **Auth**                 | Email/password + Google sign-in, one account per email.                                                                                                                                                      | `/signin` · `/signup`                                               |
 
 ### How a run works
 
@@ -115,10 +115,10 @@ NEXT_PUBLIC_CONVEX_SITE_URL=...
 These live in the **Convex deployment** (set with `npx convex env set KEY value`),
 not in `.env.local`:
 
-| Variable | Purpose |
-| --- | --- |
-| `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` | Google OAuth sign-in (optional — email/password works without it) |
-| `SECRETS_KEY` | AES-256-GCM master key used to encrypt workspace secrets (required to store LLM keys) |
+| Variable                                                    | Purpose                                                                                                                        |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET`                     | Google OAuth sign-in (optional — email/password works without it)                                                              |
+| `SECRETS_KEY`                                               | AES-256-GCM master key used to encrypt workspace secrets (required to store LLM keys)                                          |
 | `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` / `DEEPSEEK_API_KEY` | Optional deployment-level fallback LLM keys. Normally provided **per workspace** via **Settings → Secrets** in the UI instead. |
 
 `CONVEX_SITE_URL` is set automatically by the Convex deployment and is read by
@@ -160,20 +160,20 @@ proxy.ts                       Convex-auth middleware + bare-id → /p/[pageId] 
 
 ### Tables (`convex/schema.ts`)
 
-| Table | Represents |
-| --- | --- |
-| `users` | Account profile (name, email, avatar) |
-| `workspaces` | Top-level tenant, owned by a user |
-| `workspaceMembers` | Membership + role (`editor` / `viewer`) |
-| `folders` | Nested organization, `kind` = workflow / file / page |
-| `workflows` | Canvas (nodes/edges), publish flag, webhook token, chain targets, run stats |
-| `workflowVersions` | Canvas snapshots for version history |
-| `runs` | Latest live run per workflow (per-node status/output), streamed to clients |
-| `runHistory` | One permanent record per run (snapshot, status, trigger, timings) |
-| `workflowSchedules` | Per-workflow cron + timezone + next-run time |
-| `workspaceSecrets` | AES-256-GCM encrypted API keys (name + last-4 only) |
-| `pages` | Page-builder layout bound to a workflow |
-| `files` | Uploaded files with chunked-upload status pipeline |
+| Table               | Represents                                                                  |
+| ------------------- | --------------------------------------------------------------------------- |
+| `users`             | Account profile (name, email, avatar)                                       |
+| `workspaces`        | Top-level tenant, owned by a user                                           |
+| `workspaceMembers`  | Membership + role (`editor` / `viewer`)                                     |
+| `folders`           | Nested organization, `kind` = workflow / file / page                        |
+| `workflows`         | Canvas (nodes/edges), publish flag, webhook token, chain targets, run stats |
+| `workflowVersions`  | Canvas snapshots for version history                                        |
+| `runs`              | Latest live run per workflow (per-node status/output), streamed to clients  |
+| `runHistory`        | One permanent record per run (snapshot, status, trigger, timings)           |
+| `workflowSchedules` | Per-workflow cron + timezone + next-run time                                |
+| `workspaceSecrets`  | AES-256-GCM encrypted API keys (name + last-4 only)                         |
+| `pages`             | Page-builder layout bound to a workflow                                     |
+| `files`             | Uploaded files with chunked-upload status pipeline                          |
 
 ### Notable function files
 
@@ -194,14 +194,14 @@ proxy.ts                       Convex-auth middleware + bare-id → /p/[pageId] 
 
 ## Scripts
 
-| Command | Description |
-| --- | --- |
-| `pnpm dev` | Next.js dev server (run `npx convex dev` alongside it) |
-| `pnpm build` | Production build |
-| `pnpm start` | Serve the production build |
-| `pnpm lint` | ESLint |
-| `pnpm lint:fix` | ESLint `--fix` + Prettier write |
-| `pnpm format` / `pnpm format:check` | Prettier write / check |
+| Command                             | Description                                            |
+| ----------------------------------- | ------------------------------------------------------ |
+| `pnpm dev`                          | Next.js dev server (run `npx convex dev` alongside it) |
+| `pnpm build`                        | Production build                                       |
+| `pnpm start`                        | Serve the production build                             |
+| `pnpm lint`                         | ESLint                                                 |
+| `pnpm lint:fix`                     | ESLint `--fix` + Prettier write                        |
+| `pnpm format` / `pnpm format:check` | Prettier write / check                                 |
 
 ---
 

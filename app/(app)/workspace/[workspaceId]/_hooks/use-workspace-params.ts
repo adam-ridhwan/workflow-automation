@@ -43,7 +43,9 @@ export function useWorkspaceParams() {
     // Only present on the page detail route; throws elsewhere.
     get pageId(): Id<'pages'> {
       if (params.pageId === undefined) {
-        throw new Error('useWorkspaceParams: pageId is missing from the route.');
+        throw new Error(
+          'useWorkspaceParams: pageId is missing from the route.'
+        );
       }
       return params.pageId;
     },

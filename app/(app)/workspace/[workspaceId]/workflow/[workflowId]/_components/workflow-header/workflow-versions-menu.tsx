@@ -108,7 +108,9 @@ export function WorkflowVersionsMenu() {
   function renderVersions() {
     if (versions === undefined) {
       return (
-        <div className='text-muted-foreground px-2 py-1.5 text-xs'>Loading…</div>
+        <div className='text-muted-foreground px-2 py-1.5 text-xs'>
+          Loading…
+        </div>
       );
     }
     if (versions.length === 0) {

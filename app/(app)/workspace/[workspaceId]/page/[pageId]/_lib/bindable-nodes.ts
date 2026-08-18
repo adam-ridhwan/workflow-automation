@@ -16,7 +16,10 @@ const TYPE_LABELS: Record<string, string> = {
 
 /** A short, human-friendly name for a workflow node, preferring an author-set
  * TEXT_INPUT label, then the node's own name, then its type. */
-function friendlyLabel(node: WorkflowNodeData, type: string | undefined): string {
+function friendlyLabel(
+  node: WorkflowNodeData,
+  type: string | undefined
+): string {
   if (type === 'TEXT_INPUT') {
     const label = String(getArgumentValue(node, 'label') ?? '').trim();
     if (label) {

@@ -51,9 +51,7 @@ export function WorkflowMoreMenu({ name }: WorkflowMoreMenuProps) {
         workflowId,
       });
       toast.add({ type: 'success', title: 'Workflow duplicated.' });
-      router.push(
-        `/workspace/${workspaceId}/workflow/${newWorkflowId}/canvas`
-      );
+      router.push(`/workspace/${workspaceId}/workflow/${newWorkflowId}/canvas`);
     } catch (error) {
       toast.add({
         type: 'error',

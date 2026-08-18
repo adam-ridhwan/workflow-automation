@@ -2,6 +2,7 @@ import { TrailSegment } from '../../_components/trail-segment';
 import { TrailStart } from '../../_components/trail-start';
 
 import type { Id } from '@/convex/_generated/dataModel';
+
 type CreateBreadcrumbPageProps = {
   params: Promise<{ workspaceId: string }>;
 };

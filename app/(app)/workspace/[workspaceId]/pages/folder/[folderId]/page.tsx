@@ -3,9 +3,9 @@ import { convexAuthNextjsToken } from '@convex-dev/auth/nextjs/server';
 import { fetchQuery } from 'convex/nextjs';
 import { notFound } from 'next/navigation';
 
-import { sieveFolders } from '../../../_lib/sieve-resources';
 import { PagesTable } from '../../_components/pages-table';
 import { sievePages } from '../../_lib/sieve-pages';
+import { sieveFolders } from '../../../_lib/sieve-resources';
 
 import type { PagesSearchParams } from '../../_lib/sieve-pages';
 import type { Id } from '@/convex/_generated/dataModel';

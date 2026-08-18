@@ -211,7 +211,9 @@ export function validateWorkflow(
   // Text input labels must be unique so an LLM prompt can target one by name.
   const labelCounts = new Map<string, number>();
   for (const node of nodes) {
-    if (findNodeSpec(node.data.node_uid)?.node_info.node_type !== 'TEXT_INPUT') {
+    if (
+      findNodeSpec(node.data.node_uid)?.node_info.node_type !== 'TEXT_INPUT'
+    ) {
       continue;
     }
     const label = String(getArgumentValue(node.data, 'label') ?? '').trim();

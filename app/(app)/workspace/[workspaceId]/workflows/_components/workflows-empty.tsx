@@ -30,7 +30,11 @@ export function WorkflowsEmpty() {
         </EmptyDescription>
       </EmptyHeader>
       <EmptyContent>
-        <Button size='sm' nativeButton={false} render={<Link href={createHref} />}>
+        <Button
+          size='sm'
+          nativeButton={false}
+          render={<Link href={createHref} />}
+        >
           <PlusIcon />
           New workflow
         </Button>

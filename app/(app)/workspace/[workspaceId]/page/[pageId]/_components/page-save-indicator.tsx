@@ -11,7 +11,9 @@ export function PageSaveIndicator() {
 
   if (saveStatus === 'saving') {
     return (
-      <span className='text-muted-foreground flex items-center gap-1.5 p-2 text-xs'>
+      <span
+        className='text-muted-foreground flex items-center gap-1.5 p-2 text-xs'
+      >
         <Loader2Icon className='size-3.5 animate-spin' />
         Saving…
       </span>
@@ -28,7 +30,9 @@ export function PageSaveIndicator() {
   }
 
   return (
-    <span className='text-muted-foreground flex items-center gap-1.5 p-2 text-xs'>
+    <span
+      className='text-muted-foreground flex items-center gap-1.5 p-2 text-xs'
+    >
       <CheckIcon className='size-3.5' />
       Saved
     </span>

@@ -44,7 +44,6 @@ export async function FileTrail({ workspaceId, fileId }: FileTrailProps) {
       )
     : null;
 
-
   // Ancestor folders, then the file itself (always the last segment).
   const trail = [
     ...(folderPath ?? []).map((segment) => ({

@@ -37,7 +37,9 @@ export function NavMain({ items }: NavMainProps) {
             <SidebarMenuButton
               tooltip={item.title}
               isActive={
-                item.match ? item.match.includes(section) : pathname === item.url
+                item.match
+                  ? item.match.includes(section)
+                  : pathname === item.url
               }
               render={<Link href={item.url} />}
             >

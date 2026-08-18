@@ -33,7 +33,8 @@ export default async function PagesFolderBreadcrumbPage({
     return null;
   }
 
-  const folderHref = (id: string) => `/workspace/${workspaceId}/pages/folder/${id}`;
+  const folderHref = (id: string) =>
+    `/workspace/${workspaceId}/pages/folder/${id}`;
 
   const path = folderPath ?? [];
   const visible = path.slice(-MAX_VISIBLE_SEGMENTS);

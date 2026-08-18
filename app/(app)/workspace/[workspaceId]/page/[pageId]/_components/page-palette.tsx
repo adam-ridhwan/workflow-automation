@@ -31,8 +31,8 @@ export function PagePalette() {
           Components
         </span>
         <ChevronDownIcon
-          className='text-muted-foreground size-3.5 shrink-0 transition-transform
-            group-data-panel-open/palette:rotate-180'
+          className='text-muted-foreground size-3.5 shrink-0
+            transition-transform group-data-panel-open/palette:rotate-180'
         />
       </CollapsibleTrigger>
 

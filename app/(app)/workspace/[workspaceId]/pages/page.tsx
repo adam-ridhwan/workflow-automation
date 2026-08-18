@@ -8,8 +8,8 @@ import { PagesTable } from './_components/pages-table';
 import { sievePages } from './_lib/sieve-pages';
 
 import type { PagesSearchParams } from './_lib/sieve-pages';
-
 import type { Id } from '@/convex/_generated/dataModel';
+
 type PagesPageProps = {
   params: Promise<{ workspaceId: string }>;
   searchParams: Promise<PagesSearchParams>;

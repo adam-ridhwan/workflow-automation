@@ -19,7 +19,6 @@ type PageTrailProps = {
 /** The breadcrumb trail for a page — ancestor folders followed by the page
  * itself. */
 export async function PageTrail({ workspaceId, pageId }: PageTrailProps) {
-
   const token = await convexAuthNextjsToken();
   let page: Page | null = null;
   try {
@@ -44,7 +43,6 @@ export async function PageTrail({ workspaceId, pageId }: PageTrailProps) {
         { token }
       )
     : null;
-
 
   const trail = [
     ...(folderPath ?? []).map((segment) => ({

@@ -8,6 +8,7 @@ import { CollaboratorsMenu } from './collaborators-menu';
 import { SectionLabel } from './section-label';
 
 import type { Id } from '@/convex/_generated/dataModel';
+
 type SiteHeaderProps = {
   workspaceId: Id<'workspaces'>;
   /** Server-rendered folder/workflow trail from the @breadcrumb slot. */

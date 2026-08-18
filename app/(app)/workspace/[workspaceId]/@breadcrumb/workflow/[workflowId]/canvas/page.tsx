@@ -11,7 +11,5 @@ export default async function CanvasBreadcrumbPage({
 }: CanvasBreadcrumbPageProps) {
   const { workspaceId: workspaceIdParam, workflowId } = await params;
   const workspaceId = workspaceIdParam as Id<'workspaces'>;
-  return (
-    <WorkflowTrail workspaceId={workspaceId} workflowId={workflowId} />
-  );
+  return <WorkflowTrail workspaceId={workspaceId} workflowId={workflowId} />;
 }

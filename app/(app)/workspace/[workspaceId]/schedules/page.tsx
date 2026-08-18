@@ -6,8 +6,8 @@ import { SchedulesCalendar } from './_components/schedules-calendar';
 import { sieveSchedules } from './_lib/sieve-schedules';
 
 import type { SchedulesSearchParams } from './_lib/sieve-schedules';
-
 import type { Id } from '@/convex/_generated/dataModel';
+
 type SchedulesPageProps = {
   params: Promise<{ workspaceId: string }>;
   searchParams: Promise<SchedulesSearchParams>;

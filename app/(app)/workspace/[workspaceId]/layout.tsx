@@ -10,6 +10,7 @@ import { SiteHeader } from './_components/site-header';
 import { WorkspaceDndProvider } from './_components/workspace-dnd-provider';
 
 import type { Id } from '@/convex/_generated/dataModel';
+
 type WorkspaceLayoutProps = Readonly<{
   children: React.ReactNode;
   breadcrumb: React.ReactNode;

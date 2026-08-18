@@ -23,7 +23,6 @@ export async function WorkflowTrail({
   workspaceId,
   workflowId,
 }: WorkflowTrailProps) {
-
   const token = await convexAuthNextjsToken();
   let workflow: Workflow | null = null;
   try {
@@ -48,7 +47,6 @@ export async function WorkflowTrail({
         { token }
       )
     : null;
-
 
   // Deep trails collapse like Chrome's: keep the last two segments and tuck
   // the rest behind an ellipsis menu. The workflow is always the last

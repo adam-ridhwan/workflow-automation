@@ -24,7 +24,10 @@ type DeletePageDialogProps = {
   onOpenChange: (open: boolean) => void;
 };
 
-export function DeletePageDialog({ page, onOpenChange }: DeletePageDialogProps) {
+export function DeletePageDialog({
+  page,
+  onOpenChange,
+}: DeletePageDialogProps) {
   const { workspaceId } = useWorkspaceParams();
   const removePage = useMutation(api.pages.remove);
   const router = useRouter();

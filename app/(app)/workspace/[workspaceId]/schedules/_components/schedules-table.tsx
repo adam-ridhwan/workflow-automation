@@ -10,10 +10,7 @@ type SchedulesTableProps = {
   isFiltered: boolean;
 };
 
-export function SchedulesTable({
-  schedules,
-  isFiltered,
-}: SchedulesTableProps) {
+export function SchedulesTable({ schedules, isFiltered }: SchedulesTableProps) {
   return (
     <ResourceTable
       isFiltered={isFiltered}

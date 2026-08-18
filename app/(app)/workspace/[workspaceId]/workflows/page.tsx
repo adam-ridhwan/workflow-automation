@@ -8,8 +8,8 @@ import { WorkflowsTable } from './_components/workflows-table';
 import { sieveWorkflows } from './_lib/sieve-workflows';
 
 import type { WorkflowsSearchParams } from './_lib/sieve-workflows';
-
 import type { Id } from '@/convex/_generated/dataModel';
+
 type WorkflowsPageProps = {
   params: Promise<{ workspaceId: string }>;
   searchParams: Promise<WorkflowsSearchParams>;
@@ -25,11 +25,7 @@ export default async function WorkflowsPage({
 
   const token = await convexAuthNextjsToken();
   const [workflows, folders] = await Promise.all([
-    fetchQuery(
-      api.workflows.list,
-      { workspaceId: workspaceId },
-      { token }
-    ),
+    fetchQuery(api.workflows.list, { workspaceId: workspaceId }, { token }),
     fetchQuery(
       api.folders.list,
       { workspaceId: workspaceId, kind: 'workflow' },

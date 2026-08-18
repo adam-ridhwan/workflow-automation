@@ -61,7 +61,7 @@ onChange={(e) => setName(e.target.value)}
 function handleSubmit(e: React.FormEvent<HTMLFormElement>) {}
 ```
 
-- Only the *name* is banned. Longer identifiers (`DragStartEvent`,
+- Only the _name_ is banned. Longer identifiers (`DragStartEvent`,
   `activatorEvent`, `PointerEvent`) and `"event"` inside a data payload/string
   are untouched.
 

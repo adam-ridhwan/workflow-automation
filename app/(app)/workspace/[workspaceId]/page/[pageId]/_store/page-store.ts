@@ -188,7 +188,11 @@ export const usePageStore = create<PageBuilderState>((set, get) => ({
     set((state) => ({
       components: state.components.map((component) =>
         component.id === id
-          ? { ...component, x: Math.max(0, position.x), y: Math.max(0, position.y) }
+          ? {
+              ...component,
+              x: Math.max(0, position.x),
+              y: Math.max(0, position.y),
+            }
           : component
       ),
     }));

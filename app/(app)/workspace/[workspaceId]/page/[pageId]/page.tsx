@@ -27,11 +27,7 @@ export default async function PageDetailPage({ params }: PageDetailProps) {
       { workspaceId: workspaceId },
       { token }
     ),
-    fetchQuery(
-      api.pages.fileOptions,
-      { workspaceId: workspaceId },
-      { token }
-    ),
+    fetchQuery(api.pages.fileOptions, { workspaceId: workspaceId }, { token }),
   ]);
 
   if (page === null) {

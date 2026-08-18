@@ -1,4 +1,3 @@
-import type { Id } from '@/convex/_generated/dataModel';
 import {
   Sidebar,
   SidebarContent,
@@ -20,6 +19,8 @@ import {
 import { NavMain } from './nav-main';
 import { NavUser } from './nav-user';
 import { WorkspaceSwitcher } from './workspace-switcher';
+
+import type { Id } from '@/convex/_generated/dataModel';
 
 type AppSidebarProps = {
   workspaceId: Id<'workspaces'>;

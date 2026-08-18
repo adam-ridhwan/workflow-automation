@@ -1,7 +1,5 @@
 'use client';
 
-import type { Id } from '@/convex/_generated/dataModel';
-
 import { Button } from '@/components/ui/button';
 import {
   Empty,
@@ -14,6 +12,8 @@ import {
 import { SearchXIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+
+import type { Id } from '@/convex/_generated/dataModel';
 
 export default function WorkflowNotFound() {
   const params = useParams<{ workspaceId: Id<'workspaces'> }>();
@@ -33,9 +33,7 @@ export default function WorkflowNotFound() {
           variant='outline'
           size='sm'
           nativeButton={false}
-          render={
-            <Link href={`/workspace/${workspaceId}/workflows`} />
-          }
+          render={<Link href={`/workspace/${workspaceId}/workflows`} />}
         >
           Back to workflows
         </Button>

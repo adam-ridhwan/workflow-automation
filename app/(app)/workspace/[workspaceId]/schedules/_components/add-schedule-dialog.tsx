@@ -159,7 +159,8 @@ export function AddScheduleDialog({
             </Field>
           )}
 
-          {(builder.frequency === 'daily' || builder.frequency === 'weekly') && (
+          {(builder.frequency === 'daily' ||
+            builder.frequency === 'weekly') && (
             <Field>
               <FieldLabel>Time</FieldLabel>
               <Input
@@ -176,7 +177,9 @@ export function AddScheduleDialog({
             <Field>
               <FieldLabel>Day</FieldLabel>
               <Select
-                items={Object.fromEntries(WEEKDAYS.map((d, i) => [String(i), d]))}
+                items={Object.fromEntries(
+                  WEEKDAYS.map((d, i) => [String(i), d])
+                )}
                 value={String(builder.weekday)}
                 onValueChange={(value) => {
                   update({ weekday: Number(value) });
@@ -212,9 +215,7 @@ export function AddScheduleDialog({
             </Field>
           )}
 
-          {error && (
-            <p className='text-destructive text-sm'>{error}</p>
-          )}
+          {error && <p className='text-destructive text-sm'>{error}</p>}
 
           <DialogFooter>
             <Button
