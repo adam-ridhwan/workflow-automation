@@ -77,17 +77,14 @@ async function withRetry<T>(fn: () => Promise<T>, attempts: number) {
 /** Uploads one or more files, showing each file's progress inline in the list.
  * A row is created up front (`uploading`), transfer progress streams to it, and
  * files over `CHUNK_SIZE` are split into chunks — each uploaded (and retried) on
- * its own request, then reassembled server-side. Shared by the files header and
- * the empty state. */
-export function UploadButton({
-  folderId,
-  variant,
-  size = 'sm',
-  className = 'h-8',
-  children,
-}: UploadButtonProps) {
+ * its own request, then reassembled server-side.
+ *
+ * Returns a hidden file `input` element to render and an `open()` that triggers
+ * the native picker. The input is kept separate from any trigger so it can live
+ * outside a dropdown menu — a menu that unmounts on close would otherwise remove
+ * the input mid-pick and drop the upload. */
+export function useFileUpload(folderId?: Folder['_id']) {
   const { workspaceId } = useWorkspaceParams();
-  const canWrite = useCanWrite();
   const generateUploadUrl = useMutation(api.files.generateUploadUrl);
   const startUpload = useMutation(api.files.startUpload);
   const setUploadProgress = useMutation(api.files.setUploadProgress);
@@ -178,31 +175,52 @@ export function UploadButton({
     }
   }
 
+  const open = () => {
+    inputRef.current?.click();
+  };
+
+  const input = (
+    <input
+      ref={inputRef}
+      type='file'
+      multiple
+      className='hidden'
+      onChange={(e) => {
+        const { files } = e.target;
+        if (files && files.length > 0) {
+          uploadFiles(files);
+        }
+      }}
+    />
+  );
+
+  return { open, input };
+}
+
+/** Default upload trigger: a button that opens the native file picker. Shared by
+ * the files empty state. */
+export function UploadButton({
+  folderId,
+  variant,
+  size = 'sm',
+  className = 'h-8',
+  children,
+}: UploadButtonProps) {
+  const canWrite = useCanWrite();
+  const { open, input } = useFileUpload(folderId);
+
   if (!canWrite) {
     return null;
   }
 
   return (
     <>
-      <input
-        ref={inputRef}
-        type='file'
-        multiple
-        className='hidden'
-        onChange={(e) => {
-          const { files } = e.target;
-          if (files && files.length > 0) {
-            uploadFiles(files);
-          }
-        }}
-      />
+      {input}
       <Button
         variant={variant}
         size={size}
         className={className}
-        onClick={() => {
-          inputRef.current?.click();
-        }}
+        onClick={open}
       >
         <UploadIcon />
         {children ?? 'Upload'}

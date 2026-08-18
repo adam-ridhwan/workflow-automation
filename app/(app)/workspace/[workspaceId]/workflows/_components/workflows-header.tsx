@@ -2,7 +2,13 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { FolderPlusIcon, PlusIcon } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { ChevronDownIcon, FolderPlusIcon, PlusIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 
@@ -49,26 +55,29 @@ export function WorkflowsHeader() {
       trailing={
         canWrite && (
           <>
-            <Button
-              variant='outline'
-              size='sm'
-              className='h-8'
-              onClick={() => {
-                setShowNewFolderDialog(true);
-              }}
-            >
-              <FolderPlusIcon />
-              New folder
-            </Button>
-            <Button
-              size='sm'
-              className='h-8'
-              nativeButton={false}
-              render={<Link href={createHref} />}
-            >
-              <PlusIcon />
-              New workflow
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={<Button size='sm' className='h-8' />}
+              >
+                <PlusIcon />
+                New
+                <ChevronDownIcon className='size-3.5' />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align='end' className='w-40'>
+                <DropdownMenuItem
+                  onClick={() => {
+                    setShowNewFolderDialog(true);
+                  }}
+                >
+                  <FolderPlusIcon className='size-3' />
+                  New folder
+                </DropdownMenuItem>
+                <DropdownMenuItem render={<Link href={createHref} />}>
+                  <PlusIcon className='size-3' />
+                  New workflow
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             <NewFolderDialog
               kind='workflow'
