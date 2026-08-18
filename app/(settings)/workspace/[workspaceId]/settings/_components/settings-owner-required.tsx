@@ -12,26 +12,26 @@ import Link from 'next/link';
 
 import type { Id } from '@/convex/_generated/dataModel';
 
-type SettingsAdminRequiredProps = {
+type SettingsOwnerRequiredProps = {
   workspaceId: Id<'workspaces'>;
   workspaceName: string;
 };
 
-/** Shown on admin-only settings pages when the viewer isn't the workspace
- * admin. */
-export function SettingsAdminRequired({
+/** Shown on owner-only settings pages when the viewer isn't the workspace
+ * owner. */
+export function SettingsOwnerRequired({
   workspaceId,
   workspaceName,
-}: SettingsAdminRequiredProps) {
+}: SettingsOwnerRequiredProps) {
   return (
     <Empty>
       <EmptyHeader>
         <EmptyMedia variant='icon'>
           <LockIcon />
         </EmptyMedia>
-        <EmptyTitle>Admin access required</EmptyTitle>
+        <EmptyTitle>Owner access required</EmptyTitle>
         <EmptyDescription>
-          Only the workspace admin can manage settings for {workspaceName}.
+          Only the workspace owner can manage settings for {workspaceName}.
         </EmptyDescription>
       </EmptyHeader>
       <EmptyContent>

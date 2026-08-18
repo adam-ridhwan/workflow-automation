@@ -22,7 +22,7 @@ const workspaceValidator = v.object({
   _id: v.id('workspaces'),
   _creationTime: v.number(),
   name: v.string(),
-  adminId: v.id('users'),
+  ownerId: v.id('users'),
   imageId: v.optional(v.id('_storage')),
   imageUrl: v.union(v.null(), v.string()),
 });
@@ -34,11 +34,7 @@ const memberValidator = v.object({
   name: v.string(),
   email: v.string(),
   imageUrl: v.union(v.null(), v.string()),
-  role: v.union(
-    v.literal('admin'),
-    v.literal('editor'),
-    v.literal('viewer')
-  ),
+  role: v.union(v.literal('editor'), v.literal('viewer')),
 });
 
 export type WorkspaceMember = Infer<typeof memberValidator>;
@@ -88,7 +84,7 @@ export async function requireMember(
 }
 
 /** Throws unless the signed-in user is a member who can make changes
- * (admins and editors). Viewers get read-only access. */
+ * (editors and the owner). Viewers get read-only access. */
 export async function requireWriteAccess(
   ctx: QueryCtx | MutationCtx,
   workspaceId: Id<'workspaces'>
@@ -111,14 +107,15 @@ export const assertWriteAccessById = internalQuery({
   },
 });
 
-/** Throws unless the signed-in user is the admin of the workspace. */
-export async function requireAdmin(
+/** Throws unless the signed-in user is the owner of the workspace. */
+export async function requireOwner(
   ctx: QueryCtx | MutationCtx,
   workspaceId: Id<'workspaces'>
 ) {
   const membership = await requireMember(ctx, workspaceId);
-  if (membership.role !== 'admin') {
-    throw new ConvexError('Only the workspace admin can do this.');
+  const workspace = await ctx.db.get(workspaceId);
+  if (workspace === null || workspace.ownerId !== membership.userId) {
+    throw new ConvexError('Only the workspace owner can do this.');
   }
   return membership;
 }
@@ -165,12 +162,12 @@ export const create = mutation({
     // across accounts (or even the same account) are allowed.
     const workspaceId = await ctx.db.insert('workspaces', {
       name,
-      adminId: userId,
+      ownerId: userId,
     });
     await ctx.db.insert('workspaceMembers', {
       workspaceId,
       userId,
-      role: 'admin',
+      role: 'editor',
     });
     return workspaceId;
   },
@@ -260,7 +257,7 @@ export const addMember = mutation({
   },
   returns: v.null(),
   handler: async (ctx, args) => {
-    await requireAdmin(ctx, args.workspaceId);
+    await requireOwner(ctx, args.workspaceId);
 
     const email = args.email.trim();
     const user = await ctx.db
@@ -285,23 +282,19 @@ export const addMember = mutation({
   },
 });
 
-/** Admin-only: change an existing member's role. The workspace owner's role
- * can't be changed (so an admin can never lock themselves out). */
+/** Owner-only: change an existing member's role. The owner isn't a role, so
+ * their row can't be changed here (ownership moves via transferOwnership). */
 export const setMemberRole = mutation({
   args: {
     workspaceId: v.id('workspaces'),
     userId: v.id('users'),
-    role: v.union(
-      v.literal('admin'),
-      v.literal('editor'),
-      v.literal('viewer')
-    ),
+    role: v.union(v.literal('editor'), v.literal('viewer')),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
     const workspace = await getWorkspaceByIdOrThrow(ctx, args.workspaceId);
-    await requireAdmin(ctx, workspace._id);
-    if (args.userId === workspace.adminId) {
+    await requireOwner(ctx, workspace._id);
+    if (args.userId === workspace.ownerId) {
       throw new ConvexError("You can't change the workspace owner's role.");
     }
     const membership = await getMembership(ctx, workspace._id, args.userId);
@@ -313,15 +306,15 @@ export const setMemberRole = mutation({
   },
 });
 
-/** Admin-only: remove a member from the workspace. The owner can't be removed
+/** Owner-only: remove a member from the workspace. The owner can't be removed
  * (ownership must be transferred first). */
 export const removeMember = mutation({
   args: { workspaceId: v.id('workspaces'), userId: v.id('users') },
   returns: v.null(),
   handler: async (ctx, args) => {
     const workspace = await getWorkspaceByIdOrThrow(ctx, args.workspaceId);
-    await requireAdmin(ctx, workspace._id);
-    if (args.userId === workspace.adminId) {
+    await requireOwner(ctx, workspace._id);
+    if (args.userId === workspace.ownerId) {
       throw new ConvexError("You can't remove the workspace owner.");
     }
     const membership = await getMembership(ctx, workspace._id, args.userId);
@@ -341,7 +334,7 @@ export const leave = mutation({
   handler: async (ctx, args) => {
     const userId = await requireUserId(ctx);
     const workspace = await getWorkspaceByIdOrThrow(ctx, args.workspaceId);
-    if (userId === workspace.adminId) {
+    if (userId === workspace.ownerId) {
       throw new ConvexError(
         "The owner can't leave. Transfer ownership or delete the workspace."
       );
@@ -355,26 +348,26 @@ export const leave = mutation({
   },
 });
 
-/** Owner-only: hand the workspace to another member. The new owner is promoted
- * to admin; the outgoing owner keeps an admin role (but no longer owns it). */
+/** Owner-only: hand the workspace to another member. They become the owner; the
+ * new owner is given editor access so they can always make changes. */
 export const transferOwnership = mutation({
   args: { workspaceId: v.id('workspaces'), userId: v.id('users') },
   returns: v.null(),
   handler: async (ctx, args) => {
     const callerId = await requireUserId(ctx);
     const workspace = await getWorkspaceByIdOrThrow(ctx, args.workspaceId);
-    if (workspace.adminId !== callerId) {
+    if (workspace.ownerId !== callerId) {
       throw new ConvexError('Only the workspace owner can transfer ownership.');
     }
-    if (args.userId === workspace.adminId) {
+    if (args.userId === workspace.ownerId) {
       throw new ConvexError('This user is already the owner.');
     }
     const membership = await getMembership(ctx, workspace._id, args.userId);
     if (membership === null) {
       throw new ConvexError('This user is not a member of the workspace.');
     }
-    await ctx.db.patch(membership._id, { role: 'admin' });
-    await ctx.db.patch(workspace._id, { adminId: args.userId });
+    await ctx.db.patch(membership._id, { role: 'editor' });
+    await ctx.db.patch(workspace._id, { ownerId: args.userId });
     return null;
   },
 });
@@ -384,7 +377,7 @@ export const rename = mutation({
   returns: v.string(),
   handler: async (ctx, args) => {
     const workspace = await getWorkspaceByIdOrThrow(ctx, args.workspaceId);
-    await requireAdmin(ctx, workspace._id);
+    await requireOwner(ctx, workspace._id);
 
     const name = slugify(args.name);
     if (!validateWorkspaceName(name)) {
@@ -411,7 +404,7 @@ export const setLogo = mutation({
   returns: v.null(),
   handler: async (ctx, args) => {
     const workspace = await getWorkspaceByIdOrThrow(ctx, args.workspaceId);
-    await requireAdmin(ctx, workspace._id);
+    await requireOwner(ctx, workspace._id);
 
     if (workspace.imageId) {
       await ctx.storage.delete(workspace.imageId);
@@ -426,7 +419,7 @@ export const remove = mutation({
   returns: v.null(),
   handler: async (ctx, args) => {
     const workspace = await getWorkspaceByIdOrThrow(ctx, args.workspaceId);
-    await requireAdmin(ctx, workspace._id);
+    await requireOwner(ctx, workspace._id);
 
     // Remove memberships and the workspace doc now so it disappears from every
     // member's list immediately; everything else is purged in the background.

@@ -24,13 +24,13 @@ import type { Id } from '@/convex/_generated/dataModel';
 type DangerZoneProps = {
   workspaceId: Id<'workspaces'>;
   workspaceName: string;
-  isAdmin: boolean;
+  isOwner: boolean;
 };
 
 export function DangerZone({
   workspaceId,
   workspaceName,
-  isAdmin,
+  isOwner,
 }: DangerZoneProps) {
   const removeWorkspace = useMutation(api.workspaces.remove);
   const router = useRouter();
@@ -81,7 +81,7 @@ export function DangerZone({
                 type='button'
                 variant='destructive'
                 size='sm'
-                disabled={!isAdmin || deleting}
+                disabled={!isOwner || deleting}
               />
             }
           >

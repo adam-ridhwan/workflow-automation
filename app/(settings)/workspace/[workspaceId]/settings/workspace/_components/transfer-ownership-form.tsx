@@ -75,8 +75,8 @@ export function TransferOwnershipForm({
       <div className='flex flex-col gap-0.5'>
         <h2 className='text-sm font-semibold'>Transfer ownership</h2>
         <span className='text-muted-foreground text-[13px]'>
-          Hand this workspace to another member. They become the owner; you
-          stay an admin.
+          Hand this workspace to another member. They become the owner and you
+          become a regular editor.
         </span>
       </div>
 
@@ -125,8 +125,9 @@ export function TransferOwnershipForm({
               Make {selected?.name} the owner?
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {selected?.name} becomes the workspace owner. You&apos;ll stay an
-              admin but can no longer transfer ownership or delete the workspace.
+              {selected?.name} becomes the workspace owner. You&apos;ll become a
+              regular editor and can no longer transfer ownership or delete the
+              workspace.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

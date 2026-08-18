@@ -9,7 +9,7 @@ import {
 import {
   getMemberWorkspaceById,
   getWorkspaceByIdOrThrow,
-  requireAdmin,
+  requireOwner,
   requireUserId,
 } from './workspaces';
 
@@ -53,7 +53,7 @@ export const list = query({
   },
 });
 
-/** Creates or replaces a secret. Admin-only. The value is encrypted before it
+/** Creates or replaces a secret. Owner-only. The value is encrypted before it
  * touches the database; only its last 4 chars are kept in the clear. */
 export const set = mutation({
   args: {
@@ -64,7 +64,7 @@ export const set = mutation({
   returns: v.null(),
   handler: async (ctx, args) => {
     const workspace = await getWorkspaceByIdOrThrow(ctx, args.workspaceId);
-    await requireAdmin(ctx, workspace._id);
+    await requireOwner(ctx, workspace._id);
     const userId = await requireUserId(ctx);
 
     const name = args.name.trim();
@@ -112,13 +112,13 @@ export const set = mutation({
   },
 });
 
-/** Deletes a secret. Admin-only. */
+/** Deletes a secret. Owner-only. */
 export const remove = mutation({
   args: { workspaceId: v.id('workspaces'), name: v.string() },
   returns: v.null(),
   handler: async (ctx, args) => {
     const workspace = await getWorkspaceByIdOrThrow(ctx, args.workspaceId);
-    await requireAdmin(ctx, workspace._id);
+    await requireOwner(ctx, workspace._id);
     const existing = await ctx.db
       .query('workspaceSecrets')
       .withIndex('workspaceName', (q) =>

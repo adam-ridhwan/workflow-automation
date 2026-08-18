@@ -24,18 +24,14 @@ export default defineSchema({
 
   workspaces: defineTable({
     name: v.string(),
-    adminId: v.id('users'),
+    ownerId: v.id('users'),
     imageId: v.optional(v.id('_storage')),
-  }).index('adminId', ['adminId']),
+  }).index('ownerId', ['ownerId']),
 
   workspaceMembers: defineTable({
     workspaceId: v.id('workspaces'),
     userId: v.id('users'),
-    role: v.union(
-      v.literal('admin'),
-      v.literal('editor'),
-      v.literal('viewer')
-    ),
+    role: v.union(v.literal('editor'), v.literal('viewer')),
   })
     .index('workspaceId', ['workspaceId'])
     .index('userId', ['userId'])

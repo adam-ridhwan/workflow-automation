@@ -43,7 +43,9 @@ import { useMutation } from 'convex/react';
 import { ConvexError } from 'convex/values';
 import {
   ChevronDownIcon,
+  EyeIcon,
   LogOutIcon,
+  PencilIcon,
   PlusIcon,
   Trash2Icon,
 } from 'lucide-react';
@@ -58,7 +60,7 @@ import type { WorkspaceMember } from '@/convex/workspaces';
 type CollaboratorsMenuProps = {
   members: WorkspaceMember[];
   currentUserId: Id<'users'> | null;
-  adminId: Id<'users'> | null;
+  ownerId: Id<'users'> | null;
   workspaceName: string;
 };
 
@@ -66,8 +68,7 @@ const MAX_VISIBLE_AVATARS = 4;
 
 /** A destructive member action pending a confirmation dialog. */
 type PendingAction =
-  | { kind: 'remove'; userId: Id<'users'>; name: string }
-  | { kind: 'leave' };
+  { kind: 'remove'; userId: Id<'users'>; name: string } | { kind: 'leave' };
 
 /** Confirmation-dialog copy for a pending action, or null when none is open. */
 function pendingCopy(pending: PendingAction | null) {
@@ -84,7 +85,7 @@ function pendingCopy(pending: PendingAction | null) {
       return {
         title: 'Leave this workspace?',
         description:
-          "You'll lose access to this workspace. An admin will need to add you again.",
+          "You'll lose access to this workspace. An owner will need to add you again.",
         action: 'Leave',
         destructive: true,
       };
@@ -97,7 +98,7 @@ function pendingCopy(pending: PendingAction | null) {
 export function CollaboratorsMenu({
   members,
   currentUserId,
-  adminId,
+  ownerId,
   workspaceName,
 }: CollaboratorsMenuProps) {
   const { workspaceId } = useWorkspaceParams();
@@ -111,11 +112,11 @@ export function CollaboratorsMenu({
   const [busy, setBusy] = useState(false);
 
   // Only the workspace owner may change roles, and never the owner's own row.
-  const canManageRoles = currentUserId !== null && currentUserId === adminId;
+  const canManageRoles = currentUserId !== null && currentUserId === ownerId;
   // A non-owner member can remove themselves from the workspace.
   const canLeave =
     currentUserId !== null &&
-    currentUserId !== adminId &&
+    currentUserId !== ownerId &&
     members.some((member) => member.userId === currentUserId);
 
   const visibleMembers = members.slice(0, MAX_VISIBLE_AVATARS);
@@ -234,7 +235,7 @@ export function CollaboratorsMenu({
 
             <TableBody>
               {members.map((member) => {
-                const editable = canManageRoles && member.userId !== adminId;
+                const editable = canManageRoles && member.userId !== ownerId;
                 return (
                   <TableRow key={member.userId}>
                     <TableCell className='px-3.5 py-2.5'>
@@ -281,7 +282,7 @@ export function CollaboratorsMenu({
                             {member.role}
                             <ChevronDownIcon className='size-3 shrink-0' />
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align='start' className='w-60'>
+                          <DropdownMenuContent align='start'>
                             <DropdownMenuRadioGroup
                               value={member.role}
                               onValueChange={(value) => {
@@ -292,9 +293,11 @@ export function CollaboratorsMenu({
                               }}
                             >
                               <DropdownMenuRadioItem value='editor'>
+                                <PencilIcon className='size-3.5 shrink-0' />
                                 Editor
                               </DropdownMenuRadioItem>
                               <DropdownMenuRadioItem value='viewer'>
+                                <EyeIcon className='size-3.5 shrink-0' />
                                 Viewer
                               </DropdownMenuRadioItem>
                             </DropdownMenuRadioGroup>
@@ -312,13 +315,13 @@ export function CollaboratorsMenu({
                               }}
                             >
                               <Trash2Icon className='size-3.5 shrink-0' />
-                              Remove from workspace
+                              Remove
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       ) : (
                         <span className='text-muted-foreground capitalize'>
-                          {member.userId === adminId ? 'Owner' : member.role}
+                          {member.userId === ownerId ? 'Owner' : member.role}
                         </span>
                       )}
                     </TableCell>

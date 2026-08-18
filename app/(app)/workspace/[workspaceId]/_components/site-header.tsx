@@ -57,7 +57,7 @@ export async function SiteHeader({
         <CollaboratorsMenu
           members={members}
           currentUserId={currentUser?._id ?? null}
-          adminId={workspace?.adminId ?? null}
+          ownerId={workspace?.ownerId ?? null}
           workspaceName={workspace?.name ?? ''}
         />
       </div>

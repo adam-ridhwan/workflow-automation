@@ -14,13 +14,13 @@ import type { Id } from '@/convex/_generated/dataModel';
 type WorkspaceNameFormProps = {
   workspaceId: Id<'workspaces'>;
   workspaceName: string;
-  isAdmin: boolean;
+  isOwner: boolean;
 };
 
 export function WorkspaceNameForm({
   workspaceId,
   workspaceName,
-  isAdmin,
+  isOwner,
 }: WorkspaceNameFormProps) {
   const renameWorkspace = useMutation(api.workspaces.rename);
   const router = useRouter();
@@ -62,7 +62,7 @@ export function WorkspaceNameForm({
           name='name'
           type='text'
           defaultValue={workspaceName}
-          disabled={!isAdmin}
+          disabled={!isOwner}
           aria-invalid={error ? true : undefined}
           className='max-w-sm'
           required
@@ -80,7 +80,7 @@ export function WorkspaceNameForm({
         type='submit'
         size='sm'
         className='w-fit'
-        disabled={!isAdmin || saving}
+        disabled={!isOwner || saving}
       >
         {saving ? 'Saving…' : 'Save'}
       </Button>

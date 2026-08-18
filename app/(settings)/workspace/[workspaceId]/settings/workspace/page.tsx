@@ -4,7 +4,7 @@ import { convexAuthNextjsToken } from '@convex-dev/auth/nextjs/server';
 import { fetchQuery } from 'convex/nextjs';
 import { redirect } from 'next/navigation';
 
-import { SettingsAdminRequired } from '../_components/settings-admin-required';
+import { SettingsOwnerRequired } from '../_components/settings-owner-required';
 import { DangerZone } from './_components/danger-zone';
 import { TransferOwnershipForm } from './_components/transfer-ownership-form';
 import { WorkspaceLogoForm } from './_components/workspace-logo-form';
@@ -32,15 +32,15 @@ export default async function WorkspaceSettingsPage({
   if (workspace === null) {
     redirect('/');
   }
-  const isAdmin = user?._id === workspace.adminId;
+  const isOwner = user?._id === workspace.ownerId;
   // Everyone except the current owner is eligible to receive ownership.
   const transferCandidates = members.filter(
-    (member) => member.userId !== workspace.adminId
+    (member) => member.userId !== workspace.ownerId
   );
 
-  if (!isAdmin) {
+  if (!isOwner) {
     return (
-      <SettingsAdminRequired
+      <SettingsOwnerRequired
         workspaceId={workspace._id}
         workspaceName={workspace.name}
       />
@@ -59,14 +59,14 @@ export default async function WorkspaceSettingsPage({
       <WorkspaceNameForm
         workspaceId={workspace._id}
         workspaceName={workspace.name}
-        isAdmin={isAdmin}
+        isOwner={isOwner}
       />
 
       <WorkspaceLogoForm
         workspaceId={workspace._id}
         workspaceName={workspace.name}
         imageUrl={workspace.imageUrl}
-        isAdmin={isAdmin}
+        isOwner={isOwner}
       />
 
       <Separator />
@@ -81,7 +81,7 @@ export default async function WorkspaceSettingsPage({
       <DangerZone
         workspaceId={workspace._id}
         workspaceName={workspace.name}
-        isAdmin={isAdmin}
+        isOwner={isOwner}
       />
     </div>
   );

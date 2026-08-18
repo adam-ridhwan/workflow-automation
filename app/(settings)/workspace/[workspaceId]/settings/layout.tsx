@@ -35,7 +35,7 @@ export default async function SettingsLayout({
   }
 
   // Access is gated per page: personal (account) settings are open to every
-  // member, workspace settings require admin.
+  // member, workspace settings require the owner.
   return (
     <TooltipProvider>
       <SidebarProvider>

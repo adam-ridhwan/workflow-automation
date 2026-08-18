@@ -14,14 +14,14 @@ type WorkspaceLogoFormProps = {
   workspaceId: Id<'workspaces'>;
   workspaceName: string;
   imageUrl: string | null;
-  isAdmin: boolean;
+  isOwner: boolean;
 };
 
 export function WorkspaceLogoForm({
   workspaceId,
   workspaceName,
   imageUrl,
-  isAdmin,
+  isOwner,
 }: WorkspaceLogoFormProps) {
   const generateUploadUrl = useMutation(api.workspaces.generateLogoUploadUrl);
   const setLogo = useMutation(api.workspaces.setLogo);
@@ -76,7 +76,7 @@ export function WorkspaceLogoForm({
           type='button'
           variant='outline'
           size='sm'
-          disabled={!isAdmin || uploading}
+          disabled={!isOwner || uploading}
           onClick={() => {
             fileInputRef.current?.click();
           }}

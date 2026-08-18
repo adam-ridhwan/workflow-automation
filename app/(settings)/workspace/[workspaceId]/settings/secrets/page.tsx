@@ -3,7 +3,7 @@ import { convexAuthNextjsToken } from '@convex-dev/auth/nextjs/server';
 import { fetchQuery } from 'convex/nextjs';
 import { redirect } from 'next/navigation';
 
-import { SettingsAdminRequired } from '../_components/settings-admin-required';
+import { SettingsOwnerRequired } from '../_components/settings-owner-required';
 import { SecretsManager } from './_components/secrets-manager';
 
 import type { Id } from '@/convex/_generated/dataModel';
@@ -27,11 +27,11 @@ export default async function SecretsSettingsPage({
   if (workspace === null) {
     redirect('/');
   }
-  const isAdmin = user?._id === workspace.adminId;
+  const isOwner = user?._id === workspace.ownerId;
 
-  if (!isAdmin) {
+  if (!isOwner) {
     return (
-      <SettingsAdminRequired
+      <SettingsOwnerRequired
         workspaceId={workspace._id}
         workspaceName={workspace.name}
       />
