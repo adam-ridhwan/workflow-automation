@@ -36,7 +36,7 @@ const memberValidator = v.object({
   imageUrl: v.union(v.null(), v.string()),
   role: v.union(
     v.literal('admin'),
-    v.literal('collaborator'),
+    v.literal('editor'),
     v.literal('viewer')
   ),
 });
@@ -88,7 +88,7 @@ export async function requireMember(
 }
 
 /** Throws unless the signed-in user is a member who can make changes
- * (admins and collaborators). Viewers get read-only access. */
+ * (admins and editors). Viewers get read-only access. */
 export async function requireWriteAccess(
   ctx: QueryCtx | MutationCtx,
   workspaceId: Id<'workspaces'>
@@ -256,7 +256,7 @@ export const addMember = mutation({
   args: {
     workspaceId: v.id('workspaces'),
     email: v.string(),
-    role: v.optional(v.union(v.literal('collaborator'), v.literal('viewer'))),
+    role: v.optional(v.union(v.literal('editor'), v.literal('viewer'))),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
@@ -279,7 +279,7 @@ export const addMember = mutation({
     await ctx.db.insert('workspaceMembers', {
       workspaceId: args.workspaceId,
       userId: user._id,
-      role: args.role ?? 'collaborator',
+      role: args.role ?? 'editor',
     });
     return null;
   },
@@ -293,7 +293,7 @@ export const setMemberRole = mutation({
     userId: v.id('users'),
     role: v.union(
       v.literal('admin'),
-      v.literal('collaborator'),
+      v.literal('editor'),
       v.literal('viewer')
     ),
   },
@@ -309,6 +309,72 @@ export const setMemberRole = mutation({
       throw new ConvexError('This user is not a member of the workspace.');
     }
     await ctx.db.patch(membership._id, { role: args.role });
+    return null;
+  },
+});
+
+/** Admin-only: remove a member from the workspace. The owner can't be removed
+ * (ownership must be transferred first). */
+export const removeMember = mutation({
+  args: { workspaceId: v.id('workspaces'), userId: v.id('users') },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const workspace = await getWorkspaceByIdOrThrow(ctx, args.workspaceId);
+    await requireAdmin(ctx, workspace._id);
+    if (args.userId === workspace.adminId) {
+      throw new ConvexError("You can't remove the workspace owner.");
+    }
+    const membership = await getMembership(ctx, workspace._id, args.userId);
+    if (membership === null) {
+      throw new ConvexError('This user is not a member of the workspace.');
+    }
+    await ctx.db.delete(membership._id);
+    return null;
+  },
+});
+
+/** Remove yourself from a workspace. The owner can't leave — they must transfer
+ * ownership or delete the workspace instead. */
+export const leave = mutation({
+  args: { workspaceId: v.id('workspaces') },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const userId = await requireUserId(ctx);
+    const workspace = await getWorkspaceByIdOrThrow(ctx, args.workspaceId);
+    if (userId === workspace.adminId) {
+      throw new ConvexError(
+        "The owner can't leave. Transfer ownership or delete the workspace."
+      );
+    }
+    const membership = await getMembership(ctx, workspace._id, userId);
+    if (membership === null) {
+      throw new ConvexError('You are not a member of this workspace.');
+    }
+    await ctx.db.delete(membership._id);
+    return null;
+  },
+});
+
+/** Owner-only: hand the workspace to another member. The new owner is promoted
+ * to admin; the outgoing owner keeps an admin role (but no longer owns it). */
+export const transferOwnership = mutation({
+  args: { workspaceId: v.id('workspaces'), userId: v.id('users') },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const callerId = await requireUserId(ctx);
+    const workspace = await getWorkspaceByIdOrThrow(ctx, args.workspaceId);
+    if (workspace.adminId !== callerId) {
+      throw new ConvexError('Only the workspace owner can transfer ownership.');
+    }
+    if (args.userId === workspace.adminId) {
+      throw new ConvexError('This user is already the owner.');
+    }
+    const membership = await getMembership(ctx, workspace._id, args.userId);
+    if (membership === null) {
+      throw new ConvexError('This user is not a member of the workspace.');
+    }
+    await ctx.db.patch(membership._id, { role: 'admin' });
+    await ctx.db.patch(workspace._id, { adminId: args.userId });
     return null;
   },
 });

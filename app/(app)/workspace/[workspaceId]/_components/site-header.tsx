@@ -58,6 +58,7 @@ export async function SiteHeader({
           members={members}
           currentUserId={currentUser?._id ?? null}
           adminId={workspace?.adminId ?? null}
+          workspaceName={workspace?.name ?? ''}
         />
       </div>
     </header>

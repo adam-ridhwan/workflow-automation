@@ -5,7 +5,7 @@ import { useQuery } from 'convex/react';
 
 import { useWorkspaceParams } from './use-workspace-params';
 
-export type WorkspaceRole = 'admin' | 'collaborator' | 'viewer';
+export type WorkspaceRole = 'admin' | 'editor' | 'viewer';
 
 /** The signed-in user's role in the current workspace, or `undefined` while
  * loading. Derived by matching the current user against the member list (there
@@ -20,7 +20,7 @@ export function useWorkspaceRole(): WorkspaceRole | undefined {
   return members.find((member) => member.userId === me?._id)?.role;
 }
 
-/** Whether the current user can make changes (admins and collaborators).
+/** Whether the current user can make changes (admins and editors).
  * Viewers are read-only. Defaults to `true` while the role is still loading so
  * editors never see their controls flash away; the backend enforces the real
  * rule regardless. */

@@ -22,21 +22,26 @@ import { useWorkspaceParams } from '../_hooks/use-workspace-params';
 type AddMemberDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  workspaceName: string;
 };
 
-export function AddMemberDialog({ open, onOpenChange }: AddMemberDialogProps) {
+export function AddMemberDialog({
+  open,
+  onOpenChange,
+  workspaceName,
+}: AddMemberDialogProps) {
   const { workspaceId } = useWorkspaceParams();
   const addMember = useMutation(api.workspaces.addMember);
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [role, setRole] = useState<'collaborator' | 'viewer'>('collaborator');
+  const [role, setRole] = useState<'editor' | 'viewer'>('editor');
 
   function handleOpenChange(nextOpen: boolean) {
     if (!nextOpen) {
       setError(null);
       setSubmitting(false);
-      setRole('collaborator');
+      setRole('editor');
     }
     onOpenChange(nextOpen);
   }
@@ -70,7 +75,7 @@ export function AddMemberDialog({ open, onOpenChange }: AddMemberDialogProps) {
         <DialogHeader>
           <DialogTitle>Add member</DialogTitle>
           <DialogDescription>
-            Add a collaborator to {workspaceId} by email.
+            Add an editor to {workspaceName} by email.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className='flex flex-col gap-6'>
@@ -94,10 +99,10 @@ export function AddMemberDialog({ open, onOpenChange }: AddMemberDialogProps) {
             <div className='grid grid-cols-2 gap-2'>
               <Button
                 type='button'
-                variant={role === 'collaborator' ? 'default' : 'outline'}
-                onClick={() => setRole('collaborator')}
+                variant={role === 'editor' ? 'default' : 'outline'}
+                onClick={() => setRole('editor')}
               >
-                Collaborator
+                Editor
               </Button>
               <Button
                 type='button'
@@ -110,7 +115,7 @@ export function AddMemberDialog({ open, onOpenChange }: AddMemberDialogProps) {
             <FieldDescription>
               {role === 'viewer'
                 ? "Viewers can see everything but can't make changes."
-                : 'Collaborators can create, edit, and run.'}
+                : 'Editors can create, edit, and run.'}
             </FieldDescription>
           </Field>
           <DialogFooter>

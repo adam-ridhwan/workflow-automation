@@ -33,7 +33,7 @@ export default defineSchema({
     userId: v.id('users'),
     role: v.union(
       v.literal('admin'),
-      v.literal('collaborator'),
+      v.literal('editor'),
       v.literal('viewer')
     ),
   })
