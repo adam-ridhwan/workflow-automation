@@ -1,7 +1,7 @@
 import {
   BinaryIcon,
-  FileOutputIcon,
-  FileTextIcon,
+  FileInputIcon,
+  FilePlusCornerIcon,
   MonitorIcon,
   SaveIcon,
   SparklesIcon,
@@ -25,7 +25,7 @@ export const NODE_META: Record<
   },
   N_002: {
     label: 'File input',
-    icon: FileTextIcon,
+    icon: FileInputIcon,
     description: 'Read file contents',
   },
   N_003: {
@@ -65,7 +65,7 @@ export const NODE_META: Record<
   },
   N_011: {
     label: 'Create file',
-    icon: FileOutputIcon,
+    icon: FilePlusCornerIcon,
     description: 'Save the output to a file',
   },
 };

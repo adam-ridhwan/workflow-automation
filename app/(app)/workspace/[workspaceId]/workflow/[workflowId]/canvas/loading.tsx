@@ -1,3 +1,5 @@
-export default function WorkflowCanvasLoading() {
-  return <div className='bg-canvas relative min-h-0 flex-1 overflow-hidden' />;
+import { WorkflowCanvasLoading } from '../_components/workflow-canvas/workflow-canvas-loading';
+
+export default function WorkflowCanvasLoadingPage() {
+  return <WorkflowCanvasLoading />;
 }
