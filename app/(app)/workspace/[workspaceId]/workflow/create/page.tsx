@@ -46,9 +46,7 @@ export default function CreateWorkflowPage() {
   }
 
   function openCanvas(workflowId: string) {
-    router.replace(
-      `/workspace/${workspaceId}/workflow/${workflowId}/canvas`
-    );
+    router.replace(`/workspace/${workspaceId}/workflow/${workflowId}/canvas`);
   }
 
   async function pickTemplate(templateId: string) {

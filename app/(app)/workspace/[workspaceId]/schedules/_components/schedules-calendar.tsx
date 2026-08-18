@@ -11,9 +11,9 @@ import {
   subMonths,
 } from 'date-fns';
 
+import { computeOccurrences } from '../_lib/occurrences';
 import { ResourceTable } from '../../_components/resource-table';
 import { ResourceTableHeader } from '../../_components/resource-table-header';
-import { computeOccurrences } from '../_lib/occurrences';
 import { SchedulesOccurrenceRow } from './schedules-occurrence-row';
 
 import type { WorkflowScheduleWithWorkflow } from '@/convex/schedules';
@@ -52,15 +52,6 @@ export function SchedulesCalendar({ schedules }: SchedulesCalendarProps) {
   return (
     <div className='flex min-h-0 flex-1'>
       <div className='flex shrink-0 flex-col border-r'>
-        <h3 className='border-b px-4 py-3 text-center text-sm font-semibold tracking-tight'>
-          {selected
-            ? selected.toLocaleDateString(undefined, {
-                weekday: 'long',
-                month: 'long',
-                day: 'numeric',
-              })
-            : 'Select a day'}
-        </h3>
         <div className='p-4'>
           <Calendar
             className='p-0'
