@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 
+import { DeleteFolderDialog } from '../../_components/delete-folder-dialog';
+import { FolderRow } from '../../_components/folder-row';
 import { ResourceTable } from '../../_components/resource-table';
 import { DeletePageDialog } from './delete-page-dialog';
 import { PagesTableRow } from './pages-table-row';
@@ -21,17 +23,26 @@ export function PagesTable({
   isFiltered,
 }: PagesTableProps) {
   const [deleteTarget, setDeleteTarget] = useState<Page | null>(null);
+  const [folderDeleteTarget, setFolderDeleteTarget] = useState<Folder | null>(
+    null
+  );
 
   return (
     <>
       <ResourceTable
-        folders={folders}
-        itemCount={pages.length}
-        itemNoun='page'
-        itemNounPlural='pages'
         isFiltered={isFiltered}
+        isEmpty={folders.length === 0 && pages.length === 0}
         emptyMessage='No pages yet. Create your first one.'
       >
+        {folders.map((folder) => (
+          <FolderRow
+            key={folder._id}
+            folder={folder}
+            onDelete={() => {
+              setFolderDeleteTarget(folder);
+            }}
+          />
+        ))}
         {pages.map((page) => (
           <PagesTableRow
             key={page._id}
@@ -48,6 +59,15 @@ export function PagesTable({
         onOpenChange={(open) => {
           if (!open) {
             setDeleteTarget(null);
+          }
+        }}
+      />
+
+      <DeleteFolderDialog
+        folder={folderDeleteTarget}
+        onOpenChange={(open) => {
+          if (!open) {
+            setFolderDeleteTarget(null);
           }
         }}
       />

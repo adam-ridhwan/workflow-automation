@@ -86,11 +86,8 @@ export function SchedulesCalendar({ schedules }: SchedulesCalendarProps) {
         </Table>
 
         <ResourceTable
-          folders={[]}
-          itemCount={selectedOccurrences.length}
-          itemNoun='run'
-          itemNounPlural='runs'
           isFiltered={false}
+          isEmpty={selectedOccurrences.length === 0}
           emptyMessage='No scheduled runs this day.'
         >
           {selectedOccurrences.map((occurrence, index) => (

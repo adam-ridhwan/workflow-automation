@@ -2,7 +2,7 @@ import { WorkflowIcon } from 'lucide-react';
 
 import { CreateWorkspaceForm } from './_components/create-workspace-form';
 
-export default function CreateWorkspacePage() {
+export default async function CreateWorkspacePage() {
   return (
     <div
       className='bg-muted flex min-h-svh flex-col items-center justify-center

@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { api } from '@/convex/_generated/api';
 import { useQuery } from 'convex/react';
 
+import { DeleteFolderDialog } from '../../_components/delete-folder-dialog';
+import { FolderRow } from '../../_components/folder-row';
 import { ResourceTable } from '../../_components/resource-table';
 import { useWorkspaceParams } from '../../_hooks/use-workspace-params';
 import { DeleteWorkflowDialog } from './delete-workflow-dialog';
@@ -24,19 +26,28 @@ export function WorkflowsTable({
   isFiltered,
 }: WorkflowsTableProps) {
   const [deleteTarget, setDeleteTarget] = useState<Workflow | null>(null);
+  const [folderDeleteTarget, setFolderDeleteTarget] = useState<Folder | null>(
+    null
+  );
   const { workspaceId } = useWorkspaceParams();
   const phases = useQuery(api.runs.phasesByWorkspace, { workspaceId });
 
   return (
     <>
       <ResourceTable
-        folders={folders}
-        itemCount={workflows.length}
-        itemNoun='workflow'
-        itemNounPlural='workflows'
         isFiltered={isFiltered}
+        isEmpty={folders.length === 0 && workflows.length === 0}
         emptyMessage='No workflows yet. Create your first one.'
       >
+        {folders.map((folder) => (
+          <FolderRow
+            key={folder._id}
+            folder={folder}
+            onDelete={() => {
+              setFolderDeleteTarget(folder);
+            }}
+          />
+        ))}
         {workflows.map((workflow) => (
           <WorkflowsTableRow
             key={workflow._id}
@@ -54,6 +65,15 @@ export function WorkflowsTable({
         onOpenChange={(open) => {
           if (!open) {
             setDeleteTarget(null);
+          }
+        }}
+      />
+
+      <DeleteFolderDialog
+        folder={folderDeleteTarget}
+        onOpenChange={(open) => {
+          if (!open) {
+            setFolderDeleteTarget(null);
           }
         }}
       />

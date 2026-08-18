@@ -16,11 +16,8 @@ export function SchedulesTable({
 }: SchedulesTableProps) {
   return (
     <ResourceTable
-      folders={[]}
-      itemCount={schedules.length}
-      itemNoun='schedule'
-      itemNounPlural='schedules'
       isFiltered={isFiltered}
+      isEmpty={schedules.length === 0}
       emptyMessage='No schedules yet. Add one to run a workflow automatically.'
     >
       {schedules.map((schedule) => (
