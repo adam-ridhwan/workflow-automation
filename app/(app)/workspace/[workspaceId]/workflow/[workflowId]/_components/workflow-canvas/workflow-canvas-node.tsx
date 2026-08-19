@@ -39,6 +39,7 @@ export function WorkflowCanvasNode({
   const nodeSpec = findNodeSpec(data.node_uid);
   const hasInPort = (nodeSpec?.node_requirement.max_in_edges ?? 1) > 0;
   const hasOutPort = (nodeSpec?.node_requirement.max_out_edges ?? 1) > 0;
+  const isBranch = nodeSpec?.node_info.node_type === 'BRANCH';
 
   // Live edge counts for this node, so a missing required connection surfaces
   // as a warning the same way an unresolved argument does.
@@ -77,8 +78,11 @@ export function WorkflowCanvasNode({
       )}
 
       <div
-        className='group/header flex h-14 shrink-0 flex-row items-center gap-2.5
-          px-3'
+        className={cn(
+          'group/header flex h-14 shrink-0 flex-row items-center gap-2.5 px-3',
+          // Reserve room on the right for the branch node's inline port labels.
+          isBranch && 'pr-12'
+        )}
       >
         <div
           className='bg-muted flex size-8 shrink-0 items-center justify-center
@@ -126,8 +130,39 @@ export function WorkflowCanvasNode({
         </div>
       </div>
 
-      {hasOutPort && (
-        <WorkflowCanvasPort type='source' position={Position.Right} />
+      {isBranch ? (
+        <>
+          <WorkflowCanvasPort
+            type='source'
+            position={Position.Right}
+            id='true'
+            style={{ top: '32%' }}
+          />
+          <span
+            className='pointer-events-none absolute top-[32%] right-3
+              -translate-y-1/2 text-[10px] font-medium text-emerald-600
+              dark:text-emerald-400'
+          >
+            True
+          </span>
+          <WorkflowCanvasPort
+            type='source'
+            position={Position.Right}
+            id='false'
+            style={{ top: '68%' }}
+          />
+          <span
+            className='pointer-events-none absolute top-[68%] right-3
+              -translate-y-1/2 text-[10px] font-medium text-red-600
+              dark:text-red-400'
+          >
+            False
+          </span>
+        </>
+      ) : (
+        hasOutPort && (
+          <WorkflowCanvasPort type='source' position={Position.Right} />
+        )
       )}
     </Card>
   );

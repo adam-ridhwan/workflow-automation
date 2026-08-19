@@ -1,4 +1,9 @@
-import { CircleArrowRightIcon, CpuIcon, SendIcon } from 'lucide-react';
+import {
+  CircleArrowRightIcon,
+  CpuIcon,
+  SendIcon,
+  SplitIcon,
+} from 'lucide-react';
 
 import type { NodeGroup } from '@/lib/node-specs';
 import type { LucideIcon } from 'lucide-react';
@@ -10,5 +15,6 @@ export const NODE_GROUP_META: Record<
 > = {
   INPUT: { label: 'Input', icon: CircleArrowRightIcon },
   MODEL: { label: 'Model', icon: CpuIcon },
+  LOGIC: { label: 'Logic', icon: SplitIcon },
   OUTPUT: { label: 'Output', icon: SendIcon },
 };

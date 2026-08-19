@@ -96,6 +96,7 @@ export function canConnect(
   connection: Connection | Edge
 ): boolean {
   const { source, target } = connection;
+  const sourceHandle = connection.sourceHandle ?? undefined;
   if (!source || !target || source === target) {
     return false;
   }
@@ -113,8 +114,16 @@ export function canConnect(
     return true;
   }
 
-  // No duplicate edge between the same two nodes.
-  if (edges.some((edge) => edge.source === source && edge.target === target)) {
+  // No duplicate edge from the same port to the same target (a branch node may
+  // still connect its 'true' and 'false' ports to the same node).
+  if (
+    edges.some(
+      (edge) =>
+        edge.source === source &&
+        edge.target === target &&
+        (edge.sourceHandle ?? undefined) === sourceHandle
+    )
+  ) {
     return false;
   }
 

@@ -260,6 +260,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
       data: {
         source: connection.source,
         target: connection.target,
+        sourceHandle: connection.sourceHandle ?? undefined,
         arguments: {},
       },
     };

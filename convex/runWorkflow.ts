@@ -643,6 +643,40 @@ type NodeInput = {
   output: string;
 };
 
+/** Evaluates a BRANCH node's condition against its incoming text, returning
+ * which output port ('true' / 'false') the run should follow. */
+function evaluateBranch(
+  node: WorkflowNodeData,
+  input: string
+): 'true' | 'false' {
+  const operator = String(getArgumentValue(node, 'operator') ?? 'contains');
+  const value = String(getArgumentValue(node, 'value') ?? '');
+  let result: boolean;
+  switch (operator) {
+    case 'contains':
+      result = input.includes(value);
+      break;
+    case 'equals':
+      result = input.trim() === value.trim();
+      break;
+    case 'not equals':
+      result = input.trim() !== value.trim();
+      break;
+    case 'is empty':
+      result = input.trim() === '';
+      break;
+    case 'greater than':
+      result = Number(input) > Number(value);
+      break;
+    case 'less than':
+      result = Number(input) < Number(value);
+      break;
+    default:
+      result = false;
+  }
+  return result ? 'true' : 'false';
+}
+
 async function executeCanvas(
   canvas: WorkflowCanvasData,
   setNodeStatus: (
@@ -662,19 +696,24 @@ async function executeCanvas(
   const nodes = Object.values(canvas.nodes);
   const edges = canvas.edges;
 
-  const parents = new Map<string, string[]>(
-    nodes.map((node) => [node.node_id, []])
-  );
   const children = new Map<string, string[]>(
     nodes.map((node) => [node.node_id, []])
   );
   const indegree = new Map<string, number>(
     nodes.map((node) => [node.node_id, 0])
   );
+  // Incoming edges per node, keeping each edge's source handle so branch
+  // routing can tell the 'true' port from the 'false' port.
+  const edgesByTarget = new Map<
+    string,
+    { source: string; sourceHandle?: string }[]
+  >(nodes.map((node) => [node.node_id, []]));
   for (const edge of edges) {
-    parents.get(edge.target)?.push(edge.source);
     children.get(edge.source)?.push(edge.target);
     indegree.set(edge.target, (indegree.get(edge.target) ?? 0) + 1);
+    edgesByTarget
+      .get(edge.target)
+      ?.push({ source: edge.source, sourceHandle: edge.sourceHandle });
   }
 
   // Kahn's algorithm; nodes on a cycle never reach the queue and are skipped.
@@ -698,16 +737,47 @@ async function executeCanvas(
   }
 
   const outputs: Record<string, string> = {};
+  // Nodes on the non-taken side of a branch (or downstream of one) are never
+  // run — they stay idle on the canvas. `branchTaken` records which port each
+  // branch selected so downstream edges know which are live.
+  const skipped = new Set<string>();
+  const branchTaken = new Map<string, 'true' | 'false'>();
+  const isEdgeDead = (edge: { source: string; sourceHandle?: string }) => {
+    if (skipped.has(edge.source)) {
+      return true;
+    }
+    const src = byId.get(edge.source);
+    if (src && findNodeSpec(src.node_uid)?.node_info.node_type === 'BRANCH') {
+      const taken = branchTaken.get(edge.source);
+      if (taken !== undefined) {
+        const handle = edge.sourceHandle === 'false' ? 'false' : 'true';
+        return handle !== taken;
+      }
+    }
+    return false;
+  };
+
   for (const node of order) {
     if (await checkStop()) {
       throw new StopError();
     }
 
+    const incoming = edgesByTarget.get(node.node_id) ?? [];
+    // If every incoming edge is dead the node belongs to a pruned branch: skip
+    // it entirely (no status, so it reads as untouched). Nodes with no inputs,
+    // and join nodes that still have one live path, always run.
+    if (incoming.length > 0 && incoming.every(isEdgeDead)) {
+      skipped.add(node.node_id);
+      continue;
+    }
+
     // Each wired-in node's output as a labeled entry, grouped by node type, so a
     // consumer (the LLM node) can pull one source at a time — e.g. the
-    // TEXT_INPUT value on its own instead of every parent jammed together.
-    const inputEntries: NodeInput[] = (parents.get(node.node_id) ?? [])
-      .map((parentId) => byId.get(parentId))
+    // TEXT_INPUT value on its own instead of every parent jammed together. Only
+    // live edges (not from a skipped node or a non-taken branch port) count.
+    const inputEntries: NodeInput[] = incoming
+      .filter((edge) => !isEdgeDead(edge))
+      .map((edge) => byId.get(edge.source))
       .filter((parent): parent is WorkflowNodeData => parent !== undefined)
       .map((parent) => ({
         nodeId: parent.node_id,
@@ -774,6 +844,13 @@ async function executeCanvas(
             'output.txt';
           await writeFile(filename, input);
           output = `Saved "${filename}"`;
+          break;
+        }
+
+        case 'BRANCH': {
+          const taken = evaluateBranch(node, input);
+          branchTaken.set(node.node_id, taken);
+          output = input;
           break;
         }
 

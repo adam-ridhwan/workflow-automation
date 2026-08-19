@@ -5,6 +5,7 @@ import {
   MonitorIcon,
   SaveIcon,
   SparklesIcon,
+  SplitIcon,
   TagsIcon,
   TerminalIcon,
   TextCursorInputIcon,
@@ -67,5 +68,10 @@ export const NODE_META: Record<
     label: 'Create file',
     icon: FilePlusCornerIcon,
     description: 'Save the output to a file',
+  },
+  N_012: {
+    label: 'Branch',
+    icon: SplitIcon,
+    description: 'Route by a condition',
   },
 };

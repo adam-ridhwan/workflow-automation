@@ -13,6 +13,7 @@ import { NodePaletteItem } from './node-palette-item';
 const GROUP_LABELS: Record<string, string> = {
   INPUT: 'Input',
   MODEL: 'Model',
+  LOGIC: 'Logic',
   OUTPUT: 'Output',
 };
 

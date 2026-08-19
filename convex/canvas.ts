@@ -22,6 +22,7 @@ export const workflowNodeValidator = v.object({
 export const workflowEdgeValidator = v.object({
   source: v.string(),
   target: v.string(),
+  sourceHandle: v.optional(v.string()),
   arguments: v.record(v.string(), v.any()),
 });
 

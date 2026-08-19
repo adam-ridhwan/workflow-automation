@@ -33,13 +33,17 @@ export function toFlowEdges(
   canvas: WorkflowCanvasData
 ): Edge<WorkflowEdgeData>[] {
   return canvas.edges.map((edge) => ({
-    id: `${edge.source}->${edge.target}`,
+    // The handle is part of the id so two edges leaving different ports of the
+    // same node to the same target don't collide.
+    id: `${edge.source}:${edge.sourceHandle ?? ''}->${edge.target}`,
     type: WORKFLOW_EDGE,
     source: edge.source,
     target: edge.target,
+    sourceHandle: edge.sourceHandle,
     data: {
       source: edge.source,
       target: edge.target,
+      sourceHandle: edge.sourceHandle,
       arguments: edge.arguments,
     },
   }));
@@ -60,7 +64,12 @@ export function toCanvasData(
     ),
     edges: edges.map(
       (edge) =>
-        edge.data ?? { source: edge.source, target: edge.target, arguments: {} }
+        edge.data ?? {
+          source: edge.source,
+          target: edge.target,
+          sourceHandle: edge.sourceHandle ?? undefined,
+          arguments: {},
+        }
     ),
     version,
   };
