@@ -677,6 +677,82 @@ function evaluateBranch(
   return result ? 'true' : 'false';
 }
 
+// Cap an HTTP response so a huge body can't blow up a run's memory or a
+// downstream model's context.
+const MAX_HTTP_RESPONSE_CHARS = 200_000;
+
+/** Runs an HTTP_REQUEST node: makes the configured request (with `{{input}}`
+ * substituted from the upstream text) and returns the response body. Throws a
+ * ConvexError on a bad config, network failure, or non-2xx status. */
+async function runHttpNode(
+  node: WorkflowNodeData,
+  input: string
+): Promise<string> {
+  const substitute = (text: string) => text.replaceAll('{{input}}', input);
+  const method = String(
+    getArgumentValue(node, 'method') ?? 'GET'
+  ).toUpperCase();
+
+  const url = substitute(String(getArgumentValue(node, 'url') ?? '')).trim();
+  if (url === '') {
+    throw new ConvexError('HTTP request node: a URL is required.');
+  }
+
+  let headers: Record<string, string> | undefined;
+  const headersRaw = substitute(
+    String(getArgumentValue(node, 'headers') ?? '')
+  ).trim();
+  if (headersRaw !== '') {
+    try {
+      const parsed: unknown = JSON.parse(headersRaw);
+      if (
+        parsed === null ||
+        typeof parsed !== 'object' ||
+        Array.isArray(parsed)
+      ) {
+        throw new Error('not an object');
+      }
+      headers = Object.fromEntries(
+        Object.entries(parsed).map(([key, value]) => [key, String(value)])
+      );
+    } catch {
+      throw new ConvexError(
+        'HTTP request node: Headers must be a JSON object.'
+      );
+    }
+  }
+
+  // GET/HEAD carry no body; otherwise send the body field, falling back to the
+  // upstream text when the field is left empty.
+  const hasBody = method !== 'GET' && method !== 'HEAD';
+  const bodyArg = substitute(String(getArgumentValue(node, 'body') ?? ''));
+  let body: string | undefined;
+  if (hasBody) {
+    body = bodyArg !== '' ? bodyArg : input;
+  }
+
+  let response: Response;
+  try {
+    response = await fetch(url, { method, headers, body });
+  } catch (error) {
+    throw new ConvexError(
+      `HTTP request failed: ${error instanceof Error ? error.message : 'network error'}`
+    );
+  }
+
+  const text = await response.text();
+  const capped =
+    text.length > MAX_HTTP_RESPONSE_CHARS
+      ? text.slice(0, MAX_HTTP_RESPONSE_CHARS)
+      : text;
+  if (!response.ok) {
+    throw new ConvexError(
+      `HTTP ${response.status} ${response.statusText}: ${capped.slice(0, 500)}`
+    );
+  }
+  return capped;
+}
+
 async function executeCanvas(
   canvas: WorkflowCanvasData,
   setNodeStatus: (
@@ -836,6 +912,10 @@ async function executeCanvas(
 
         case 'LLM':
           output = await runLlmNode(node, inputsByType, getSecret);
+          break;
+
+        case 'HTTP_REQUEST':
+          output = await runHttpNode(node, input);
           break;
 
         case 'CREATE_FILE': {

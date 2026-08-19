@@ -2,6 +2,7 @@ import {
   BinaryIcon,
   FileInputIcon,
   FilePlusCornerIcon,
+  GlobeIcon,
   MonitorIcon,
   SaveIcon,
   SparklesIcon,
@@ -73,5 +74,10 @@ export const NODE_META: Record<
     label: 'Branch',
     icon: SplitIcon,
     description: 'Route by a condition',
+  },
+  N_013: {
+    label: 'HTTP request',
+    icon: GlobeIcon,
+    description: 'Call an external API',
   },
 };
