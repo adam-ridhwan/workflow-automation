@@ -914,6 +914,10 @@ async function executeCanvas(
           output = await runLlmNode(node, inputsByType, getSecret);
           break;
 
+        case 'MAP':
+          output = await runMapNode(node, input, getSecret);
+          break;
+
         case 'HTTP_REQUEST':
           output = await runHttpNode(node, input);
           break;
@@ -999,6 +1003,23 @@ async function runLlmNode(
   const model = String(getArgumentValue(node, 'model') ?? '');
   const maxTokens = Number(getArgumentValue(node, 'max_tokens')) || 1024;
 
+  return callLlm({ provider, model, system, content, maxTokens }, getSecret);
+}
+
+/** Calls the configured LLM provider with a ready-made prompt and returns its
+ * text. Shared by the LLM node and the Map node. */
+async function callLlm(
+  opts: {
+    provider: string;
+    model: string;
+    system: string;
+    content: string;
+    maxTokens: number;
+  },
+  getSecret: (name: string) => Promise<string | undefined>
+): Promise<string> {
+  const { provider, model, system, content, maxTokens } = opts;
+
   if (provider === 'openai') {
     const apiKey = await getSecret('OPENAI_API_KEY');
     if (!apiKey) {
@@ -1042,4 +1063,70 @@ async function runLlmNode(
     .filter((block) => block.type === 'text')
     .map((block) => block.text)
     .join('');
+}
+
+// Cap iterations so a giant list can't fire an unbounded number of LLM calls in
+// a single run.
+const MAX_MAP_ITEMS = 50;
+
+/** Splits input into list items: a JSON array if it parses as one, otherwise
+ * the non-empty lines. */
+function parseListItems(input: string): string[] {
+  const trimmed = input.trim();
+  if (trimmed.startsWith('[')) {
+    try {
+      const parsed: unknown = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) {
+        return parsed.map((el) =>
+          typeof el === 'string' ? el : JSON.stringify(el)
+        );
+      }
+    } catch {
+      // Not JSON — fall through to line splitting.
+    }
+  }
+  if (trimmed === '') {
+    return [];
+  }
+  return trimmed
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line !== '');
+}
+
+/** Runs a MAP node: applies the LLM prompt (with `{{item}}`) to each item of the
+ * input list and returns the per-item results joined by newlines. */
+async function runMapNode(
+  node: WorkflowNodeData,
+  input: string,
+  getSecret: (name: string) => Promise<string | undefined>
+): Promise<string> {
+  const items = parseListItems(input);
+  if (items.length > MAX_MAP_ITEMS) {
+    throw new ConvexError(
+      `Map node: the list has ${items.length} items but the limit is ${MAX_MAP_ITEMS}.`
+    );
+  }
+
+  const provider = String(getArgumentValue(node, 'provider') ?? 'anthropic');
+  const model = String(getArgumentValue(node, 'model') ?? '');
+  const system = String(getArgumentValue(node, 'system') ?? '');
+  const maxTokens = Number(getArgumentValue(node, 'max_tokens')) || 1024;
+  const template = String(getArgumentValue(node, 'prompt') ?? '');
+
+  const results: string[] = [];
+  for (const item of items) {
+    let content: string;
+    if (template.includes('{{item}}')) {
+      content = template.split('{{item}}').join(item);
+    } else if (template) {
+      content = `${template}\n\n${item}`;
+    } else {
+      content = item;
+    }
+    results.push(
+      await callLlm({ provider, model, system, content, maxTokens }, getSecret)
+    );
+  }
+  return results.join('\n');
 }

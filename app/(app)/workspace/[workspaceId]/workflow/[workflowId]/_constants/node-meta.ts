@@ -4,6 +4,7 @@ import {
   FilePlusCornerIcon,
   GlobeIcon,
   MonitorIcon,
+  RepeatIcon,
   SaveIcon,
   SparklesIcon,
   SplitIcon,
@@ -39,6 +40,11 @@ export const NODE_META: Record<
     label: 'LLM',
     icon: SparklesIcon,
     description: 'Generate text with a model',
+  },
+  N_014: {
+    label: 'Map (LLM)',
+    icon: RepeatIcon,
+    description: 'Run a prompt on each list item',
   },
   N_006: {
     label: 'Embedding',
